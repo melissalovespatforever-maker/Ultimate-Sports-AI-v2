@@ -10,9 +10,12 @@ console.log('🚀 Ultimate Sports AI v4.0 - Clean Build');
 // ============================================
 
 const CONFIG = {
+    // Backend API URL - UPDATE THIS if your Railway URL is different
     API_BASE_URL: 'https://ultimate-sports-ai-production.up.railway.app',
+    // For local development: API_BASE_URL: 'http://localhost:3001',
+    
     WS_URL: 'wss://ultimate-sports-ai-production.up.railway.app',
-    PAYPAL_CLIENT_ID: 'YOUR_PAYPAL_CLIENT_ID', // Set in Railway env
+    PAYPAL_CLIENT_ID: 'YOUR_PAYPAL_CLIENT_ID',
     VERSION: '4.0.0'
 };
 
@@ -699,6 +702,23 @@ async function initApp() {
         console.error('OAuth callback error:', error);
     }
 
+    // Verify all modules are loaded
+    const modulesReady = {
+        liveScoresManager: typeof liveScoresManager !== 'undefined',
+        subscriptionManager: typeof subscriptionManager !== 'undefined',
+        authFormHandler: typeof authFormHandler !== 'undefined',
+        profileManager: typeof profileManager !== 'undefined'
+    };
+
+    console.log('📦 Module Status:', modulesReady);
+    
+    // Warn if modules are missing
+    Object.entries(modulesReady).forEach(([name, ready]) => {
+        if (!ready) {
+            console.warn(`⚠️ ${name} not loaded - check script tags in index.html`);
+        }
+    });
+
     // Hide loader after short delay - ALWAYS hide
     setTimeout(() => {
         const loader = document.getElementById('app-loader');
@@ -711,12 +731,13 @@ async function initApp() {
                 }
             }, 500);
         }
-    }, 500); // Reduced from 800 to 500ms
+    }, 500);
 
     // Initial UI update
     updateUI();
 
     console.log('✅ App initialized successfully');
+    console.log('🎯 All systems ready. Current page:', navigation.currentPage);
 }
 
 // Start app when DOM is ready
