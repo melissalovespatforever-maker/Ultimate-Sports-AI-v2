@@ -211,7 +211,18 @@ class ProfileManager {
     }
 }
 
-// Initialize profile manager
-const profileManager = new ProfileManager();
+// Defer initialization until appState is ready
+let profileManager;
+function initProfileManager() {
+    if (!profileManager && typeof appState !== 'undefined') {
+        profileManager = new ProfileManager();
+        console.log('✅ Profile Manager initialized');
+    }
+}
+
+// Try to initialize, will be called by app.js if needed
+if (typeof appState !== 'undefined') {
+    initProfileManager();
+}
 
 console.log('✅ Profile Management Module loaded');
