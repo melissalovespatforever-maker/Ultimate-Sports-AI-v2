@@ -6,6 +6,38 @@
 console.log('🚀 Ultimate Sports AI v4.0 - Clean Build');
 
 // ============================================
+// GLOBAL ERROR HANDLER
+// ============================================
+
+window.addEventListener('error', (event) => {
+    try {
+        console.error('Global Error:', event.message || 'Unknown error');
+    } catch (e) {
+        // Silently catch console errors
+    }
+    
+    // Hide loader if error occurs
+    const loader = document.getElementById('app-loader');
+    if (loader) {
+        loader.style.display = 'none';
+    }
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+    try {
+        console.error('Unhandled Promise Rejection:', event.reason);
+    } catch (e) {
+        console.error('Promise rejection occurred');
+    }
+    
+    // Hide loader if error occurs
+    const loader = document.getElementById('app-loader');
+    if (loader) {
+        loader.style.display = 'none';
+    }
+});
+
+// ============================================
 // CONFIGURATION
 // ============================================
 
@@ -696,10 +728,20 @@ async function initApp() {
     console.log('⚙️ Initializing Ultimate Sports AI...');
 
     try {
+        // Initialize modules that were deferred
+        if (typeof initProfileManager === 'function') {
+            initProfileManager();
+        }
+        if (typeof initAuthFormHandler === 'function') {
+            initAuthFormHandler();
+        }
+
         // Check for OAuth callback
-        await authManager.handleOAuthCallback();
+        if (authManager && authManager.handleOAuthCallback) {
+            await authManager.handleOAuthCallback();
+        }
     } catch (error) {
-        console.error('OAuth callback error:', error);
+        console.error('⚠️ Initialization error:', error);
     }
 
     // Verify all modules are loaded
@@ -712,29 +754,37 @@ async function initApp() {
 
     console.log('📦 Module Status:', modulesReady);
     
-    // Warn if modules are missing
+    // Warn if modules are missing (not critical)
     Object.entries(modulesReady).forEach(([name, ready]) => {
         if (!ready) {
-            console.warn(`⚠️ ${name} not loaded - check script tags in index.html`);
+            console.warn(`⚠️ ${name} not loaded yet (will initialize on demand)`);
         }
     });
 
-    // Hide loader after short delay - ALWAYS hide
+    // CRITICAL: Always hide loader, even if there are errors
     setTimeout(() => {
         const loader = document.getElementById('app-loader');
         if (loader) {
             console.log('✅ Removing loader');
-            loader.classList.add('hidden');
+            loader.style.opacity = '0';
+            loader.style.transition = 'opacity 0.3s';
             setTimeout(() => {
-                if (loader && loader.parentElement) {
+                loader.style.display = 'none';
+                if (loader.parentElement) {
                     loader.remove();
                 }
-            }, 500);
+            }, 300);
+        } else {
+            console.warn('⚠️ Loader element not found');
         }
-    }, 500);
+    }, 300); // Reduced to 300ms for faster load
 
     // Initial UI update
-    updateUI();
+    try {
+        updateUI();
+    } catch (error) {
+        console.error('⚠️ UI update error:', error);
+    }
 
     console.log('✅ App initialized successfully');
     console.log('🎯 All systems ready. Current page:', navigation.currentPage);
