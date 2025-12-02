@@ -540,19 +540,19 @@
         </nav>
     </div>
 
+    <!-- Auth Module (Form Validation & UX) - MUST load first -->
+    <script src="auth.js"></script>
+    
+    <!-- Profile Module (Profile Management) -->
+    <script src="profile.js"></script>
+    
     <!-- Live Scores Module (Real Sports Data) -->
     <script src="live-scores.js"></script>
     
     <!-- Subscription Module (Payment Flow) -->
     <script src="subscription.js"></script>
     
-    <!-- Auth Module (Form Validation & UX) -->
-    <script src="auth.js"></script>
-    
-    <!-- Profile Module (Profile Management) -->
-    <script src="profile.js"></script>
-    
-    <!-- Main App Script (initializes everything) -->
-    <script type="module" src="app.js"></script>
+    <!-- Main App Script (initializes everything) - MUST load last -->
+    <script src="app.js"></script>
 </body>
 </html>
