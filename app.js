@@ -6,38 +6,6 @@
 console.log('🚀 Ultimate Sports AI v4.0 - Clean Build');
 
 // ============================================
-// GLOBAL ERROR HANDLER
-// ============================================
-
-window.addEventListener('error', (event) => {
-    try {
-        console.error('Global Error:', event.message || 'Unknown error');
-    } catch (e) {
-        // Silently catch console errors
-    }
-    
-    // Hide loader if error occurs
-    const loader = document.getElementById('app-loader');
-    if (loader) {
-        loader.style.display = 'none';
-    }
-});
-
-window.addEventListener('unhandledrejection', (event) => {
-    try {
-        console.error('Unhandled Promise Rejection:', event.reason);
-    } catch (e) {
-        console.error('Promise rejection occurred');
-    }
-    
-    // Hide loader if error occurs
-    const loader = document.getElementById('app-loader');
-    if (loader) {
-        loader.style.display = 'none';
-    }
-});
-
-// ============================================
 // CONFIGURATION
 // ============================================
 
