@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Ultimate Sports AI - Master Sports Analytics</title>
+    
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="Ultimate Sports AI - Sports Analytics Platform">
+    <meta name="description" content="AI-powered sports analytics with live scores, expert coaching, and real-time predictions. Join the ultimate sports intelligence platform.">
+    <meta name="theme-color" content="#10b981">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN">
+    <link rel="apple-touch-icon" href="https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+    
+    <!-- Main Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="app-loader" class="app-loader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <h2>Ultimate Sports AI</h2>
+            <p>Loading your experience...</p>
+        </div>
+    </div>
+
+    <!-- App Container -->
+    <div id="app">
+        <!-- Toast Container -->
+        <div id="toast-container"></div>
+        
+        <!-- Top App Bar -->
+        <header class="app-bar">
+            <button id="menu-btn" class="icon-button" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <div class="app-title">
+                <img src="https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN" alt="Ultimate Sports AI Logo" class="app-logo">
+                <span>Ultimate Sports AI</span>
+            </div>
+            
+            <div class="app-bar-actions">
+                <button class="icon-button" id="notifications-btn" aria-label="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge" style="display: none;">0</span>
+                </button>
+                <button class="icon-button profile-btn" data-page="profile" aria-label="Profile">
+                    <i class="fas fa-user-circle"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Drawer Overlay -->
+        <div id="drawer-overlay" class="drawer-overlay"></div>
+
+        <!-- Drawer Navigation -->
+        <nav id="drawer-nav" class="drawer">
+            <div class="drawer-header">
+                <div class="user-profile-section">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="user-info">
+                        <h3 id="user-display-name">Guest User</h3>
+                        <p class="user-tier" id="user-tier-badge">FREE TIER</p>
+                    </div>
+                </div>
+                <button id="upgrade-btn" class="upgrade-button">
+                    <i class="fas fa-crown"></i> Upgrade to PRO
+                </button>
+            </div>
+
+            <div class="drawer-menu">
+                <!-- Dashboard -->
+                <div class="menu-section">
+                    <h4 class="menu-section-title">Dashboard</h4>
+                    <button class="menu-item active" data-page="home">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </button>
+                    <button class="menu-item" data-page="live-scores">
+                        <i class="fas fa-play-circle"></i>
+                        <span>Live Scores</span>
+                        <span class="badge badge-live">LIVE</span>
+                    </button>
+                </div>
+
+                <!-- AI Predictions -->
+                <div class="menu-section">
+                    <h4 class="menu-section-title">AI Predictions</h4>
+                    <button class="menu-item" data-page="ai-coaches">
+                        <i class="fas fa-robot"></i>
+                        <span>AI Coaches</span>
+                        <span class="badge badge-pro">PRO</span>
+                    </button>
+                    <button class="menu-item" data-page="analytics">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analytics</span>
+                    </button>
+                </div>
+
+                <!-- Account -->
+                <div class="menu-section">
+                    <h4 class="menu-section-title">Account</h4>
+                    <button class="menu-item" data-page="profile">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </button>
+                    <button class="menu-item" data-page="subscription">
+                        <i class="fas fa-crown"></i>
+                        <span>Subscription</span>
+                    </button>
+                    <button class="menu-item" data-page="settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </button>
+                </div>
+
+                <!-- Actions -->
+                <div class="menu-section">
+                    <button class="menu-item" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- HOME PAGE -->
+            <div id="home-page" class="page active">
+                <div class="page-header gradient-header">
+                    <h1>🏆 Welcome to Ultimate Sports AI</h1>
+                    <p class="page-subtitle">Master sports analytics with AI-powered insights</p>
+                </div>
+
+                <div class="quick-actions">
+                    <div class="quick-action-card" data-page="ai-coaches">
+                        <div class="quick-action-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h3>AI Coaches</h3>
+                        <p>Get expert predictions</p>
+                    </div>
+
+                    <div class="quick-action-card" data-page="live-scores">
+                        <div class="quick-action-icon">
+                            <i class="fas fa-play-circle"></i>
+                        </div>
+                        <h3>Live Scores</h3>
+                        <p>Real-time game tracking</p>
+                    </div>
+
+                    <div class="quick-action-card" data-page="analytics">
+                        <div class="quick-action-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <h3>Analytics</h3>
+                        <p>View your stats</p>
+                    </div>
+
+                    <div class="quick-action-card" data-page="subscription">
+                        <div class="quick-action-icon">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        <h3>Upgrade</h3>
+                        <p>Unlock premium features</p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h4 id="total-picks">0</h4>
+                            <p>Total Picks</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h4 id="win-rate">0%</h4>
+                            <p>Win Rate</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h4 id="current-streak">0</h4>
+                            <p>Current Streak</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AUTH PAGE -->
+            <div id="auth-page" class="page">
+                <div class="auth-container">
+                    <div class="auth-header">
+                        <img src="https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN" alt="Logo" class="auth-logo">
+                        <h1>Welcome to Ultimate Sports AI</h1>
+                        <p>Master sports analytics with AI-powered insights</p>
+                        <button class="btn btn-secondary" id="continue-as-guest-btn" style="margin-top: 16px;">
+                            <i class="fas fa-arrow-left"></i> Continue as Guest
+                        </button>
+                    </div>
+
+                    <!-- Login Form -->
+                    <div id="login-form" class="auth-form">
+                        <h2>Sign In</h2>
+                        <form id="login-form-element">
+                            <div class="form-group">
+                                <label for="login-email">Email</label>
+                                <input type="email" id="login-email" placeholder="your@email.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="login-password">Password (min 8 characters)</label>
+                                <input type="password" id="login-password" placeholder="••••••••" required minlength="8">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                        </form>
+
+                        <div class="auth-divider">
+                            <span>or continue with</span>
+                        </div>
+
+                        <div class="oauth-buttons">
+                            <button class="btn btn-oauth" id="google-login-btn">
+                                <i class="fab fa-google"></i> Google
+                            </button>
+                            <button class="btn btn-oauth" id="apple-login-btn">
+                                <i class="fab fa-apple"></i> Apple
+                            </button>
+                        </div>
+
+                        <p class="auth-switch">
+                            Don't have an account? <a href="#" id="show-signup">Sign up</a>
+                        </p>
+                    </div>
+
+                    <!-- Signup Form -->
+                    <div id="signup-form" class="auth-form" style="display: none;">
+                        <h2>Create Account</h2>
+                        <form id="signup-form-element">
+                            <div class="form-group">
+                                <label for="signup-username">Username (min 3 characters, letters & numbers)</label>
+                                <input type="text" id="signup-username" placeholder="johndoe123" required minlength="3" pattern="[a-zA-Z0-9]+">
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-email">Email</label>
+                                <input type="email" id="signup-email" placeholder="your@email.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="signup-password">Password (min 8 characters)</label>
+                                <input type="password" id="signup-password" placeholder="••••••••" required minlength="8">
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+                        </form>
+
+                        <div class="auth-divider">
+                            <span>or continue with</span>
+                        </div>
+
+                        <div class="oauth-buttons">
+                            <button class="btn btn-oauth" id="google-signup-btn">
+                                <i class="fab fa-google"></i> Google
+                            </button>
+                            <button class="btn btn-oauth" id="apple-signup-btn">
+                                <i class="fab fa-apple"></i> Apple
+                            </button>
+                        </div>
+
+                        <p class="auth-switch">
+                            Already have an account? <a href="#" id="show-login">Sign in</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LIVE SCORES PAGE -->
+            <div id="live-scores-page" class="page">
+                <div class="page-header">
+                    <h1><i class="fas fa-play-circle"></i> Live Scores</h1>
+                    <p class="page-subtitle">Real-time game tracking and scores</p>
+                </div>
+                <div id="live-scores-container" class="content-container">
+                    <p class="loading-text">Loading live scores...</p>
+                </div>
+            </div>
+
+            <!-- AI COACHES PAGE -->
+            <div id="ai-coaches-page" class="page">
+                <div class="page-header">
+                    <h1><i class="fas fa-robot"></i> AI Coaches</h1>
+                    <p class="page-subtitle">Expert AI-powered predictions</p>
+                </div>
+                <div id="ai-coaches-container" class="content-container">
+                    <p class="loading-text">Loading AI coaches...</p>
+                </div>
+            </div>
+
+            <!-- ANALYTICS PAGE -->
+            <div id="analytics-page" class="page">
+                <div class="page-header">
+                    <h1><i class="fas fa-chart-line"></i> Analytics</h1>
+                    <p class="page-subtitle">Track your performance metrics</p>
+                </div>
+                <div id="analytics-container" class="content-container">
+                    <p class="loading-text">Loading analytics...</p>
+                </div>
+            </div>
+
+            <!-- PROFILE PAGE -->
+            <div id="profile-page" class="page">
+                <div class="page-header">
+                    <h1><i class="fas fa-user-circle"></i> Profile</h1>
+                    <p class="page-subtitle">Manage your account</p>
+                </div>
+                <div id="profile-container" class="content-container">
+                    <!-- Profile View (Initially Hidden) -->
+                    <div id="profile-view" style="display: none;">
+                        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 32px; max-width: 600px; margin: 0 auto;">
+                            <div style="text-align: center; margin-bottom: 32px;">
+                                <div style="font-size: 80px; color: var(--primary); margin-bottom: 16px;">
+                                    <i class="fas fa-user-circle"></i>
+                                </div>
+                                <h2 id="profile-name" style="margin: 0 0 8px;">User Name</h2>
+                                <p id="profile-email" style="color: var(--text-secondary); margin: 0 0 16px;">user@email.com</p>
+                                <div style="padding: 12px; background: var(--bg-tertiary); border-radius: 8px; display: inline-block;">
+                                    <span style="font-weight: 600; color: var(--primary);">
+                                        <i class="fas fa-crown"></i> 
+                                        <span id="profile-tier">FREE TIER</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Profile Info -->
+                            <div style="border-top: 1px solid var(--border-color); padding-top: 24px; margin-bottom: 24px;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                                    <div>
+                                        <p style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin: 0 0 8px; font-weight: 600;">Member Since</p>
+                                        <p id="profile-created" style="font-size: 16px; font-weight: 600; margin: 0;">-</p>
+                                    </div>
+                                    <div>
+                                        <p style="color: var(--text-secondary); font-size: 12px; text-transform: uppercase; margin: 0 0 8px; font-weight: 600;">Account Status</p>
+                                        <p style="font-size: 16px; font-weight: 600; margin: 0; color: var(--success);">
+                                            <i class="fas fa-check-circle"></i> Active
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <button id="edit-profile-btn" class="btn btn-secondary btn-block">
+                                    <i class="fas fa-edit"></i> Edit Profile
+                                </button>
+                                <button id="change-password-btn" class="btn btn-secondary btn-block">
+                                    <i class="fas fa-lock"></i> Change Password
+                                </button>
+                                <button id="profile-logout-btn" class="btn btn-secondary btn-block">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Edit Profile Form (Initially Hidden) -->
+                    <div id="profile-edit" style="display: none;">
+                        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 32px; max-width: 600px; margin: 0 auto;">
+                            <h2 style="margin: 0 0 24px; text-align: center;">Edit Profile</h2>
+                            <form id="edit-profile-form">
+                                <div class="form-group">
+                                    <label for="edit-name">Full Name</label>
+                                    <input type="text" id="edit-name" placeholder="John Doe" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="edit-email">Email</label>
+                                    <input type="email" id="edit-email" placeholder="john@example.com" required>
+                                </div>
+                                <div style="display: flex; gap: 12px;">
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fas fa-save"></i> Save Changes
+                                    </button>
+                                    <button type="button" class="btn btn-secondary btn-block" id="cancel-edit-btn">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Change Password Form (Initially Hidden) -->
+                    <div id="profile-password" style="display: none;">
+                        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 32px; max-width: 600px; margin: 0 auto;">
+                            <h2 style="margin: 0 0 24px; text-align: center;">Change Password</h2>
+                            <form id="change-password-form">
+                                <div class="form-group">
+                                    <label for="current-password">Current Password</label>
+                                    <input type="password" id="current-password" placeholder="••••••••" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="new-password">New Password</label>
+                                    <input type="password" id="new-password" placeholder="••••••••" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirm-password">Confirm Password</label>
+                                    <input type="password" id="confirm-password" placeholder="••••••••" required>
+                                </div>
+                                <div style="display: flex; gap: 12px;">
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fas fa-lock"></i> Update Password
+                                    </button>
+                                    <button type="button" class="btn btn-secondary btn-block" id="cancel-password-btn">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Not Logged In Message (Initially Hidden) -->
+                    <div id="profile-not-logged-in" style="display: none; text-align: center; padding: 60px 24px;">
+                        <div style="font-size: 64px; color: var(--text-muted); margin-bottom: 24px;">
+                            <i class="fas fa-lock-open"></i>
+                        </div>
+                        <h2 style="margin-bottom: 12px;">Not Logged In</h2>
+                        <p style="color: var(--text-secondary); margin-bottom: 32px;">Sign in to view your profile</p>
+                        <button class="btn btn-primary" onclick="navigation.navigateTo('auth')">
+                            Sign In
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBSCRIPTION PAGE -->
+            <div id="subscription-page" class="page">
+                <div class="page-header">
+                    <h1><i class="fas fa-crown"></i> Subscription</h1>
+                    <p class="page-subtitle">Choose your plan</p>
+                </div>
+                <div id="subscription-container" class="content-container">
+                    <div class="pricing-grid">
+                        <div class="pricing-card">
+                            <h3>FREE</h3>
+                            <div class="price">$0<span>/month</span></div>
+                            <ul class="features">
+                                <li><i class="fas fa-check"></i> Basic live scores</li>
+                                <li><i class="fas fa-check"></i> Limited AI predictions</li>
+                                <li><i class="fas fa-check"></i> Community access</li>
+                            </ul>
+                            <button class="btn btn-secondary btn-block" disabled>Current Plan</button>
+                        </div>
+
+                        <div class="pricing-card featured">
+                            <div class="featured-badge">MOST POPULAR</div>
+                            <h3>PRO</h3>
+                            <div class="price">$49.99<span>/month</span></div>
+                            <ul class="features">
+                                <li><i class="fas fa-check"></i> All FREE features</li>
+                                <li><i class="fas fa-check"></i> Unlimited AI predictions</li>
+                                <li><i class="fas fa-check"></i> Advanced analytics</li>
+                                <li><i class="fas fa-check"></i> Real-time odds comparison</li>
+                                <li><i class="fas fa-check"></i> Priority support</li>
+                            </ul>
+                            <button class="btn btn-primary btn-block" id="subscribe-pro-btn">Upgrade to PRO</button>
+                        </div>
+
+                        <div class="pricing-card">
+                            <h3>VIP</h3>
+                            <div class="price">$99.99<span>/month</span></div>
+                            <ul class="features">
+                                <li><i class="fas fa-check"></i> All PRO features</li>
+                                <li><i class="fas fa-check"></i> Exclusive AI models</li>
+                                <li><i class="fas fa-check"></i> 1-on-1 coaching sessions</li>
+                                <li><i class="fas fa-check"></i> Early feature access</li>
+                                <li><i class="fas fa-check"></i> VIP community</li>
+                            </ul>
+                            <button class="btn btn-primary btn-block" id="subscribe-vip-btn">Upgrade to VIP</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SETTINGS PAGE -->
+            <div id="settings-page" class="page">
+                <div class="page-header">
+                    <h1><i class="fas fa-cog"></i> Settings</h1>
+                    <p class="page-subtitle">Configure your preferences</p>
+                </div>
+                <div id="settings-container" class="content-container">
+                    <p class="loading-text">Loading settings...</p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation (Mobile) -->
+        <nav class="bottom-nav">
+            <button class="bottom-nav-item active" data-page="home">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </button>
+            <button class="bottom-nav-item" data-page="live-scores">
+                <i class="fas fa-play-circle"></i>
+                <span>Live</span>
+            </button>
+            <button class="bottom-nav-item" data-page="ai-coaches">
+                <i class="fas fa-robot"></i>
+                <span>AI</span>
+            </button>
+            <button class="bottom-nav-item" data-page="analytics">
+                <i class="fas fa-chart-line"></i>
+                <span>Stats</span>
+            </button>
+            <button class="bottom-nav-item" data-page="profile">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Live Scores Module (Real Sports Data) -->
+    <script src="live-scores.js"></script>
+    
+    <!-- Subscription Module (Payment Flow) -->
+    <script src="subscription.js"></script>
+    
+    <!-- Main App Script -->
+    <script type="module" src="app.js"></script>
+    
+    <!-- Auth Module (Form Validation & UX) -->
+    <script src="auth.js"></script>
+    
+    <!-- Profile Module (Profile Management) -->
+    <script src="profile.js"></script>
+</body>
+</html>
