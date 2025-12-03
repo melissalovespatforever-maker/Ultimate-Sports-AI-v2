@@ -68,6 +68,12 @@ class ProfileManager {
         const profileView = document.getElementById('profile-view');
         const notLoggedIn = document.getElementById('profile-not-logged-in');
 
+        // Safety check - if elements don't exist, exit early
+        if (!profileView || !notLoggedIn) {
+            console.warn('⚠️ Profile display elements not found');
+            return;
+        }
+
         if (!user) {
             profileView.style.display = 'none';
             notLoggedIn.style.display = 'block';
@@ -78,15 +84,22 @@ class ProfileManager {
         profileView.style.display = 'block';
         notLoggedIn.style.display = 'none';
 
-        // Update profile display
-        document.getElementById('profile-name').textContent = user.name || 'User';
-        document.getElementById('profile-email').textContent = user.email;
-        document.getElementById('profile-tier').textContent = (user.subscription_tier || 'FREE') + ' TIER';
+        // Update profile display - with null checks
+        const profileName = document.getElementById('profile-name');
+        const profileEmail = document.getElementById('profile-email');
+        const profileTier = document.getElementById('profile-tier');
+        const profileCreated = document.getElementById('profile-created');
+        const editName = document.getElementById('edit-name');
+        const editEmail = document.getElementById('edit-email');
+
+        if (profileName) profileName.textContent = user.name || 'User';
+        if (profileEmail) profileEmail.textContent = user.email;
+        if (profileTier) profileTier.textContent = (user.subscription_tier || 'FREE') + ' TIER';
 
         // Format date
-        if (user.created_at) {
+        if (user.created_at && profileCreated) {
             const date = new Date(user.created_at);
-            document.getElementById('profile-created').textContent = date.toLocaleDateString('en-US', {
+            profileCreated.textContent = date.toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
@@ -94,34 +107,50 @@ class ProfileManager {
         }
 
         // Populate edit form
-        document.getElementById('edit-name').value = user.name || '';
-        document.getElementById('edit-email').value = user.email || '';
+        if (editName) editName.value = user.name || '';
+        if (editEmail) editEmail.value = user.email || '';
 
         // Show profile view by default
         this.showProfileView();
     }
 
     showProfileView() {
-        document.getElementById('profile-view').style.display = 'block';
-        document.getElementById('profile-edit').style.display = 'none';
-        document.getElementById('profile-password').style.display = 'none';
+        const profileView = document.getElementById('profile-view');
+        const profileEdit = document.getElementById('profile-edit');
+        const profilePassword = document.getElementById('profile-password');
+        
+        if (profileView) profileView.style.display = 'block';
+        if (profileEdit) profileEdit.style.display = 'none';
+        if (profilePassword) profilePassword.style.display = 'none';
     }
 
     showEditForm() {
-        document.getElementById('profile-view').style.display = 'none';
-        document.getElementById('profile-edit').style.display = 'block';
-        document.getElementById('profile-password').style.display = 'none';
+        const profileView = document.getElementById('profile-view');
+        const profileEdit = document.getElementById('profile-edit');
+        const profilePassword = document.getElementById('profile-password');
+        
+        if (profileView) profileView.style.display = 'none';
+        if (profileEdit) profileEdit.style.display = 'block';
+        if (profilePassword) profilePassword.style.display = 'none';
     }
 
     showPasswordForm() {
-        document.getElementById('profile-view').style.display = 'none';
-        document.getElementById('profile-edit').style.display = 'none';
-        document.getElementById('profile-password').style.display = 'block';
+        const profileView = document.getElementById('profile-view');
+        const profileEdit = document.getElementById('profile-edit');
+        const profilePassword = document.getElementById('profile-password');
+        
+        if (profileView) profileView.style.display = 'none';
+        if (profileEdit) profileEdit.style.display = 'none';
+        if (profilePassword) profilePassword.style.display = 'block';
         
         // Clear password fields
-        document.getElementById('current-password').value = '';
-        document.getElementById('new-password').value = '';
-        document.getElementById('confirm-password').value = '';
+        const currentPassword = document.getElementById('current-password');
+        const newPassword = document.getElementById('new-password');
+        const confirmPassword = document.getElementById('confirm-password');
+        
+        if (currentPassword) currentPassword.value = '';
+        if (newPassword) newPassword.value = '';
+        if (confirmPassword) confirmPassword.value = '';
     }
 
     async handleEditProfile() {
@@ -216,18 +245,26 @@ class ProfileManager {
 // Defer initialization until DOM is ready and appState exists
 let profileManager;
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        if (typeof appState !== 'undefined') {
+function initProfileManager() {
+    if (typeof appState !== 'undefined') {
+        if (!profileManager) {
             profileManager = new ProfileManager();
             console.log('✅ Profile Manager initialized');
+        } else {
+            // Re-update display when navigating back to profile
+            profileManager.updateProfileDisplay();
+            console.log('🔄 Profile Manager re-initialized');
         }
-    });
-} else {
-    if (typeof appState !== 'undefined') {
-        profileManager = new ProfileManager();
-        console.log('✅ Profile Manager initialized');
     }
 }
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initProfileManager);
+} else {
+    initProfileManager();
+}
+
+// Export for re-initialization when navigating to profile page
+window.reinitProfile = initProfileManager;
 
 console.log('✅ Profile Management Module loaded');

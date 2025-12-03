@@ -368,6 +368,18 @@ class Navigation {
         if (targetPage) {
             targetPage.classList.add('active');
             this.currentPage = page;
+            
+            // Reinitialize auth form when navigating to auth page
+            if (page === 'auth' && typeof window.reinitAuthForm === 'function') {
+                console.log('🔄 Reinitializing auth form');
+                setTimeout(() => window.reinitAuthForm(), 100);
+            }
+            
+            // Reinitialize profile when navigating to profile page
+            if (page === 'profile' && typeof window.reinitProfile === 'function') {
+                console.log('🔄 Reinitializing profile');
+                setTimeout(() => window.reinitProfile(), 100);
+            }
             window.scrollTo(0, 0);
 
             // Load page-specific data
