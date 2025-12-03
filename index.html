@@ -540,7 +540,13 @@
         </nav>
     </div>
 
-    <!-- Auth Module (Form Validation & UX) - MUST load first -->
+    <!-- Main App Script (defines appState, api, authManager) - MUST load FIRST -->
+    <script src="app.js"></script>
+    
+    <!-- AI Prediction Engine (Real Sports Analytics) -->
+    <script src="ai-prediction-engine.js"></script>
+    
+    <!-- Auth Module (Form Validation & UX) -->
     <script src="auth.js"></script>
     
     <!-- Profile Module (Profile Management) -->
@@ -551,8 +557,5 @@
     
     <!-- Subscription Module (Payment Flow) -->
     <script src="subscription.js"></script>
-    
-    <!-- Main App Script (initializes everything) - MUST load last -->
-    <script src="app.js"></script>
 </body>
 </html>

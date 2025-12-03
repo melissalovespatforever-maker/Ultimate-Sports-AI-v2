@@ -15,8 +15,10 @@ class ProfileManager {
         this.setupEditForm();
         this.setupPasswordForm();
         
-        // Subscribe to auth state changes
-        appState.subscribe(() => this.updateProfileDisplay());
+        // Subscribe to auth state changes - check if appState exists
+        if (typeof appState !== 'undefined') {
+            appState.subscribe(() => this.updateProfileDisplay());
+        }
     }
 
     setupProfileButtons() {
@@ -211,7 +213,21 @@ class ProfileManager {
     }
 }
 
-// Initialize profile manager immediately
-const profileManager = new ProfileManager();
+// Defer initialization until DOM is ready and appState exists
+let profileManager;
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof appState !== 'undefined') {
+            profileManager = new ProfileManager();
+            console.log('✅ Profile Manager initialized');
+        }
+    });
+} else {
+    if (typeof appState !== 'undefined') {
+        profileManager = new ProfileManager();
+        console.log('✅ Profile Manager initialized');
+    }
+}
 
 console.log('✅ Profile Management Module loaded');
