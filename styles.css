@@ -363,13 +363,16 @@ body {
 
 .main-content {
     flex: 1;
+    min-height: calc(100vh - 60px - 80px);
     padding-bottom: 80px;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .page {
     display: none;
     animation: fadeIn 0.3s ease;
+    min-height: 100%;
 }
 
 .page.active {
@@ -768,7 +771,9 @@ body {
     display: flex;
     justify-content: space-around;
     padding: var(--spacing-sm);
+    padding-bottom: max(var(--spacing-sm), env(safe-area-inset-bottom));
     z-index: 100;
+    height: 80px;
 }
 
 .bottom-nav-item {
