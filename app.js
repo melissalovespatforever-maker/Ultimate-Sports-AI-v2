@@ -498,102 +498,18 @@ const aiCoachesModule = {
         const container = document.getElementById('ai-coaches-container');
         if (!container) return;
 
-        container.innerHTML = '<p class="loading-text">Loading AI predictions...</p>';
-
-        try {
-            // Get live games from live scores
-            const games = await this.getAvailableGames();
-            
-            if (games.length === 0) {
-                this.showNoGames(container);
-                return;
-            }
-
-            // Show coaches with predictions
-            this.renderCoaches(container, games);
-        } catch (error) {
-            console.error('AI Coaches load error:', error);
-            this.showError(container);
+        // Use the enhanced AI coaches manager
+        if (typeof aiCoachesManager !== 'undefined') {
+            await aiCoachesManager.render('ai-coaches-container');
+        } else {
+            container.innerHTML = '<p class="error">AI Coaches module not loaded</p>';
         }
-    },
-
-    async getAvailableGames() {
-        // Try to get games from live scores module
-        if (typeof liveScoresManager !== 'undefined' && liveScoresManager.games) {
-            return liveScoresManager.games.slice(0, 3); // Get first 3 games
-        }
-        
-        // Fallback: create sample games
-        return [
-            { id: 1, home_team: 'Lakers', away_team: 'Celtics', league: 'NBA', status: 'upcoming' },
-            { id: 2, home_team: 'Cowboys', away_team: 'Chiefs', league: 'NFL', status: 'upcoming' }
-        ];
-    },
-
-    renderCoaches(container, games) {
-        const coaches = window.aiPredictionEngine?.coaches || {};
-        const coachList = Object.values(coaches);
-
-        container.innerHTML = `
-            <div style="padding: var(--spacing-lg);">
-                <div style="text-align: center; margin-bottom: var(--spacing-xl);">
-                    <h2 style="font-size: 24px; margin-bottom: var(--spacing-sm);">
-                        <i class="fas fa-robot"></i> AI Prediction Coaches
-                    </h2>
-                    <p style="color: var(--text-secondary);">
-                        ${coachList.length} expert AI coaches analyzing ${games.length} upcoming games
-                    </p>
-                </div>
-
-                ${coachList.map(coach => `
-                    <div class="coach-card" style="
-                        background: var(--bg-card);
-                        border: 1px solid var(--border-color);
-                        border-radius: 12px;
-                        padding: var(--spacing-lg);
-                        margin-bottom: var(--spacing-md);
-                        ${coach.premium ? 'border-color: var(--accent);' : ''}
-                    ">
-                        <div style="display: flex; gap: var(--spacing-md); align-items: start;">
-                            <img src="${coach.avatar}" 
-                                 style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;"
-                                 onerror="this.src='https://via.placeholder.com/60'">
-                            <div style="flex: 1;">
-                                <div style="display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: 4px;">
-                                    <h3 style="font-size: 18px; font-weight: 700; margin: 0;">${coach.name}</h3>
-                                    ${coach.premium ? '<span class="badge badge-pro">PRO</span>' : '<span class="badge" style="background: var(--success);">FREE</span>'}
-                                </div>
-                                <p style="color: var(--text-secondary); font-size: 14px; margin: 0 0 var(--spacing-sm);">
-                                    ${coach.specialty}
-                                </p>
-                                <p style="color: var(--text-muted); font-size: 12px; margin: 0;">
-                                    ${coach.description}
-                                </p>
-                                
-                                ${!coach.premium || appState.user?.subscription_tier !== 'FREE' ? `
-                                    <button class="btn btn-primary btn-sm" 
-                                            onclick="aiCoachesModule.showPredictions('${coach.id}')"
-                                            style="margin-top: var(--spacing-md);">
-                                        View Predictions
-                                    </button>
-                                ` : `
-                                    <button class="btn btn-secondary btn-sm" 
-                                            onclick="navigation.navigateTo('subscription')"
-                                            style="margin-top: var(--spacing-md);">
-                                        <i class="fas fa-crown"></i> Upgrade for Access
-                                    </button>
-                                `}
-                            </div>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
     },
 
     showPredictions(coachId) {
-        showToast(`Loading ${coachId} AI predictions...`, 'info');
-        // Future: Show detailed predictions modal
+        if (typeof aiCoachesManager !== 'undefined') {
+            aiCoachesManager.showCoachDetail(coachId);
+        }
     },
 
     showNoGames(container) {
