@@ -1,0 +1,1016 @@
+/* ============================================
+   BET BUILDER V2 - ULTIMATE EDITION STYLES
+   Production-grade professional design
+   ============================================ */
+
+.bet-builder-v2-wrapper {
+    min-height: 100vh;
+    background: var(--bg-primary);
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+
+.bb-v2-header {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    padding: 32px 24px;
+    margin: -20px -20px 24px -20px;
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 8px 32px rgba(16, 185, 129, 0.2);
+}
+
+.bb-v2-header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.bb-v2-title {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.bb-v2-title-icon {
+    font-size: 48px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.bb-v2-title h1 {
+    font-size: 32px;
+    font-weight: 900;
+    color: white;
+    margin: 0 0 8px 0;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.bb-v2-title p {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+}
+
+.bb-v2-header-stats {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+}
+
+.bb-v2-stat {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    padding: 16px 24px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-width: 120px;
+}
+
+.bb-v2-stat-value {
+    font-size: 28px;
+    font-weight: 900;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.bb-v2-stat-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+/* ============================================
+   LAYOUT
+   ============================================ */
+
+.bb-v2-layout {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+@media (max-width: 1024px) {
+    .bb-v2-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   BET SLIP (SIDEBAR)
+   ============================================ */
+
+.bb-v2-bet-slip {
+    background: var(--bg-card);
+    border: 2px solid var(--primary);
+    border-radius: 20px;
+    padding: 24px;
+    position: sticky;
+    top: 80px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(16, 185, 129, 0.15);
+}
+
+.bb-v2-slip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.bb-v2-slip-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bb-v2-clear-btn {
+    background: var(--danger);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+}
+
+.bb-v2-clear-btn:hover {
+    background: #dc2626;
+    transform: scale(1.05);
+}
+
+/* Empty Slip */
+.bb-v2-empty-slip {
+    text-align: center;
+    padding: 48px 24px;
+}
+
+.bb-v2-empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.bb-v2-empty-slip h4 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+}
+
+.bb-v2-empty-slip p {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Picks List */
+.bb-v2-picks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 24px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.bb-v2-pick-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    transition: all 0.2s;
+}
+
+.bb-v2-pick-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.1);
+}
+
+.bb-v2-pick-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.bb-v2-pick-sport {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--primary);
+    text-transform: uppercase;
+}
+
+.bb-v2-pick-remove {
+    background: transparent;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    padding: 4px;
+    font-size: 16px;
+    transition: transform 0.2s;
+}
+
+.bb-v2-pick-remove:hover {
+    transform: scale(1.2);
+}
+
+.bb-v2-pick-game {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.bb-v2-pick-selection {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.bb-v2-pick-selection strong {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.bb-v2-pick-odds {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.bb-v2-pick-bookmaker {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Parlay Summary */
+.bb-v2-parlay-summary {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border: 2px solid var(--primary);
+    border-radius: 16px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.bb-v2-parlay-odds {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.bb-v2-parlay-odds strong {
+    font-size: 24px;
+    color: var(--primary);
+}
+
+.bb-v2-wager-input {
+    margin-bottom: 20px;
+}
+
+.bb-v2-wager-input label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.bb-v2-input-wrapper {
+    position: relative;
+}
+
+.bb-v2-currency {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.bb-v2-input-wrapper input {
+    width: 100%;
+    padding: 14px 16px 14px 40px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 700;
+    background: white;
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+
+.bb-v2-input-wrapper input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.bb-v2-payout-display {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.bb-v2-payout-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+.bb-v2-payout-row:first-child {
+    padding-top: 0;
+}
+
+.bb-v2-payout-row:not(:last-child) {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.bb-v2-payout-row span {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.bb-v2-payout-row strong {
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.bb-v2-profit {
+    color: var(--primary);
+}
+
+.bb-v2-payout {
+    color: var(--text-primary);
+}
+
+.bb-v2-place-bet-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.bb-v2-place-bet-btn:hover {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+}
+
+.bb-v2-ai-optimize-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.bb-v2-ai-optimize-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+}
+
+/* ============================================
+   MAIN CONTENT
+   ============================================ */
+
+.bb-v2-main-content {
+    background: var(--bg-card);
+    border-radius: 20px;
+    padding: 24px;
+    border: 1px solid var(--border-color);
+}
+
+/* Tabs */
+.bb-v2-tabs {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 0;
+    flex-wrap: wrap;
+}
+
+.bb-v2-tab {
+    padding: 14px 24px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--text-secondary);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: -2px;
+}
+
+.bb-v2-tab:hover {
+    color: var(--primary);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.bb-v2-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+/* Filters */
+.bb-v2-filters {
+    margin-bottom: 24px;
+}
+
+.bb-v2-search-bar {
+    position: relative;
+    margin-bottom: 16px;
+}
+
+.bb-v2-search-bar i {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 18px;
+}
+
+.bb-v2-search-bar input {
+    width: 100%;
+    padding: 16px 16px 16px 48px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 16px;
+    background: white;
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+
+.bb-v2-search-bar input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.bb-v2-filter-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.bb-v2-select {
+    flex: 1;
+    min-width: 150px;
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    background: white;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.bb-v2-select:hover,
+.bb-v2-select:focus {
+    border-color: var(--primary);
+    outline: none;
+}
+
+.bb-v2-refresh-btn {
+    padding: 12px 20px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bb-v2-refresh-btn:hover {
+    background: #059669;
+    transform: translateY(-2px);
+}
+
+/* Games Grid */
+.bb-v2-games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .bb-v2-games-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Game Card */
+.bb-v2-game-card {
+    background: white;
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.bb-v2-game-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+    transform: translateY(-4px);
+}
+
+.bb-v2-game-card.live {
+    border-color: #ef4444;
+    animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+    0%, 100% { border-color: #ef4444; }
+    50% { border-color: #dc2626; }
+}
+
+.bb-v2-game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.bb-v2-game-sport {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+}
+
+.bb-v2-game-sport span {
+    font-size: 18px;
+}
+
+.bb-v2-game-time {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.live-badge {
+    background: #ef4444;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    animation: pulse 2s infinite;
+}
+
+/* Matchup */
+.bb-v2-game-matchup {
+    margin-bottom: 16px;
+}
+
+.bb-v2-team-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+}
+
+.bb-v2-team-name {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.bb-v2-team-icon {
+    font-size: 20px;
+}
+
+.bb-v2-vs {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-muted);
+    padding: 8px 0;
+}
+
+.bb-v2-odds-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.bb-v2-best-odds {
+    text-align: right;
+}
+
+.bb-v2-odds-value {
+    display: block;
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--primary);
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.bb-v2-bookmaker {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.bb-v2-add-pick-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+.bb-v2-add-pick-btn:hover {
+    background: #059669;
+    transform: scale(1.1) rotate(90deg);
+}
+
+.bb-v2-no-odds {
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+/* Game Footer */
+.bb-v2-game-footer {
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+}
+
+.bb-v2-compare-btn {
+    width: 100%;
+    padding: 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.bb-v2-compare-btn:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* AI Picks Section */
+.bb-v2-ai-picks-section {
+    padding: 24px 0;
+}
+
+.bb-v2-ai-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.bb-v2-ai-header h3 {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+}
+
+.bb-v2-ai-header p {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.bb-v2-coaches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 24px;
+}
+
+@media (max-width: 768px) {
+    .bb-v2-coaches-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Coach Card */
+.bb-v2-coach-card {
+    background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    border: 2px solid var(--border-color);
+    border-radius: 20px;
+    padding: 24px;
+    transition: all 0.3s;
+}
+
+.bb-v2-coach-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 12px 32px rgba(16, 185, 129, 0.2);
+    transform: translateY(-4px);
+}
+
+.bb-v2-coach-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.bb-v2-coach-avatar {
+    font-size: 48px;
+    line-height: 1;
+}
+
+.bb-v2-coach-info {
+    flex: 1;
+}
+
+.bb-v2-coach-info h4 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+}
+
+.bb-v2-coach-info p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.bb-v2-coach-accuracy {
+    text-align: center;
+}
+
+.bb-v2-accuracy-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary) 0%, #059669 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 900;
+    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+}
+
+/* Coach Picks */
+.bb-v2-coach-picks {
+    margin-bottom: 20px;
+}
+
+.bb-v2-coach-pick {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.bb-v2-coach-pick-game {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.bb-v2-coach-pick-selection {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.bb-v2-coach-pick-selection strong {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.bb-v2-coach-pick-odds {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.bb-v2-coach-pick-confidence {
+    margin-bottom: 8px;
+}
+
+.bb-v2-confidence-bar {
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.bb-v2-confidence-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary) 0%, #059669 100%);
+    transition: width 0.5s ease;
+}
+
+.bb-v2-coach-pick-confidence span {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.bb-v2-no-picks {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.bb-v2-use-picks-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.bb-v2-use-picks-btn:hover:not(:disabled) {
+    background: #059669;
+    transform: translateY(-2px);
+}
+
+.bb-v2-use-picks-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Loading & Empty States */
+.bb-v2-loading,
+.bb-v2-empty {
+    text-align: center;
+    padding: 80px 24px;
+}
+
+.bb-v2-loading .spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--border-color);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 24px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.bb-v2-loading p {
+    font-size: 16px;
+    color: var(--text-secondary);
+}
+
+.bb-v2-empty-icon {
+    font-size: 80px;
+    margin-bottom: 24px;
+    opacity: 0.3;
+}
+
+.bb-v2-empty h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+}
+
+.bb-v2-empty p {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .bb-v2-header {
+        padding: 24px 16px;
+        margin: -20px -16px 20px -16px;
+    }
+
+    .bb-v2-title {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .bb-v2-title h1 {
+        font-size: 24px;
+    }
+
+    .bb-v2-header-stats {
+        justify-content: center;
+    }
+
+    .bb-v2-bet-slip {
+        position: static;
+        max-height: none;
+    }
+
+    .bb-v2-team-name {
+        font-size: 14px;
+    }
+
+    .bb-v2-odds-value {
+        font-size: 18px;
+    }
+}
