@@ -20,10 +20,10 @@ setTimeout(() => {
 
 const CONFIG = {
     // Backend API URL - UPDATE THIS if your Railway URL is different
-    API_BASE_URL: 'https://ultimate-sports-ai-production.up.railway.app',
+    API_BASE_URL: 'https://ultimate-sports-ai-backend-production.up.railway.app',
     // For local development: API_BASE_URL: 'http://localhost:3001',
     
-    WS_URL: 'wss://ultimate-sports-ai-production.up.railway.app',
+    WS_URL: 'wss://ultimate-sports-ai-backend-production.up.railway.app',
     PAYPAL_CLIENT_ID: 'YOUR_PAYPAL_CLIENT_ID',
     VERSION: '4.0.0'
 };
