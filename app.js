@@ -498,17 +498,17 @@ const aiCoachesModule = {
         const container = document.getElementById('ai-coaches-container');
         if (!container) return;
 
-        // Use the enhanced AI coaches manager
-        if (typeof aiCoachesManager !== 'undefined') {
-            await aiCoachesManager.render('ai-coaches-container');
+        // Use the deluxe AI coaches system
+        if (typeof aiCoachesDeluxe !== 'undefined') {
+            aiCoachesDeluxe.render('ai-coaches-container');
         } else {
             container.innerHTML = '<p class="error">AI Coaches module not loaded</p>';
         }
     },
 
     showPredictions(coachId) {
-        if (typeof aiCoachesManager !== 'undefined') {
-            aiCoachesManager.showCoachDetail(coachId);
+        if (typeof aiCoachesDeluxe !== 'undefined') {
+            aiCoachesDeluxe.viewPicks(coachId);
         }
     },
 

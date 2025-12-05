@@ -163,6 +163,15 @@ export class ModernNavigation {
         
         // Close drawer if open
         this.closeDrawer();
+
+        // Trigger page-specific initialization
+        if (page === 'ai-coaches') {
+            // Initialize AI Coaches when navigating to that page
+            if (window.aiCoachesDeluxe && typeof window.aiCoachesDeluxe.init === 'function') {
+                console.log('🎯 Initializing AI Coaches...');
+                window.aiCoachesDeluxe.init();
+            }
+        }
     }
 
     updateActiveStates(page) {

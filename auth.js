@@ -399,38 +399,66 @@ if (document.readyState === 'loading') {
 // Export for re-initialization when navigating to auth page
 window.reinitAuthForm = initAuthFormHandler;
 
-// Also setup global click handler as fallback
+// CRITICAL: Global click handler as primary (not fallback)
+// This runs FIRST to catch all clicks before any other handlers
 document.addEventListener('click', (e) => {
-    if (e.target.id === 'show-signup') {
+    const target = e.target;
+    
+    // Check if click is on Sign up link (or its parent)
+    if (target.id === 'show-signup' || target.closest('#show-signup')) {
         e.preventDefault();
         e.stopPropagation();
-        console.log('🔴 GLOBAL: Sign up link clicked');
-        if (authFormHandler) {
-            authFormHandler.toggleForms('signup');
+        e.stopImmediatePropagation();
+        console.log('🔴 GLOBAL HANDLER: Sign up clicked!');
+        
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        
+        if (loginForm && signupForm) {
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'block';
+            console.log('✅ GLOBAL: Switched to signup form');
+            setTimeout(() => document.getElementById('signup-username')?.focus(), 100);
         } else {
-            console.error('❌ authFormHandler not initialized!');
+            console.error('❌ Forms not found!');
         }
+        return false;
     }
-    if (e.target.id === 'show-login') {
+    
+    // Check if click is on Sign in link
+    if (target.id === 'show-login' || target.closest('#show-login')) {
         e.preventDefault();
         e.stopPropagation();
-        console.log('🔴 GLOBAL: Sign in link clicked');
-        if (authFormHandler) {
-            authFormHandler.toggleForms('login');
+        e.stopImmediatePropagation();
+        console.log('🔴 GLOBAL HANDLER: Sign in clicked!');
+        
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        
+        if (loginForm && signupForm) {
+            signupForm.style.display = 'none';
+            loginForm.style.display = 'block';
+            console.log('✅ GLOBAL: Switched to login form');
+            setTimeout(() => document.getElementById('login-email')?.focus(), 100);
         } else {
-            console.error('❌ authFormHandler not initialized!');
+            console.error('❌ Forms not found!');
         }
+        return false;
     }
-    if (e.target.id === 'forgot-password-link') {
+    
+    // Check if click is on Forgot password link
+    if (target.id === 'forgot-password-link' || target.closest('#forgot-password-link')) {
         e.preventDefault();
         e.stopPropagation();
-        console.log('🔴 GLOBAL: Forgot password link clicked');
+        e.stopImmediatePropagation();
+        console.log('🔴 GLOBAL HANDLER: Forgot password clicked!');
         if (typeof window.openPasswordReset === 'function') {
             window.openPasswordReset();
         } else {
             console.error('❌ window.openPasswordReset not found!');
         }
+        return false;
     }
-}, true); // Use capture phase
+}, true); // Use capture phase to intercept BEFORE other handlers
 
 console.log('✅ Enhanced Auth Module loaded');
