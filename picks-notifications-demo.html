@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Picks Notifications Demo - Ultimate Sports AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            padding: 2rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #fff 0%, #e0e7ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(31, 41, 55, 0.5);
+            border: 1px solid #374151;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #e0e7ff;
+        }
+
+        .card p {
+            color: #d1d5db;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .control-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #d1d5db;
+        }
+
+        select, input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid #4b5563;
+            border-radius: 0.5rem;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            flex: 1;
+            min-width: 120px;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            border: none;
+            border-radius: 0.5rem;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: rgba(107, 114, 128, 0.2);
+            border: 1px solid #4b5563;
+            color: #d1d5db;
+        }
+
+        button.danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid #6366f1;
+        }
+
+        .status.connected {
+            border-left-color: #10b981;
+        }
+
+        .status.disconnected {
+            border-left-color: #ef4444;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #6366f1;
+            animation: pulse 2s infinite;
+        }
+
+        .status.connected .status-dot {
+            background: #10b981;
+        }
+
+        .status.disconnected .status-dot {
+            background: #ef4444;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .notification-log {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #374151;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .notification-log h3 {
+            margin-bottom: 1rem;
+            color: #e0e7ff;
+        }
+
+        .log-entry {
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-left: 3px solid #6366f1;
+            margin-bottom: 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.9rem;
+            font-family: 'Monaco', 'Courier New', monospace;
+            color: #d1d5db;
+        }
+
+        .log-entry.success {
+            border-left-color: #10b981;
+        }
+
+        .log-entry.error {
+            border-left-color: #ef4444;
+        }
+
+        .log-entry.info {
+            border-left-color: #3b82f6;
+        }
+
+        .log-entry.warning {
+            border-left-color: #f59e0b;
+        }
+
+        .toggle-group {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .toggle {
+            flex: 1;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px solid #4b5563;
+            border-radius: 0.5rem;
+            color: #d1d5db;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .toggle.active {
+            background: #6366f1;
+            border-color: #6366f1;
+            color: #fff;
+        }
+
+        .coach-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .coach-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(236, 72, 153, 0.2) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 9999px;
+            color: #e0e7ff;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .coach-badge button {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            padding: 0 0 0 0.5rem;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        .coach-badge button:hover {
+            transform: none;
+        }
+
+        .test-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.75rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                min-width: 100%;
+            }
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎲 Picks Notifications Demo</h1>
+            <p>Real-time WebSocket updates for AI coach picks</p>
+        </header>
+
+        <div class="grid">
+            <!-- Connection Control -->
+            <div class="card">
+                <h2>🔌 Connection</h2>
+                <div id="connectionStatus" class="status disconnected">
+                    <div class="status-dot"></div>
+                    <span id="statusText">Disconnected</span>
+                </div>
+                <div class="button-group">
+                    <button id="connectBtn">Connect</button>
+                    <button id="disconnectBtn" class="secondary" disabled>Disconnect</button>
+                </div>
+            </div>
+
+            <!-- Subscription Control -->
+            <div class="card">
+                <h2>📥 Subscriptions</h2>
+                <div class="control-group">
+                    <label>Subscribe to Coaches:</label>
+                    <select id="coachSelect">
+                        <option value="">Select coach...</option>
+                        <option value="1">🤖 The Analyst (NBA)</option>
+                        <option value="2">🏈 Sharp Shooter (NFL)</option>
+                        <option value="3">⚾ Data Dragon (MLB)</option>
+                        <option value="4">🏒 Ice Breaker (NHL)</option>
+                        <option value="5">⚽ El Futbolista (Soccer)</option>
+                        <option value="6">🏈 Gridiron Guru (CFB)</option>
+                        <option value="7">🎾 Ace of Aces (Tennis)</option>
+                        <option value="8">🥊 The Brawl Boss (MMA)</option>
+                        <option value="9">⛳ The Green Master (Golf)</option>
+                        <option value="10">🏀 March Madness (NCAAB)</option>
+                        <option value="11">🎮 Pixel Prophet (Esports)</option>
+                    </select>
+                </div>
+                <div class="button-group">
+                    <button id="subscribeBtn">Subscribe</button>
+                    <button id="unsubscribeBtn" class="secondary" disabled>Unsubscribe</button>
+                    <button id="subscribeAllBtn">Subscribe All</button>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <p style="font-size: 0.9rem; color: #9ca3af; margin-bottom: 0.5rem;">Active subscriptions:</p>
+                    <div id="subscriptionList" class="coach-list" style="min-height: 40px;"></div>
+                </div>
+            </div>
+
+            <!-- Notification Settings -->
+            <div class="card">
+                <h2>🔔 Settings</h2>
+                <div class="control-group">
+                    <label>Sound & Badge Alerts:</label>
+                    <div class="toggle-group">
+                        <button id="soundToggle" class="toggle active">🔊 Sound ON</button>
+                        <button id="badgeToggle" class="toggle active">🔔 Badge ON</button>
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button id="requestNotifPermission" class="secondary">📋 Request Permissions</button>
+                    <button id="clearBadgeBtn" class="secondary">Clear Badge</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Controls -->
+        <div class="card">
+            <h2>🧪 Test Events</h2>
+            <p style="margin-bottom: 1.5rem;">Simulate incoming WebSocket events:</p>
+            <div class="test-controls">
+                <button id="testPickBtn">New Pick Event</button>
+                <button id="testResultBtn">Pick Result Event</button>
+                <button id="testStreakBtn">Streak Update</button>
+                <button id="testMarketBtn">Market Movement</button>
+                <button id="testInjuryBtn">Injury Alert</button>
+                <button id="testGameBtn">Game Status</button>
+            </div>
+        </div>
+
+        <!-- Notification Log -->
+        <div class="card">
+            <div class="notification-log scrollbar-hide">
+                <h3>📋 Event Log</h3>
+                <div id="eventLog"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import PicksNotificationClient from './picks-notification-client.js';
+
+        // Initialize client
+        const client = new PicksNotificationClient({
+            url: 'https://ultimate-sports-ai-backend-production.up.railway.app'
+        });
+
+        let soundEnabled = true;
+        let badgeEnabled = true;
+
+        // DOM Elements
+        const connectBtn = document.getElementById('connectBtn');
+        const disconnectBtn = document.getElementById('disconnectBtn');
+        const statusEl = document.getElementById('connectionStatus');
+        const statusText = document.getElementById('statusText');
+        const coachSelect = document.getElementById('coachSelect');
+        const subscribeBtn = document.getElementById('subscribeBtn');
+        const unsubscribeBtn = document.getElementById('unsubscribeBtn');
+        const subscribeAllBtn = document.getElementById('subscribeAllBtn');
+        const subscriptionList = document.getElementById('subscriptionList');
+        const soundToggle = document.getElementById('soundToggle');
+        const badgeToggle = document.getElementById('badgeToggle');
+        const eventLog = document.getElementById('eventLog');
+        const requestNotifBtn = document.getElementById('requestNotifPermission');
+        const clearBadgeBtn = document.getElementById('clearBadgeBtn');
+
+        // Connection handlers
+        connectBtn.addEventListener('click', async () => {
+            try {
+                await client.connect();
+                updateUI('connected');
+                addLog('Connected to WebSocket', 'success');
+            } catch (error) {
+                addLog(`Connection failed: ${error.message}`, 'error');
+            }
+        });
+
+        disconnectBtn.addEventListener('click', () => {
+            client.disconnect();
+            updateUI('disconnected');
+            addLog('Disconnected from WebSocket', 'info');
+        });
+
+        // Subscription handlers
+        subscribeBtn.addEventListener('click', () => {
+            const coachId = coachSelect.value;
+            if (coachId) {
+                client.subscribeToPicks(parseInt(coachId));
+                updateSubscriptionList();
+                addLog(`Subscribed to coach ${coachId}`, 'success');
+            }
+        });
+
+        unsubscribeBtn.addEventListener('click', () => {
+            const coachId = coachSelect.value;
+            if (coachId) {
+                client.unsubscribeFromPicks(parseInt(coachId));
+                updateSubscriptionList();
+                addLog(`Unsubscribed from coach ${coachId}`, 'info');
+            }
+        });
+
+        subscribeAllBtn.addEventListener('click', () => {
+            if (client.isReady()) {
+                client.subscribeToAllPicks();
+                addLog('Subscribed to ALL picks (admin mode)', 'success');
+            } else {
+                addLog('Not connected to WebSocket', 'warning');
+            }
+        });
+
+        // Settings handlers
+        soundToggle.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            client.setSoundEnabled(soundEnabled);
+            soundToggle.classList.toggle('active');
+            soundToggle.textContent = soundEnabled ? '🔊 Sound ON' : '🔊 Sound OFF';
+            addLog(`Sound ${soundEnabled ? 'enabled' : 'disabled'}`, 'info');
+        });
+
+        badgeToggle.addEventListener('click', () => {
+            badgeEnabled = !badgeEnabled;
+            client.setBadgeEnabled(badgeEnabled);
+            badgeToggle.classList.toggle('active');
+            badgeToggle.textContent = badgeEnabled ? '🔔 Badge ON' : '🔔 Badge OFF';
+            addLog(`Badge alerts ${badgeEnabled ? 'enabled' : 'disabled'}`, 'info');
+        });
+
+        requestNotifBtn.addEventListener('click', async () => {
+            if ('Notification' in window) {
+                const permission = await Notification.requestPermission();
+                addLog(`Notification permission: ${permission}`, 'info');
+            } else {
+                addLog('Notifications not supported', 'warning');
+            }
+        });
+
+        clearBadgeBtn.addEventListener('click', async () => {
+            await client.clearBadge();
+            addLog('Badge cleared', 'success');
+        });
+
+        // Test event handlers
+        document.getElementById('testPickBtn').addEventListener('click', () => {
+            client.emit('pick:created', {
+                id: Date.now(),
+                coach_id: 1,
+                pick: 'Lakers -5.5',
+                matchup: 'Lakers @ Celtics',
+                confidence: 87,
+                odds: -115,
+                notification: 'New pick: Lakers -5.5 (87% confidence)',
+                sound: true,
+                badge: true
+            });
+            addLog('Test pick event triggered', 'info');
+        });
+
+        document.getElementById('testResultBtn').addEventListener('click', () => {
+            client.emit('pick:result', {
+                pickId: Date.now(),
+                coachId: 1,
+                result: Math.random() > 0.5 ? 'win' : 'loss',
+                notification: '✅ Pick WON!',
+                sound: true
+            });
+            addLog('Test pick result event triggered', 'info');
+        });
+
+        document.getElementById('testStreakBtn').addEventListener('click', () => {
+            client.emit('coach:streak:update', {
+                coachId: 1,
+                streak: Math.floor(Math.random() * 20) + 1,
+                accuracy: Math.floor(Math.random() * 30) + 65
+            });
+            addLog('Test streak update event triggered', 'info');
+        });
+
+        document.getElementById('testMarketBtn').addEventListener('click', () => {
+            client.emit('market:movement', {
+                pickId: Date.now(),
+                coachId: 1,
+                oddsMovement: Math.random() > 0.5 ? 5 : -5,
+                newOdds: -110,
+                notification: '💹 Odds moved',
+                sound: true
+            });
+            addLog('Test market movement event triggered', 'info');
+        });
+
+        document.getElementById('testInjuryBtn').addEventListener('click', () => {
+            const statuses = ['Out', 'Doubtful', 'Questionable'];
+            client.emit('injury:alert', {
+                pickId: Date.now(),
+                coachId: 1,
+                injuredPlayer: 'LeBron James',
+                status: statuses[Math.floor(Math.random() * statuses.length)],
+                notification: '⚠️ Key player injured',
+                sound: true,
+                urgent: true
+            });
+            addLog('Test injury alert event triggered', 'info');
+        });
+
+        document.getElementById('testGameBtn').addEventListener('click', () => {
+            client.emit('game:status', {
+                pickId: Date.now(),
+                matchup: 'Lakers @ Celtics',
+                status: 'IN_PROGRESS',
+                score: '98 - 105'
+            });
+            addLog('Test game status event triggered', 'info');
+        });
+
+        // Event listeners
+        client.on('connected', () => {
+            updateUI('connected');
+        });
+
+        client.on('disconnected', () => {
+            updateUI('disconnected');
+        });
+
+        client.on('pick:created', (data) => {
+            addLog(`🎲 Pick created: ${data.pick}`, 'success');
+        });
+
+        client.on('pick:result', (data) => {
+            const emoji = data.result === 'win' ? '✅' : '❌';
+            addLog(`${emoji} Pick ${data.result}!`, 'success');
+        });
+
+        client.on('error', (error) => {
+            addLog(`Error: ${error}`, 'error');
+        });
+
+        // Helper functions
+        function updateUI(status) {
+            if (status === 'connected') {
+                statusEl.classList.remove('disconnected');
+                statusEl.classList.add('connected');
+                statusText.textContent = 'Connected';
+                connectBtn.disabled = true;
+                disconnectBtn.disabled = false;
+            } else {
+                statusEl.classList.remove('connected');
+                statusEl.classList.add('disconnected');
+                statusText.textContent = 'Disconnected';
+                connectBtn.disabled = false;
+                disconnectBtn.disabled = true;
+                subscriptionList.innerHTML = '';
+            }
+        }
+
+        function updateSubscriptionList() {
+            const subs = client.getSubscriptions();
+            const coachNames = {
+                1: '🤖 The Analyst',
+                2: '🏈 Sharp Shooter',
+                3: '⚾ Data Dragon',
+                4: '🏒 Ice Breaker',
+                5: '⚽ El Futbolista',
+                6: '🏈 Gridiron Guru',
+                7: '🎾 Ace of Aces',
+                8: '🥊 The Brawl Boss',
+                9: '⛳ The Green Master',
+                10: '🏀 March Madness',
+                11: '🎮 Pixel Prophet'
+            };
+
+            subscriptionList.innerHTML = subs.map(id => `
+                <div class="coach-badge">
+                    ${coachNames[id] || `Coach ${id}`}
+                    <button onclick="alert('Click to unsubscribe')">✕</button>
+                </div>
+            `).join('');
+
+            if (subs.length === 0) {
+                subscriptionList.innerHTML = '<span style="color: #9ca3af;">No subscriptions</span>';
+            }
+        }
+
+        function addLog(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            eventLog.insertBefore(entry, eventLog.firstChild);
+
+            // Keep last 50 entries
+            while (eventLog.children.length > 50) {
+                eventLog.removeChild(eventLog.lastChild);
+            }
+        }
+
+        // Initial setup
+        addLog('Demo initialized. Click "Connect" to start.', 'info');
+    </script>
+</body>
+</html>
