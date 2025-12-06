@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apple Sign In - Ultimate Sports AI</title>
+    <link rel="stylesheet" href="oauth-styles.css">
+</head>
+<body>
+    <div class="oauth-callback-page">
+        <div class="oauth-callback-content">
+            <div class="spinner"></div>
+            <h2>Completing Apple authentication...</h2>
+            <p>Please wait while we complete your login.</p>
+        </div>
+    </div>
+
+    <script src="oauth-config.js"></script>
+    <script src="oauth-service.js"></script>
+    <script>
+        // Apple Sign-In uses form_post, so data comes in POST body
+        // For client-side handling, we need to extract from URL fragment or form
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(window.location.hash.slice(1));
+        
+        // Check both query and hash params (Apple may use either)
+        const code = urlParams.get('code') || hashParams.get('code');
+        const idToken = urlParams.get('id_token') || hashParams.get('id_token');
+        const state = urlParams.get('state') || hashParams.get('state');
+        const error = urlParams.get('error') || hashParams.get('error');
+        const userStr = urlParams.get('user') || hashParams.get('user');
+        
+        let user = null;
+        if (userStr) {
+            try {
+                user = JSON.parse(userStr);
+            } catch (e) {
+                console.warn('Failed to parse user data:', e);
+            }
+        }
+
+        if (error) {
+            // OAuth error occurred
+            console.error('OAuth error:', error);
+            
+            if (window.opener) {
+                // Send error to parent window
+                window.opener.postMessage({
+                    type: 'oauth_error',
+                    provider: 'apple',
+                    data: {
+                        error: error,
+                        description: urlParams.get('error_description') || hashParams.get('error_description')
+                    }
+                }, window.location.origin);
+                
+                // Close popup
+                window.close();
+            } else {
+                // Redirect to login page with error
+                window.location.href = '/#/login?error=' + encodeURIComponent(error);
+            }
+        } else if (code && idToken && state) {
+            // Success - send data to parent window
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'oauth_callback',
+                    provider: 'apple',
+                    data: { code, idToken, state, user }
+                }, window.location.origin);
+                
+                // Close popup after short delay
+                setTimeout(() => {
+                    window.close();
+                }, 1000);
+            } else {
+                // Not in popup - handle callback directly
+                OAuthService.handleAppleCallback(code, idToken, state, user)
+                    .then(() => {
+                        window.location.href = '/';
+                    })
+                    .catch(error => {
+                        console.error('OAuth callback error:', error);
+                        window.location.href = '/#/login?error=' + encodeURIComponent(error.message);
+                    });
+            }
+        } else {
+            // Invalid callback
+            console.error('Invalid OAuth callback - missing parameters');
+            console.log('Params:', { code, idToken, state, user });
+            window.location.href = '/#/login?error=invalid_callback';
+        }
+    </script>
+</body>
+</html>

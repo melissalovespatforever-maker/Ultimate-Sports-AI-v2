@@ -1,0 +1,25 @@
+# Security Policy for Ultimate Sports AI
+# https://securitytxt.org/
+
+Contact: mailto:security@ultimatesportsai.com
+Expires: 2025-12-31T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://play.rosebud.ai/.well-known/security.txt
+
+# Reporting Security Issues
+# If you discover a security vulnerability, please report it to:
+# security@ultimatesportsai.com
+#
+# Please include:
+# - Description of the vulnerability
+# - Steps to reproduce
+# - Potential impact
+# - Your contact information (optional)
+#
+# We will respond within 48 hours and keep you informed of our progress.
+
+# Acknowledgments
+# Thank you to all security researchers who help keep Ultimate Sports AI secure!
+
+Policy: https://play.rosebud.ai/security-policy.html
+Hiring: https://ultimatesportsai.com/careers

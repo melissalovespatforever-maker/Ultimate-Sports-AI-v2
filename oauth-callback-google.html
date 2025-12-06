@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Login - Ultimate Sports AI</title>
+    <link rel="stylesheet" href="oauth-styles.css">
+</head>
+<body>
+    <div class="oauth-callback-page">
+        <div class="oauth-callback-content">
+            <div class="spinner"></div>
+            <h2>Completing Google authentication...</h2>
+            <p>Please wait while we complete your login.</p>
+        </div>
+    </div>
+
+    <script src="oauth-config.js"></script>
+    <script src="oauth-service.js"></script>
+    <script>
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        const error = urlParams.get('error');
+
+        if (error) {
+            // OAuth error occurred
+            console.error('OAuth error:', error);
+            
+            if (window.opener) {
+                // Send error to parent window
+                window.opener.postMessage({
+                    type: 'oauth_error',
+                    provider: 'google',
+                    data: {
+                        error: error,
+                        description: urlParams.get('error_description')
+                    }
+                }, window.location.origin);
+                
+                // Close popup
+                window.close();
+            } else {
+                // Redirect to login page with error
+                window.location.href = '/#/login?error=' + encodeURIComponent(error);
+            }
+        } else if (code && state) {
+            // Success - send data to parent window
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'oauth_callback',
+                    provider: 'google',
+                    data: { code, state }
+                }, window.location.origin);
+                
+                // Close popup after short delay
+                setTimeout(() => {
+                    window.close();
+                }, 1000);
+            } else {
+                // Not in popup - handle callback directly
+                OAuthService.handleGoogleCallback(code, state)
+                    .then(() => {
+                        window.location.href = '/';
+                    })
+                    .catch(error => {
+                        console.error('OAuth callback error:', error);
+                        window.location.href = '/#/login?error=' + encodeURIComponent(error.message);
+                    });
+            }
+        } else {
+            // Invalid callback
+            console.error('Invalid OAuth callback - missing parameters');
+            window.location.href = '/#/login?error=invalid_callback';
+        }
+    </script>
+</body>
+</html>

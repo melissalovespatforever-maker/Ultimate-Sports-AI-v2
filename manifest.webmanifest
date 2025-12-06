@@ -1,0 +1,159 @@
+{
+  "name": "Ultimate Sports AI - Professional Sports Intelligence",
+  "short_name": "Sports AI",
+  "description": "World's Most Advanced Sports Intelligence Platform powered by Quantum AI. Professional predictions, real-time analytics, advanced insights, and competitive leaderboards.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#1a1e2b",
+  "theme_color": "#4CAF50",
+  "lang": "en-US",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "sizes": "720x540",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "categories": ["sports", "entertainment", "productivity", "lifestyle"],
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  "shortcuts": [
+    {
+      "name": "View Live Games",
+      "short_name": "Live",
+      "description": "Check live game scores and predictions",
+      "url": "/#live-games",
+      "icons": [
+        {
+          "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "My Bet History",
+      "short_name": "History",
+      "description": "View your betting history and stats",
+      "url": "/#bet-history",
+      "icons": [
+        {
+          "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Leaderboard",
+      "short_name": "Ranks",
+      "description": "Check your ranking and compete",
+      "url": "/#leaderboard",
+      "icons": [
+        {
+          "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Daily Rewards",
+      "short_name": "Rewards",
+      "description": "Claim your daily rewards",
+      "url": "/#rewards",
+      "icons": [
+        {
+          "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}
+

@@ -1,0 +1,8 @@
+# Ultimate Sports AI - Robots.txt
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+
+# Sitemap
+Sitemap: https://play.rosebud.ai/sitemap.xml

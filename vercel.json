@@ -1,5 +1,7 @@
 {
-  "buildCommand": "echo 'Static site deployment - built_at_20250101_0001'",
+  "buildCommand": "echo 'Static HTML deployment'",
+  "outputDirectory": ".",
+  "framework": "static",
   "rewrites": [
     {
       "source": "/((?!.*\\.).*)",
