@@ -486,16 +486,104 @@
         grid-template-columns: 1fr;
     }
 
+    .modal-overlay {
+        padding: 8px;
+    }
+
     .modal-content {
         max-height: 90vh;
-        padding: 20px;
+        padding: 16px;
+        max-width: 95vw;
+        border-radius: 16px;
     }
 
     .coach-detail-modal {
-        padding: 16px;
+        padding: 12px;
     }
 
     .coach-stats {
         grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .coach-detail-header h2 {
+        font-size: 20px;
+        margin-bottom: 4px;
+    }
+
+    .coach-avatar-large {
+        font-size: 48px;
+        margin-bottom: 12px;
+    }
+
+    .coach-strategy {
+        font-size: 12px;
+    }
+
+    .detail-stat .value {
+        font-size: 16px;
+    }
+
+    .pick-card {
+        padding: 12px;
+    }
+
+    .pick-header {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-content {
+        max-width: 100vw;
+        padding: 12px;
+    }
+
+    .coach-detail-header h2 {
+        font-size: 18px;
+    }
+
+    .coach-avatar-large {
+        font-size: 40px;
+        margin-bottom: 8px;
+    }
+
+    .coach-detail-stats {
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .detail-stat {
+        padding: 12px;
+    }
+
+    .detail-stat .value {
+        font-size: 14px;
+    }
+
+    .detail-stat .label {
+        font-size: 10px;
+    }
+
+    .coach-picks-detail h3 {
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+
+    .pick-card {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .pick-game {
+        font-size: 11px;
+    }
+
+    .pick-selection {
+        font-size: 12px;
+    }
+
+    .pick-body p {
+        font-size: 12px;
     }
 }

@@ -63,10 +63,78 @@
     .coaches-grid-deluxe {
         grid-template-columns: 1fr;
         gap: 16px;
+        margin-top: 20px;
     }
 
     .coaches-header-deluxe h1 {
         font-size: 1.8rem;
+    }
+
+    .coaches-header-deluxe p {
+        font-size: 1rem;
+    }
+
+    .tier-legend {
+        gap: 20px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .coaches-grid-deluxe {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .coaches-header-deluxe {
+        margin-bottom: 20px;
+    }
+
+    .coaches-header-deluxe h1 {
+        font-size: 1.5rem;
+        margin: 0 0 8px 0;
+    }
+
+    .coaches-header-deluxe p {
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+    }
+
+    .tier-legend {
+        gap: 12px;
+        font-size: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .legend-badge {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        margin-right: 4px;
+    }
+
+    .coach-card-deluxe {
+        border-radius: 16px;
+    }
+
+    .coach-avatar-container {
+        height: 180px;
+    }
+
+    .coach-name-deluxe {
+        font-size: 1.2rem;
+    }
+
+    .coach-specialty-deluxe {
+        font-size: 0.85rem;
+    }
+
+    .coach-stats-row {
+        gap: 12px;
+    }
+
+    .stat-item {
+        font-size: 0.9rem;
     }
 }
 
