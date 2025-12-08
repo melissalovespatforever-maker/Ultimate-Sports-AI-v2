@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Initializer - Tablet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 32px;
+            font-size: 16px;
+        }
+
+        .input-group {
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1e293b;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 12px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .log-container {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 24px;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .log-container.show {
+            display: block;
+        }
+
+        .log-item {
+            color: #e2e8f0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 6px;
+        }
+
+        .log-item.success {
+            background: rgba(16, 185, 129, 0.2);
+            border-left: 3px solid #10b981;
+        }
+
+        .log-item.error {
+            background: rgba(239, 68, 68, 0.2);
+            border-left: 3px solid #ef4444;
+        }
+
+        .log-item.info {
+            background: rgba(59, 130, 246, 0.2);
+            border-left: 3px solid #3b82f6;
+        }
+
+        .status {
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status.warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .helper-text {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 8px;
+        }
+
+        .divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 24px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗄️ Database Initializer</h1>
+        <p class="subtitle">Initialize coach tables in Railway PostgreSQL</p>
+
+        <div id="status" class="status"></div>
+
+        <div class="input-group">
+            <label for="backend-url">Backend URL</label>
+            <input 
+                type="text" 
+                id="backend-url" 
+                placeholder="https://your-backend.railway.app"
+                value=""
+            />
+            <p class="helper-text">Enter your Railway backend URL (without trailing slash)</p>
+        </div>
+
+        <button class="btn" onclick="initDatabase()" id="init-btn">
+            Initialize Database
+        </button>
+
+        <button class="btn btn-secondary" onclick="checkStatus()" id="check-btn">
+            Check Database Status
+        </button>
+
+        <div class="divider"></div>
+
+        <div class="log-container" id="log-container">
+            <div class="log-item info">📋 Logs will appear here...</div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-detect backend URL from localStorage or use default
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedUrl = localStorage.getItem('backend-url');
+            if (savedUrl) {
+                document.getElementById('backend-url').value = savedUrl;
+            }
+        });
+
+        function log(message, type = 'info') {
+            const container = document.getElementById('log-container');
+            container.classList.add('show');
+            
+            const logItem = document.createElement('div');
+            logItem.className = `log-item ${type}`;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            logItem.textContent = `[${timestamp}] ${message}`;
+            
+            container.appendChild(logItem);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status show ${type}`;
+        }
+
+        function getBackendUrl() {
+            const url = document.getElementById('backend-url').value.trim();
+            if (!url) {
+                showStatus('❌ Please enter your backend URL', 'error');
+                return null;
+            }
+            // Remove trailing slash if present
+            const cleanUrl = url.replace(/\/$/, '');
+            localStorage.setItem('backend-url', cleanUrl);
+            return cleanUrl;
+        }
+
+        async function initDatabase() {
+            const backendUrl = getBackendUrl();
+            if (!backendUrl) return;
+
+            const btn = document.getElementById('init-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Initializing...';
+
+            log('🚀 Starting database initialization...', 'info');
+            showStatus('⏳ Initializing database tables...', 'warning');
+
+            try {
+                // Method 1: Try the auto-init endpoint (triggers on first request)
+                log('📡 Method 1: Triggering auto-init via /api/ai-coaches', 'info');
+                
+                const response = await fetch(`${backendUrl}/api/ai-coaches`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log('✅ API call successful!', 'success');
+                    log(`📊 Received ${data.count || 0} coaches`, 'success');
+                    
+                    if (data.coaches && data.coaches.length === 11) {
+                        log('✅ All 11 coaches loaded successfully!', 'success');
+                        showStatus('✅ Database initialized! 11 coaches loaded.', 'success');
+                        
+                        // Show coach details
+                        data.coaches.forEach(coach => {
+                            log(`   ${coach.avatar} ${coach.name} - ${coach.accuracy}% accuracy`, 'info');
+                        });
+                    } else {
+                        log('⚠️ Coaches loaded but count is unexpected', 'error');
+                        showStatus('⚠️ Partial success - check logs', 'warning');
+                    }
+                } else {
+                    throw new Error(data.error || 'API request failed');
+                }
+
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                showStatus(`❌ Failed: ${error.message}`, 'error');
+                
+                // Try Method 2: Manual init endpoint
+                log('🔄 Trying Method 2: Manual init endpoint...', 'info');
+                try {
+                    const response2 = await fetch(`${backendUrl}/api/admin/init-database`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    const data2 = await response2.json();
+                    
+                    if (response2.ok) {
+                        log('✅ Manual init successful!', 'success');
+                        showStatus('✅ Database initialized via manual endpoint!', 'success');
+                    } else {
+                        throw new Error(data2.error || 'Manual init failed');
+                    }
+                } catch (error2) {
+                    log(`❌ Method 2 also failed: ${error2.message}`, 'error');
+                    log('💡 Suggestion: Check Railway logs for details', 'info');
+                    showStatus('❌ Both methods failed - check Railway logs', 'error');
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Initialize Database';
+            }
+        }
+
+        async function checkStatus() {
+            const backendUrl = getBackendUrl();
+            if (!backendUrl) return;
+
+            const btn = document.getElementById('check-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Checking...';
+
+            log('🔍 Checking database status...', 'info');
+            showStatus('⏳ Checking connection...', 'warning');
+
+            try {
+                // Check database connection
+                log('📡 Testing database connection...', 'info');
+                const dbResponse = await fetch(`${backendUrl}/api/debug/database`);
+                const dbData = await dbResponse.json();
+
+                if (dbResponse.ok) {
+                    log('✅ Database connection: OK', 'success');
+                    log(`   Database time: ${dbData.database_time}`, 'info');
+                } else {
+                    log('❌ Database connection: FAILED', 'error');
+                    log(`   Error: ${dbData.message}`, 'error');
+                }
+
+                // Check coaches endpoint
+                log('📡 Checking coaches endpoint...', 'info');
+                const coachesResponse = await fetch(`${backendUrl}/api/ai-coaches`);
+                const coachesData = await coachesResponse.json();
+
+                if (coachesResponse.ok) {
+                    log(`✅ Coaches endpoint: OK (${coachesData.count} coaches)`, 'success');
+                    
+                    if (coachesData.coaches && coachesData.coaches.length > 0) {
+                        const firstCoach = coachesData.coaches[0];
+                        log(`   Sample: ${firstCoach.name} - ${firstCoach.accuracy}% accuracy`, 'info');
+                        log(`   Total picks: ${firstCoach.totalPicks}`, 'info');
+                        showStatus('✅ System is working! Coaches loaded successfully.', 'success');
+                    }
+                } else {
+                    log('❌ Coaches endpoint: FAILED', 'error');
+                    showStatus('❌ Coaches endpoint not responding', 'error');
+                }
+
+            } catch (error) {
+                log(`❌ Status check failed: ${error.message}`, 'error');
+                showStatus(`❌ Error: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = 'Check Database Status';
+            }
+        }
+
+        // Add CORS helper info
+        log('💡 TIP: If you see CORS errors, the backend needs to allow your domain', 'info');
+        log('💡 Make sure your Railway backend URL is correct', 'info');
+    </script>
+</body>
+</html>
