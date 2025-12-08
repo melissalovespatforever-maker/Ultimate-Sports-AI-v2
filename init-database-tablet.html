@@ -282,8 +282,41 @@
             showStatus('⏳ Initializing database tables...', 'warning');
 
             try {
-                // Method 1: Try the auto-init endpoint (triggers on first request)
-                log('📡 Method 1: Triggering auto-init via /api/ai-coaches', 'info');
+                // Method 1: Try dedicated coaches init endpoint (most reliable!)
+                log('📡 Method 1: Creating coaches tables via /api/init-coaches', 'info');
+                
+                try {
+                    const response = await fetch(`${backendUrl}/api/init-coaches`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    const data = await response.json();
+                    
+                    if (response.ok && data.success) {
+                        log('✅ Method 1 SUCCESS! Coaches tables created!', 'success');
+                        log(`👤 ${data.details.coaches} coaches added to database`, 'success');
+                        log(`📊 ${data.details.stats} stats records created`, 'success');
+                        log(`✅ Sample: ${data.details.sampleCoach?.name} - ${data.details.sampleCoach?.accuracy}% accuracy`, 'success');
+                        showStatus('✅ Database initialized with real data!', 'success');
+                        
+                        // Verify by fetching coaches
+                        const verifyResponse = await fetch(`${backendUrl}/api/ai-coaches`);
+                        const verifyData = await verifyResponse.json();
+                        if (verifyData.coaches && verifyData.coaches.length === 11) {
+                            log('✅ VERIFIED: 11 coaches loading from database!', 'success');
+                            verifyData.coaches.slice(0, 3).forEach(coach => {
+                                log(`   ${coach.avatar} ${coach.name} - ${coach.accuracy}% accuracy`, 'info');
+                            });
+                        }
+                        return; // Success, no need to try other methods
+                    }
+                } catch (e) {
+                    log(`⚠️ Method 1 failed: ${e.message}`, 'warning');
+                }
+
+                // Method 2: Try auto-init via coaches endpoint
+                log('🔄 Method 2: Triggering auto-init via /api/ai-coaches', 'info');
                 
                 const response = await fetch(`${backendUrl}/api/ai-coaches`, {
                     method: 'GET',
@@ -299,7 +332,7 @@
                     log(`📊 Received ${data.count || 0} coaches`, 'success');
                     
                     if (data.coaches && data.coaches.length === 11) {
-                        log('✅ All 11 coaches loaded successfully!', 'success');
+                        log('✅ All 11 coaches loaded!', 'success');
                         showStatus('✅ Database initialized! 11 coaches loaded.', 'success');
                         
                         // Show coach details
@@ -318,28 +351,28 @@
                 log(`❌ Error: ${error.message}`, 'error');
                 showStatus(`❌ Failed: ${error.message}`, 'error');
                 
-                // Try Method 2: Manual init endpoint
-                log('🔄 Trying Method 2: Manual init endpoint...', 'info');
+                // Try Method 3: Full database init
+                log('🔄 Trying Method 3: Full database init...', 'info');
                 try {
-                    const response2 = await fetch(`${backendUrl}/api/admin/init-database`, {
+                    const response3 = await fetch(`${backendUrl}/api/admin/init-database`, {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json'
                         }
                     });
 
-                    const data2 = await response2.json();
+                    const data3 = await response3.json();
                     
-                    if (response2.ok) {
-                        log('✅ Manual init successful!', 'success');
-                        showStatus('✅ Database initialized via manual endpoint!', 'success');
+                    if (response3.ok) {
+                        log('✅ Full database init successful!', 'success');
+                        showStatus('✅ Database initialized!', 'success');
                     } else {
-                        throw new Error(data2.error || 'Manual init failed');
+                        throw new Error(data3.error || 'Full init failed');
                     }
-                } catch (error2) {
-                    log(`❌ Method 2 also failed: ${error2.message}`, 'error');
+                } catch (error3) {
+                    log(`❌ All methods failed: ${error3.message}`, 'error');
                     log('💡 Suggestion: Check Railway logs for details', 'info');
-                    showStatus('❌ Both methods failed - check Railway logs', 'error');
+                    showStatus('❌ All methods failed - check Railway logs', 'error');
                 }
             } finally {
                 btn.disabled = false;
@@ -359,17 +392,48 @@
             showStatus('⏳ Checking connection...', 'warning');
 
             try {
+                // NEW: Check coaches database status first (most reliable)
+                log('📡 Checking coaches database tables...', 'info');
+                try {
+                    const checkResponse = await fetch(`${backendUrl}/api/check-coaches`);
+                    const checkData = await checkResponse.json();
+
+                    log(`   Connection: ${checkData.connection}`, checkData.connection.includes('✅') ? 'success' : 'error');
+                    
+                    if (checkData.tables && checkData.tables.length > 0) {
+                        log(`   ✅ Tables found: ${checkData.tables.join(', ')}`, 'success');
+                        if (checkData.counts) {
+                            log(`   📊 Coaches: ${checkData.counts.coaches}`, 'success');
+                            log(`   📊 Stats: ${checkData.counts.stats}`, 'success');
+                            log(`   📊 Picks: ${checkData.counts.picks}`, 'success');
+                        }
+                        if (checkData.sample) {
+                            log(`   ✅ Sample: ${checkData.sample.avatar} ${checkData.sample.name} - ${checkData.sample.accuracy}% accuracy`, 'success');
+                            log('   ✅ USING REAL DATABASE DATA!', 'success');
+                        }
+                    } else {
+                        log('   ⚠️ No tables found - using fallback data', 'warning');
+                        log('   💡 Click "Initialize Database" to create tables', 'info');
+                    }
+                } catch (e) {
+                    log(`   ⚠️ Check endpoint not available: ${e.message}`, 'warning');
+                }
+
                 // Check database connection
                 log('📡 Testing database connection...', 'info');
-                const dbResponse = await fetch(`${backendUrl}/api/debug/database`);
-                const dbData = await dbResponse.json();
+                try {
+                    const dbResponse = await fetch(`${backendUrl}/api/debug/database`);
+                    const dbData = await dbResponse.json();
 
-                if (dbResponse.ok) {
-                    log('✅ Database connection: OK', 'success');
-                    log(`   Database time: ${dbData.database_time}`, 'info');
-                } else {
-                    log('❌ Database connection: FAILED', 'error');
-                    log(`   Error: ${dbData.message}`, 'error');
+                    if (dbResponse.ok) {
+                        log('✅ Database connection: OK', 'success');
+                        log(`   Database time: ${dbData.database_time}`, 'info');
+                    } else {
+                        log('❌ Database connection: FAILED', 'error');
+                        log(`   Error: ${dbData.message}`, 'error');
+                    }
+                } catch (e) {
+                    log('⚠️ Debug endpoint not available', 'warning');
                 }
 
                 // Check coaches endpoint
