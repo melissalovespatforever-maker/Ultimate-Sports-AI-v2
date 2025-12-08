@@ -5,16 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sports Lounge | Ultimate Sports AI</title>
     
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=20250107001">
-    <link rel="stylesheet" href="sports-lounge-styles.css?v=20250107001">
+    <link rel="stylesheet" href="styles.css?v=20250107002">
+    <link rel="stylesheet" href="sports-lounge-styles.css?v=20250107002">
 </head>
 <body>
-    <!-- Navigation (reuse existing) -->
-    <nav id="main-nav"></nav>
 
     <!-- Sports Lounge Container -->
     <div class="sports-lounge-container">
@@ -49,236 +52,284 @@
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="quick-actions">
-            <button class="action-card action-battle" onclick="window.location.href='#battles'">
-                <div class="action-icon">⚔️</div>
-                <div class="action-info">
-                    <h3>1v1 Parlay Battle</h3>
-                    <p>Challenge players to head-to-head</p>
-                </div>
-                <i class="fas fa-arrow-right"></i>
+        <!-- Tab Navigation -->
+        <div class="lounge-tabs">
+            <button class="lounge-tab active" data-tab="chat-room">
+                <i class="fas fa-comments"></i>
+                <span>Chat Room</span>
             </button>
-
-            <button class="action-card action-trivia" onclick="window.location.href='#trivia'">
-                <div class="action-icon">🧠</div>
-                <div class="action-info">
-                    <h3>Sports Trivia</h3>
-                    <p>Test your sports knowledge</p>
-                </div>
-                <i class="fas fa-arrow-right"></i>
+            <button class="lounge-tab" data-tab="game-room">
+                <i class="fas fa-gamepad"></i>
+                <span>Game Room</span>
             </button>
-
-            <button class="action-card action-tournament" onclick="window.location.href='#tournaments'">
-                <div class="action-icon">🏆</div>
-                <div class="action-info">
-                    <h3>Tournaments</h3>
-                    <p>Join competitive brackets</p>
-                </div>
-                <i class="fas fa-arrow-right"></i>
+            <button class="lounge-tab" data-tab="leaderboard">
+                <i class="fas fa-ranking-star"></i>
+                <span>Leaderboard</span>
             </button>
-
-            <button class="action-card action-minigames" onclick="window.location.href='#minigames'">
-                <div class="action-icon">🎰</div>
-                <div class="action-info">
-                    <h3>Mini Games</h3>
-                    <p>Quick fun & prizes</p>
-                </div>
-                <i class="fas fa-arrow-right"></i>
+            <button class="lounge-tab" data-tab="trophy-room">
+                <i class="fas fa-trophy"></i>
+                <span>Trophy Room</span>
             </button>
         </div>
 
-        <!-- Main Content Grid -->
-        <div class="lounge-grid">
-            
-            <!-- Left Column - Activity Feed & Chat -->
-            <div class="lounge-column left-column">
+        <!-- ============================================
+             CHAT ROOM TAB
+             ============================================ -->
+        <div class="tab-content active" id="chat-room">
+            <div class="lounge-grid two-column">
                 
-                <!-- Live Activity Feed -->
-                <div class="lounge-card activity-feed">
-                    <div class="card-header">
-                        <h2><i class="fas fa-bolt"></i> Live Activity</h2>
-                        <span class="pulse-indicator"></span>
-                    </div>
-                    <div class="activity-list" id="activity-feed">
-                        <!-- Dynamic content -->
-                        <div class="activity-item win">
-                            <div class="activity-avatar">🔥</div>
-                            <div class="activity-content">
-                                <strong>@SportsFanatic</strong> just won a 5-leg parlay!
-                                <span class="activity-time">2m ago</span>
-                            </div>
-                            <div class="activity-badge">+$250</div>
-                        </div>
-
-                        <div class="activity-item challenge">
-                            <div class="activity-avatar">⚔️</div>
-                            <div class="activity-content">
-                                <strong>@ParlayKing</strong> challenged <strong>@BetMaster</strong>
-                                <span class="activity-time">5m ago</span>
-                            </div>
-                        </div>
-
-                        <div class="activity-item trivia">
-                            <div class="activity-avatar">🧠</div>
-                            <div class="activity-content">
-                                <strong>@TriviaGuru</strong> answered 20 questions in a row!
-                                <span class="activity-time">8m ago</span>
-                            </div>
-                        </div>
-
-                        <div class="activity-item tournament">
-                            <div class="activity-avatar">🏆</div>
-                            <div class="activity-content">
-                                <strong>Weekly Parlay Madness</strong> starts in 2 hours
-                                <span class="activity-time">Now</span>
-                            </div>
-                            <button class="activity-action">Join</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Lounge Chat -->
-                <div class="lounge-card chat-container">
+                <!-- Main Chat -->
+                <div class="lounge-card chat-container-full">
                     <div class="card-header">
                         <h2><i class="fas fa-comments"></i> Main Lounge Chat</h2>
                         <div class="chat-actions">
+                            <span class="online-users"><i class="fas fa-circle" style="color: #10b981; font-size: 8px;"></i> 1,247 online</span>
                             <button class="btn-icon" title="Emoji"><i class="fas fa-smile"></i></button>
                             <button class="btn-icon" title="Settings"><i class="fas fa-cog"></i></button>
                         </div>
                     </div>
                     <div class="chat-messages" id="chat-messages">
-                        <!-- Dynamic messages -->
+                        <!-- Dynamic messages loaded by JS -->
                     </div>
                     <div class="chat-input-container">
                         <input 
                             type="text" 
                             id="chat-input" 
-                            placeholder="Type a message..." 
+                            placeholder="Type a message... (Be respectful!)" 
                             maxlength="500"
                         />
-                        <button class="btn-send" onclick="sendMessage()">
+                        <button class="btn-send" onclick="window.SportsLounge.sendMessage()">
                             <i class="fas fa-paper-plane"></i>
                         </button>
                     </div>
                 </div>
-            </div>
 
-            <!-- Center Column - Featured & Leaderboards -->
-            <div class="lounge-column center-column">
-                
-                <!-- Featured Tournament -->
-                <div class="lounge-card featured-tournament">
-                    <div class="tournament-badge">FEATURED</div>
-                    <div class="tournament-content">
-                        <h2>🏆 Weekly Parlay Championship</h2>
-                        <p>64 players compete in bracket-style tournament</p>
-                        <div class="tournament-stats">
-                            <div class="stat">
-                                <i class="fas fa-users"></i>
-                                <span>48/64 Joined</span>
+                <!-- Activity Sidebar -->
+                <div class="lounge-column">
+                    <!-- Live Activity Feed -->
+                    <div class="lounge-card activity-feed">
+                        <div class="card-header">
+                            <h2><i class="fas fa-bolt"></i> Live Activity</h2>
+                            <span class="pulse-indicator"></span>
+                        </div>
+                        <div class="activity-list" id="activity-feed">
+                            <!-- Dynamic content -->
+                            <div class="activity-item win">
+                                <div class="activity-avatar">🔥</div>
+                                <div class="activity-content">
+                                    <strong>@SportsFanatic</strong> just won a 5-leg parlay!
+                                    <span class="activity-time">2m ago</span>
+                                </div>
+                                <div class="activity-badge">+$250</div>
                             </div>
-                            <div class="stat">
-                                <i class="fas fa-coins"></i>
-                                <span>$5,000 Prize Pool</span>
+
+                            <div class="activity-item challenge">
+                                <div class="activity-avatar">⚔️</div>
+                                <div class="activity-content">
+                                    <strong>@ParlayKing</strong> challenged <strong>@BetMaster</strong>
+                                    <span class="activity-time">5m ago</span>
+                                </div>
                             </div>
-                            <div class="stat">
-                                <i class="fas fa-clock"></i>
-                                <span>Starts in 2h 15m</span>
+
+                            <div class="activity-item trivia">
+                                <div class="activity-avatar">🧠</div>
+                                <div class="activity-content">
+                                    <strong>@TriviaGuru</strong> answered 20 questions in a row!
+                                    <span class="activity-time">8m ago</span>
+                                </div>
                             </div>
                         </div>
-                        <button class="btn-tournament-join">
-                            <i class="fas fa-trophy"></i>
-                            Join Tournament
+                    </div>
+
+                    <!-- User Profile Card -->
+                    <div class="lounge-card user-profile-card">
+                        <div class="profile-header">
+                            <div class="profile-avatar">🎮</div>
+                            <div class="profile-status online"></div>
+                        </div>
+                        <h3 class="profile-name" id="user-name">SportsFan2024</h3>
+                        <div class="profile-title">🔥 On Fire</div>
+                        <div class="profile-stats-grid">
+                            <div class="profile-stat">
+                                <div class="stat-value">847</div>
+                                <div class="stat-label">Coins</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="stat-value">23</div>
+                                <div class="stat-label">Wins</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="stat-value">7</div>
+                                <div class="stat-label">Streak</div>
+                            </div>
+                        </div>
+                        <button class="btn-profile">View Full Profile</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             GAME ROOM TAB
+             ============================================ -->
+        <div class="tab-content" id="game-room">
+            <div class="game-room-grid">
+                
+                <!-- Featured Game -->
+                <div class="lounge-card featured-game">
+                    <div class="game-badge">🔥 HOT</div>
+                    <div class="game-content">
+                        <h2>⚔️ 1v1 Parlay Battle</h2>
+                        <p>Challenge another player to head-to-head parlay duel</p>
+                        <div class="game-stats">
+                            <div class="stat"><i class="fas fa-users"></i> 45 Active Battles</div>
+                            <div class="stat"><i class="fas fa-coins"></i> Win up to 1,000 coins</div>
+                        </div>
+                        <button class="btn-game-launch">
+                            <i class="fas fa-play"></i>
+                            Start Battle
                         </button>
                     </div>
                 </div>
 
-                <!-- Daily Challenge Board -->
-                <div class="lounge-card challenge-board">
-                    <div class="card-header">
-                        <h2><i class="fas fa-bullseye"></i> Daily Challenges</h2>
+                <!-- Game Cards Grid -->
+                <div class="games-grid">
+                    
+                    <!-- Sports Trivia -->
+                    <div class="game-card">
+                        <div class="game-icon-large">🧠</div>
+                        <h3>Sports Trivia</h3>
+                        <p>Test your knowledge across all sports</p>
+                        <div class="game-meta">
+                            <span><i class="fas fa-clock"></i> 5 min</span>
+                            <span><i class="fas fa-coins"></i> 50-500</span>
+                        </div>
+                        <button class="btn-game-play">Play Now</button>
                     </div>
-                    <div class="challenges-list">
-                        <div class="challenge-item">
-                            <div class="challenge-icon">⚔️</div>
-                            <div class="challenge-info">
-                                <h4>Win 3 Parlay Battles</h4>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 66%"></div>
-                                </div>
-                                <span class="progress-text">2/3 Complete</span>
-                            </div>
-                            <div class="challenge-reward">+500 🪙</div>
-                        </div>
 
-                        <div class="challenge-item">
-                            <div class="challenge-icon">🧠</div>
-                            <div class="challenge-info">
-                                <h4>Answer 50 Trivia Questions</h4>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 32%"></div>
-                                </div>
-                                <span class="progress-text">16/50 Complete</span>
-                            </div>
-                            <div class="challenge-reward">+300 🪙</div>
+                    <!-- Slots Game -->
+                    <div class="game-card">
+                        <div class="game-icon-large">🎰</div>
+                        <h3>Lucky Slots</h3>
+                        <p>Spin to win coins and prizes</p>
+                        <div class="game-meta">
+                            <span><i class="fas fa-clock"></i> 1 min</span>
+                            <span><i class="fas fa-coins"></i> 10-1000</span>
                         </div>
+                        <button class="btn-game-play">Play Now</button>
+                    </div>
 
-                        <div class="challenge-item">
-                            <div class="challenge-icon">💬</div>
-                            <div class="challenge-info">
-                                <h4>Chat 20 Times in Lounge</h4>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 85%"></div>
-                                </div>
-                                <span class="progress-text">17/20 Complete</span>
-                            </div>
-                            <div class="challenge-reward">+200 🪙</div>
+                    <!-- Wheel of Fortune -->
+                    <div class="game-card">
+                        <div class="game-icon-large">🎡</div>
+                        <h3>Prize Wheel</h3>
+                        <p>Spin the wheel for instant rewards</p>
+                        <div class="game-meta">
+                            <span><i class="fas fa-clock"></i> 30 sec</span>
+                            <span><i class="fas fa-coins"></i> 25-750</span>
                         </div>
+                        <button class="btn-game-play">Play Now</button>
+                    </div>
+
+                    <!-- Coin Flip -->
+                    <div class="game-card">
+                        <div class="game-icon-large">🪙</div>
+                        <h3>Coin Flip</h3>
+                        <p>Double or nothing - test your luck!</p>
+                        <div class="game-meta">
+                            <span><i class="fas fa-clock"></i> 10 sec</span>
+                            <span><i class="fas fa-coins"></i> 2x Bet</span>
+                        </div>
+                        <button class="btn-game-play">Play Now</button>
+                    </div>
+
+                    <!-- Scratch Cards -->
+                    <div class="game-card">
+                        <div class="game-icon-large">🎫</div>
+                        <h3>Scratch Cards</h3>
+                        <p>Scratch to reveal hidden prizes</p>
+                        <div class="game-meta">
+                            <span><i class="fas fa-clock"></i> 30 sec</span>
+                            <span><i class="fas fa-coins"></i> 20-500</span>
+                        </div>
+                        <button class="btn-game-play">Play Now</button>
+                    </div>
+
+                    <!-- Tournament -->
+                    <div class="game-card tournament-card">
+                        <div class="game-badge-small">LIVE</div>
+                        <div class="game-icon-large">🏆</div>
+                        <h3>Weekly Championship</h3>
+                        <p>64-player bracket tournament</p>
+                        <div class="game-meta">
+                            <span><i class="fas fa-users"></i> 48/64</span>
+                            <span><i class="fas fa-coins"></i> $5,000 Pool</span>
+                        </div>
+                        <button class="btn-game-play btn-tournament">Join Tournament</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             LEADERBOARD TAB
+             ============================================ -->
+        <div class="tab-content" id="leaderboard">
+            <div class="leaderboard-container">
+                
+                <!-- Leaderboard Filters -->
+                <div class="leaderboard-filters">
+                    <button class="filter-btn active" data-filter="today">Today</button>
+                    <button class="filter-btn" data-filter="week">This Week</button>
+                    <button class="filter-btn" data-filter="month">This Month</button>
+                    <button class="filter-btn" data-filter="alltime">All Time</button>
+                </div>
+
+                <!-- Top 3 Podium -->
+                <div class="podium">
+                    <!-- 2nd Place -->
+                    <div class="podium-place podium-2">
+                        <div class="podium-rank">2nd</div>
+                        <div class="podium-avatar">🥈</div>
+                        <div class="podium-name">BetMaster</div>
+                        <div class="podium-score">2,120 pts</div>
+                        <div class="podium-stats">10-3 Record</div>
+                    </div>
+
+                    <!-- 1st Place -->
+                    <div class="podium-place podium-1">
+                        <div class="podium-crown">👑</div>
+                        <div class="podium-rank">1st</div>
+                        <div class="podium-avatar">🏆</div>
+                        <div class="podium-name">ParlayKing</div>
+                        <div class="podium-score">2,450 pts</div>
+                        <div class="podium-stats">12-2 Record • 85% WR</div>
+                    </div>
+
+                    <!-- 3rd Place -->
+                    <div class="podium-place podium-3">
+                        <div class="podium-rank">3rd</div>
+                        <div class="podium-avatar">🥉</div>
+                        <div class="podium-name">SportsFanatic</div>
+                        <div class="podium-score">1,980 pts</div>
+                        <div class="podium-stats">11-4 Record</div>
                     </div>
                 </div>
 
-                <!-- Leaderboard -->
-                <div class="lounge-card leaderboard">
+                <!-- Full Leaderboard List -->
+                <div class="lounge-card leaderboard-full">
                     <div class="card-header">
-                        <h2><i class="fas fa-ranking-star"></i> Top Players Today</h2>
-                        <button class="btn-text">View All</button>
+                        <h2><i class="fas fa-ranking-star"></i> Full Rankings</h2>
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Find player..." />
+                        </div>
                     </div>
                     <div class="leaderboard-list">
-                        <!-- Rank 1 -->
-                        <div class="leaderboard-item rank-1">
-                            <div class="rank-number">1</div>
-                            <div class="player-avatar">👑</div>
-                            <div class="player-info">
-                                <div class="player-name">ParlayKing</div>
-                                <div class="player-stats">12-2 Record • 85% Win Rate</div>
-                            </div>
-                            <div class="player-score">2,450 pts</div>
-                        </div>
-
-                        <!-- Rank 2 -->
-                        <div class="leaderboard-item rank-2">
-                            <div class="rank-number">2</div>
-                            <div class="player-avatar">🥈</div>
-                            <div class="player-info">
-                                <div class="player-name">BetMaster</div>
-                                <div class="player-stats">10-3 Record • 76% Win Rate</div>
-                            </div>
-                            <div class="player-score">2,120 pts</div>
-                        </div>
-
-                        <!-- Rank 3 -->
-                        <div class="leaderboard-item rank-3">
-                            <div class="rank-number">3</div>
-                            <div class="player-avatar">🥉</div>
-                            <div class="player-info">
-                                <div class="player-name">SportsFanatic</div>
-                                <div class="player-stats">11-4 Record • 73% Win Rate</div>
-                            </div>
-                            <div class="player-score">1,980 pts</div>
-                        </div>
-
-                        <!-- Remaining ranks -->
+                        <!-- Top 3 already shown in podium -->
+                        
+                        <!-- Rank 4-20 -->
                         <div class="leaderboard-item">
                             <div class="rank-number">4</div>
                             <div class="player-avatar">🔥</div>
@@ -298,99 +349,212 @@
                             </div>
                             <div class="player-score">1,720 pts</div>
                         </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Right Column - User Profile & Mini Games -->
-            <div class="lounge-column right-column">
-                
-                <!-- User Profile Card -->
-                <div class="lounge-card user-profile-card">
-                    <div class="profile-header">
-                        <div class="profile-avatar">🎮</div>
-                        <div class="profile-status online"></div>
-                    </div>
-                    <h3 class="profile-name" id="user-name">SportsFan2024</h3>
-                    <div class="profile-title">🔥 On Fire</div>
-                    <div class="profile-stats-grid">
-                        <div class="profile-stat">
-                            <div class="stat-value">847</div>
-                            <div class="stat-label">Coins</div>
+                        <div class="leaderboard-item">
+                            <div class="rank-number">6</div>
+                            <div class="player-avatar">💎</div>
+                            <div class="player-info">
+                                <div class="player-name">DiamondHands</div>
+                                <div class="player-stats">10-5 Record • 67% Win Rate</div>
+                            </div>
+                            <div class="player-score">1,650 pts</div>
                         </div>
-                        <div class="profile-stat">
-                            <div class="stat-value">23</div>
-                            <div class="stat-label">Wins</div>
-                        </div>
-                        <div class="profile-stat">
-                            <div class="stat-value">7</div>
-                            <div class="stat-label">Streak</div>
-                        </div>
-                    </div>
-                    <button class="btn-profile">View Full Profile</button>
-                </div>
 
-                <!-- Quick Mini Games -->
-                <div class="lounge-card minigames-quick">
-                    <div class="card-header">
-                        <h2><i class="fas fa-dice"></i> Quick Play</h2>
-                    </div>
-                    <div class="minigames-grid">
-                        <button class="minigame-btn">
-                            <div class="game-icon">🎰</div>
-                            <span>Slots</span>
-                        </button>
-                        <button class="minigame-btn">
-                            <div class="game-icon">🎡</div>
-                            <span>Wheel</span>
-                        </button>
-                        <button class="minigame-btn">
-                            <div class="game-icon">🪙</div>
-                            <span>Flip</span>
-                        </button>
-                        <button class="minigame-btn">
-                            <div class="game-icon">🎫</div>
-                            <span>Scratch</span>
-                        </button>
-                    </div>
-                </div>
+                        <div class="leaderboard-item">
+                            <div class="rank-number">7</div>
+                            <div class="player-avatar">🎯</div>
+                            <div class="player-info">
+                                <div class="player-name">Bullseye</div>
+                                <div class="player-stats">7-2 Record • 78% Win Rate</div>
+                            </div>
+                            <div class="player-score">1,580 pts</div>
+                        </div>
 
-                <!-- Recent Achievements -->
-                <div class="lounge-card recent-achievements">
-                    <div class="card-header">
-                        <h2><i class="fas fa-award"></i> Recent Achievements</h2>
-                    </div>
-                    <div class="achievements-list">
-                        <div class="achievement-item new">
-                            <div class="achievement-icon">🏆</div>
-                            <div class="achievement-info">
-                                <h4>First Victory</h4>
-                                <p>Win your first battle</p>
+                        <div class="leaderboard-item">
+                            <div class="rank-number">8</div>
+                            <div class="player-avatar">🌟</div>
+                            <div class="player-info">
+                                <div class="player-name">StarPlayer</div>
+                                <div class="player-stats">9-4 Record • 69% Win Rate</div>
                             </div>
+                            <div class="player-score">1,520 pts</div>
                         </div>
-                        <div class="achievement-item">
-                            <div class="achievement-icon">💬</div>
-                            <div class="achievement-info">
-                                <h4>Social Butterfly</h4>
-                                <p>Send 100 chat messages</p>
+
+                        <div class="leaderboard-item you">
+                            <div class="rank-number">15</div>
+                            <div class="player-avatar">🎮</div>
+                            <div class="player-info">
+                                <div class="player-name">You (SportsFan2024)</div>
+                                <div class="player-stats">6-2 Record • 75% Win Rate</div>
                             </div>
-                        </div>
-                        <div class="achievement-item locked">
-                            <div class="achievement-icon">🔒</div>
-                            <div class="achievement-info">
-                                <h4>Parlay Master</h4>
-                                <p>Win 50 battles</p>
-                                <div class="achievement-progress">23/50</div>
-                            </div>
+                            <div class="player-score">1,240 pts</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- ============================================
+             TROPHY ROOM TAB
+             ============================================ -->
+        <div class="tab-content" id="trophy-room">
+            <div class="trophy-room-grid">
+                
+                <!-- Achievements Progress -->
+                <div class="lounge-card achievements-progress">
+                    <div class="card-header">
+                        <h2><i class="fas fa-award"></i> Your Progress</h2>
+                        <div class="achievement-score">
+                            <span class="score-value">23</span>
+                            <span class="score-label">/ 50 Achievements</span>
+                        </div>
+                    </div>
+                    <div class="progress-bar-large">
+                        <div class="progress-fill" style="width: 46%"></div>
+                    </div>
+                    <p class="progress-text">46% Complete • 27 more to unlock!</p>
+                </div>
+
+                <!-- Achievements Grid -->
+                <div class="achievements-grid">
+                    
+                    <!-- Unlocked Achievements -->
+                    <div class="achievement-card unlocked new">
+                        <div class="achievement-badge">NEW!</div>
+                        <div class="achievement-icon-big">🏆</div>
+                        <h3>First Victory</h3>
+                        <p>Win your first battle</p>
+                        <div class="achievement-date">Unlocked 2 hours ago</div>
+                        <div class="achievement-reward">+100 🪙</div>
+                    </div>
+
+                    <div class="achievement-card unlocked">
+                        <div class="achievement-icon-big">💬</div>
+                        <h3>Social Butterfly</h3>
+                        <p>Send 100 chat messages</p>
+                        <div class="achievement-date">Unlocked 1 day ago</div>
+                        <div class="achievement-reward">+200 🪙</div>
+                    </div>
+
+                    <div class="achievement-card unlocked">
+                        <div class="achievement-icon-big">🔥</div>
+                        <h3>Hot Streak</h3>
+                        <p>Win 5 battles in a row</p>
+                        <div class="achievement-date">Unlocked 2 days ago</div>
+                        <div class="achievement-reward">+300 🪙</div>
+                    </div>
+
+                    <div class="achievement-card unlocked">
+                        <div class="achievement-icon-big">🧠</div>
+                        <h3>Trivia Master</h3>
+                        <p>Answer 100 trivia questions correctly</p>
+                        <div class="achievement-date">Unlocked 3 days ago</div>
+                        <div class="achievement-reward">+250 🪙</div>
+                    </div>
+
+                    <!-- In Progress -->
+                    <div class="achievement-card in-progress">
+                        <div class="achievement-icon-big">⚔️</div>
+                        <h3>Battle Veteran</h3>
+                        <p>Win 50 battles</p>
+                        <div class="achievement-progress-bar">
+                            <div class="progress-fill" style="width: 46%"></div>
+                        </div>
+                        <div class="achievement-progress-text">23 / 50</div>
+                        <div class="achievement-reward">+500 🪙</div>
+                    </div>
+
+                    <div class="achievement-card in-progress">
+                        <div class="achievement-icon-big">💰</div>
+                        <h3>Coin Collector</h3>
+                        <p>Earn 10,000 total coins</p>
+                        <div class="achievement-progress-bar">
+                            <div class="progress-fill" style="width: 65%"></div>
+                        </div>
+                        <div class="achievement-progress-text">6,500 / 10,000</div>
+                        <div class="achievement-reward">+750 🪙</div>
+                    </div>
+
+                    <!-- Locked Achievements -->
+                    <div class="achievement-card locked">
+                        <div class="achievement-icon-big">🔒</div>
+                        <h3>Parlay Legend</h3>
+                        <p>Win 100 battles</p>
+                        <div class="achievement-progress-text">0 / 100</div>
+                        <div class="achievement-reward">+1,000 🪙</div>
+                    </div>
+
+                    <div class="achievement-card locked">
+                        <div class="achievement-icon-big">🔒</div>
+                        <h3>Tournament Champion</h3>
+                        <p>Win a tournament</p>
+                        <div class="achievement-progress-text">0 / 1</div>
+                        <div class="achievement-reward">+2,000 🪙</div>
+                    </div>
+
+                    <div class="achievement-card locked">
+                        <div class="achievement-icon-big">🔒</div>
+                        <h3>Perfect Week</h3>
+                        <p>Win every battle for 7 days straight</p>
+                        <div class="achievement-progress-text">0 / 7 days</div>
+                        <div class="achievement-reward">+5,000 🪙</div>
+                    </div>
+
+                </div>
+
+                <!-- Daily Challenges -->
+                <div class="lounge-card daily-challenges-full">
+                    <div class="card-header">
+                        <h2><i class="fas fa-bullseye"></i> Today's Challenges</h2>
+                        <div class="challenges-timer">
+                            <i class="fas fa-clock"></i>
+                            <span>Resets in 8h 23m</span>
+                        </div>
+                    </div>
+                    <div class="challenges-list">
+                        <div class="challenge-item">
+                            <div class="challenge-icon">⚔️</div>
+                            <div class="challenge-info">
+                                <h4>Win 3 Parlay Battles</h4>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 66%"></div>
+                                </div>
+                                <span class="progress-text">2 / 3 Complete</span>
+                            </div>
+                            <div class="challenge-reward">+500 🪙</div>
+                        </div>
+
+                        <div class="challenge-item">
+                            <div class="challenge-icon">🧠</div>
+                            <div class="challenge-info">
+                                <h4>Answer 50 Trivia Questions</h4>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 32%"></div>
+                                </div>
+                                <span class="progress-text">16 / 50 Complete</span>
+                            </div>
+                            <div class="challenge-reward">+300 🪙</div>
+                        </div>
+
+                        <div class="challenge-item completed">
+                            <div class="challenge-icon">💬</div>
+                            <div class="challenge-info">
+                                <h4>Chat 20 Times in Lounge</h4>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 100%"></div>
+                                </div>
+                                <span class="progress-text">✓ Complete</span>
+                            </div>
+                            <div class="challenge-reward">+200 🪙</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <!-- Scripts -->
-    <script src="navigation.js"></script>
-    <script src="sports-lounge.js"></script>
+    <script src="sports-lounge.js?v=20250107002"></script>
 </body>
 </html>

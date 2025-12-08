@@ -10,12 +10,43 @@
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🏟️ Sports Lounge initialized');
     
+    initializeTabs();
     initializeLiveStats();
     initializeActivityFeed();
     initializeChat();
     loadUserProfile();
     startRealTimeUpdates();
+    initializeGameButtons();
 });
+
+// ============================================
+// TAB SWITCHING
+// ============================================
+
+function initializeTabs() {
+    const tabs = document.querySelectorAll('.lounge-tab');
+    const contents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Remove active from all tabs
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
+            
+            // Add active to clicked tab
+            tab.classList.add('active');
+            
+            // Show corresponding content
+            const tabName = tab.getAttribute('data-tab');
+            const content = document.getElementById(tabName);
+            if (content) {
+                content.classList.add('active');
+            }
+            
+            console.log(`Switched to ${tabName} tab`);
+        });
+    });
+}
 
 // ============================================
 // LIVE STATS
@@ -343,33 +374,57 @@ style.textContent = `
 document.head.appendChild(style);
 
 // ============================================
-// NAVIGATION
+// GAME BUTTONS & INTERACTIONS
 // ============================================
 
-// Action card navigation
-document.querySelectorAll('.action-card').forEach(card => {
-    card.addEventListener('click', function() {
-        const href = this.getAttribute('onclick');
-        if (href && href.includes('window.location.href')) {
-            const url = href.match(/'([^']+)'/)[1];
-            console.log('Navigating to:', url);
-            // In production, this would navigate to the actual page
-            showComingSoon(this.querySelector('h3').textContent);
-        }
+function initializeGameButtons() {
+    // Game cards
+    document.querySelectorAll('.btn-game-play, .btn-game-launch').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const gameCard = this.closest('.game-card, .featured-game');
+            const gameName = gameCard ? gameCard.querySelector('h3, h2').textContent : 'This Game';
+            showComingSoon(gameName);
+        });
     });
-});
 
-function showComingSoon(feature) {
-    alert(`🚀 ${feature} is coming soon!\n\nThis feature is currently in development and will be available in the next update.`);
+    // Mini game buttons
+    document.querySelectorAll('.minigame-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const game = this.querySelector('span').textContent;
+            showComingSoon(`${game} Mini Game`);
+        });
+    });
+
+    // Leaderboard filters
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const filter = this.getAttribute('data-filter');
+            console.log(`Leaderboard filtered to: ${filter}`);
+            showNotification(`Showing ${filter} rankings`);
+        });
+    });
+
+    // Profile button
+    const profileBtn = document.querySelector('.btn-profile');
+    if (profileBtn) {
+        profileBtn.addEventListener('click', () => {
+            showComingSoon('Full Profile View');
+        });
+    }
+
+    // Tournament join button
+    document.querySelectorAll('.btn-tournament-join, .activity-action').forEach(btn => {
+        btn.addEventListener('click', () => {
+            showComingSoon('Tournament System');
+        });
+    });
 }
 
-// Mini game buttons
-document.querySelectorAll('.minigame-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const game = this.querySelector('span').textContent;
-        showComingSoon(`${game} Mini Game`);
-    });
-});
+function showComingSoon(feature) {
+    showNotification(`🚀 ${feature} is coming soon! This feature is currently in development.`, 'info');
+}
 
 // ============================================
 // UTILITY FUNCTIONS
