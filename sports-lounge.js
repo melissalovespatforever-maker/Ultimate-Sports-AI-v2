@@ -310,21 +310,62 @@ function escapeHtml(text) {
 // ============================================
 
 function loadUserProfile() {
-    // This would load from backend
-    // For now, using demo data
-    const profileData = {
-        name: 'SportsFan2024',
-        coins: 847,
-        wins: 23,
-        streak: 7,
-        avatar: '🎮'
-    };
+    // Get user data from appState (single source of truth)
+    const user = window.appState?.user || null;
     
-    // Update UI with profile data
+    // If no user from appState, check localStorage for guest data
+    let profileData = {
+        name: user?.name || user?.username || localStorage.getItem('guestUsername') || 'Guest User',
+        coins: parseInt(localStorage.getItem('sportsLoungeBalance')) || 1000,
+        wins: 0,
+        streak: 0,
+        avatar: user?.avatar || localStorage.getItem('guestAvatar') || '😊'
+    };
+
+    // Calculate real wins and streak from game stats
+    const slotsStats = JSON.parse(localStorage.getItem('slotsStats')) || { wins: 0 };
+    const wheelStats = JSON.parse(localStorage.getItem('wheelStats')) || { wins: 0 };
+    const coinflipStats = JSON.parse(localStorage.getItem('coinflipStats')) || { wins: 0 };
+    const penaltyStats = JSON.parse(localStorage.getItem('penaltyStats')) || { wins: 0 };
+    const triviaStats = JSON.parse(localStorage.getItem('triviaStats')) || { wins: 0 };
+    
+    profileData.wins = slotsStats.wins + wheelStats.wins + coinflipStats.wins + 
+                      penaltyStats.wins + triviaStats.wins;
+    
+    // Get streak from localStorage or calculate
+    profileData.streak = parseInt(localStorage.getItem('currentStreak')) || 0;
+    
+    // Update UI with real profile data
     const nameEl = document.getElementById('user-name');
     if (nameEl) {
         nameEl.textContent = profileData.name;
     }
+
+    // Update avatar display
+    const avatarEl = document.getElementById('user-avatar');
+    if (avatarEl) {
+        avatarEl.textContent = profileData.avatar;
+    }
+
+    // Update coins display
+    const coinsEl = document.querySelector('.profile-coins');
+    if (coinsEl) {
+        coinsEl.textContent = profileData.coins.toLocaleString();
+    }
+
+    // Update wins display
+    const winsEl = document.querySelector('.profile-wins');
+    if (winsEl) {
+        winsEl.textContent = profileData.wins;
+    }
+
+    // Update streak display
+    const streakEl = document.querySelector('.profile-streak');
+    if (streakEl) {
+        streakEl.textContent = profileData.streak;
+    }
+
+    console.log('✅ Sports Lounge profile loaded:', profileData.name, '| Coins:', profileData.coins, '| Wins:', profileData.wins);
 }
 
 // ============================================
@@ -378,20 +419,45 @@ document.head.appendChild(style);
 // ============================================
 
 function initializeGameButtons() {
-    // Game cards
+    // Game cards - Check if they have actual games
     document.querySelectorAll('.btn-game-play, .btn-game-launch').forEach(btn => {
         btn.addEventListener('click', function() {
             const gameCard = this.closest('.game-card, .featured-game');
             const gameName = gameCard ? gameCard.querySelector('h3, h2').textContent : 'This Game';
-            showComingSoon(gameName);
+            
+            // Map game names to URLs
+            const gameUrls = {
+                'Lucky Slots': 'minigame-slots.html',
+                'Prize Wheel': 'minigame-wheel.html',
+                'Coin Flip': 'minigame-coinflip.html',
+                'Penalty Shootout': 'minigame-penalty-shootout.html',
+                'Sports Trivia': 'minigame-trivia.html'
+            };
+            
+            if (gameUrls[gameName]) {
+                window.location.href = gameUrls[gameName];
+            } else {
+                showComingSoon(gameName);
+            }
         });
     });
 
-    // Mini game buttons
+    // Mini game buttons (if they exist in other sections)
     document.querySelectorAll('.minigame-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const game = this.querySelector('span').textContent;
-            showComingSoon(`${game} Mini Game`);
+            
+            const gameUrls = {
+                'Slots': 'minigame-slots.html',
+                'Wheel': 'minigame-wheel.html',
+                'Flip': 'minigame-coinflip.html'
+            };
+            
+            if (gameUrls[game]) {
+                window.location.href = gameUrls[game];
+            } else {
+                showComingSoon(`${game} Mini Game`);
+            }
         });
     });
 

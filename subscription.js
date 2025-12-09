@@ -224,29 +224,59 @@ class SubscriptionManager {
         button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
         try {
-            // For now, show a simple payment flow
-            // In production, this would integrate with PayPal/Stripe
-            
-            showToast(`Upgrading to ${tier.toUpperCase()}...`, 'info');
+            // ⚠️ IMPORTANT: This requires backend payment processing!
+            // Step 1: Create payment session with backend
+            const response = await fetch(`${api.baseURL}/api/subscriptions/create-checkout`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    tier: tier,
+                    amount: amount,
+                    userId: appState.user?.id
+                })
+            });
 
-            // Simulate API call (in production, call your backend)
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            if (!response.ok) {
+                throw new Error('Failed to create checkout session');
+            }
 
-            // Mock upgrade - in production, backend would handle this
-            appState.user.subscription_tier = tier;
-            appState.user.subscription = tier;
-            appState.notify();
+            const data = await response.json();
 
-            showToast(`✅ Successfully upgraded to ${tier.toUpperCase()}!`, 'success');
-            
-            // Close modal
-            button.closest('div').parentElement.remove();
+            // Step 2: Redirect to payment processor (Stripe/PayPal)
+            if (data.checkoutUrl) {
+                // Store pending upgrade for verification after payment
+                localStorage.setItem('pendingUpgrade', JSON.stringify({
+                    tier: tier,
+                    amount: amount,
+                    timestamp: Date.now()
+                }));
 
-            console.log(`✅ Upgraded to ${tier}`);
+                showToast('Redirecting to secure checkout...', 'info');
+                
+                // Redirect to payment page
+                window.location.href = data.checkoutUrl;
+            } else {
+                throw new Error('No checkout URL received');
+            }
 
         } catch (error) {
             console.error('❌ Upgrade failed:', error);
-            showToast(error.message || 'Upgrade failed. Please try again.', 'error');
+            
+            // Re-enable button
+            button.disabled = false;
+            button.innerHTML = originalText;
+            
+            // Show user-friendly error
+            showToast('Unable to process upgrade. Please try again or contact support.', 'error');
+            
+            // Close modal after delay
+            setTimeout(() => {
+                const modal = button.closest('div').parentElement;
+                if (modal) modal.remove();
+            }, 2000);
             button.disabled = false;
             button.innerHTML = originalText;
         }
@@ -258,11 +288,97 @@ class SubscriptionManager {
 
         console.log('📄 Loading subscription page');
 
+        // Check for payment success callback
+        await this.checkPaymentCallback();
+
         // Update button states
         this.updateTierUI();
 
         // Scroll to top
         window.scrollTo(0, 0);
+    }
+
+    async checkPaymentCallback() {
+        // Check URL for payment success parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session_id');
+        const status = urlParams.get('status');
+
+        if (sessionId && status === 'success') {
+            console.log('💳 Payment success detected, verifying...');
+            showToast('Verifying your payment...', 'info');
+
+            try {
+                // Verify payment with backend
+                const response = await fetch(`${api.baseURL}/api/subscriptions/verify-payment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        sessionId: sessionId,
+                        userId: appState.user?.id
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Payment verification failed');
+                }
+
+                const data = await response.json();
+
+                // Update user tier from backend response
+                if (data.subscription && data.subscription.tier) {
+                    appState.user.subscription_tier = data.subscription.tier;
+                    appState.user.subscription = data.subscription.tier;
+                    appState.notify();
+
+                    // Clear pending upgrade
+                    localStorage.removeItem('pendingUpgrade');
+
+                    showToast(`🎉 Successfully upgraded to ${data.subscription.tier.toUpperCase()}!`, 'success');
+
+                    // Clean URL
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } else {
+                    throw new Error('Invalid subscription data received');
+                }
+
+            } catch (error) {
+                console.error('❌ Payment verification failed:', error);
+                showToast('Payment verification failed. Please contact support.', 'error');
+            }
+        } else if (status === 'cancel') {
+            showToast('Payment cancelled', 'info');
+            // Clean URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }
+
+    // Method to handle webhook updates from backend
+    async refreshSubscriptionStatus() {
+        if (!appState.user?.id) return;
+
+        try {
+            const response = await fetch(`${api.baseURL}/api/users/${appState.user.id}/subscription`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.subscription_tier) {
+                    appState.user.subscription_tier = data.subscription_tier;
+                    appState.user.subscription = data.subscription_tier;
+                    appState.notify();
+                    this.updateTierUI();
+                }
+            }
+        } catch (error) {
+            console.error('Failed to refresh subscription:', error);
+        }
     }
 }
 

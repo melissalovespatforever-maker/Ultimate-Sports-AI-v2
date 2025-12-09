@@ -1,0 +1,389 @@
+/* ============================================
+   SETTINGS PAGE STYLES
+   ============================================ */
+
+.settings-page-wrapper {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+/* Section Headers */
+.settings-section {
+    margin-bottom: 40px;
+}
+
+.settings-section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.settings-section-title i {
+    color: var(--primary);
+    font-size: 22px;
+}
+
+/* Settings Cards */
+.settings-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    transition: var(--transition);
+}
+
+.settings-card:hover {
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+/* Card Header (for avatar section) */
+.settings-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+/* Labels and Descriptions */
+.settings-label-group {
+    flex: 1;
+}
+
+.settings-label {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.settings-label-group h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.settings-description {
+    font-size: 14px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.settings-helper {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    font-style: italic;
+}
+
+/* Avatar Section */
+.current-avatar-display {
+    width: 80px;
+    height: 80px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 3px solid rgba(16, 185, 129, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    transition: var(--transition);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.current-avatar-display:hover {
+    transform: scale(1.05);
+    border-color: rgba(16, 185, 129, 0.8);
+}
+
+.settings-avatar-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 12px;
+}
+
+.settings-avatar-option {
+    aspect-ratio: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.settings-avatar-option:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(16, 185, 129, 0.5);
+    transform: scale(1.1);
+}
+
+.settings-avatar-option.active {
+    background: rgba(16, 185, 129, 0.3);
+    border-color: rgba(16, 185, 129, 1);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+    transform: scale(1.05);
+}
+
+/* Input Groups */
+.settings-input-group {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.settings-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text-primary);
+    font-size: 16px;
+    font-family: inherit;
+    transition: var(--transition);
+}
+
+.settings-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.settings-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Buttons */
+.btn-settings-save {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.btn-settings-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.btn-settings-save:active {
+    transform: translateY(0);
+}
+
+.btn-settings-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border: 2px solid var(--danger);
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-settings-danger:hover {
+    background: var(--danger);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.btn-settings-danger:active {
+    transform: translateY(0);
+}
+
+/* Toggle Switches */
+.settings-toggle-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 56px;
+    height: 30px;
+    flex-shrink: 0;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 30px;
+    transition: var(--transition);
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: var(--transition);
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background: var(--primary);
+    border-color: var(--primary);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+}
+
+.toggle-switch input:disabled + .toggle-slider {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.toggle-switch input:disabled + .toggle-slider:before {
+    opacity: 0.5;
+}
+
+/* Info Grid (for About section) */
+.settings-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.settings-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.settings-info-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.settings-info-value {
+    font-size: 18px;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .settings-page-wrapper {
+        padding: 16px;
+    }
+
+    .settings-card {
+        padding: 20px;
+    }
+
+    .settings-card-header {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .current-avatar-display {
+        width: 70px;
+        height: 70px;
+        font-size: 35px;
+        align-self: center;
+    }
+
+    .settings-avatar-grid {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+    }
+
+    .settings-avatar-option {
+        font-size: 24px;
+    }
+
+    .settings-input-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .btn-settings-save {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .settings-info-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .settings-toggle-group {
+        gap: 12px;
+    }
+
+    .settings-section-title {
+        font-size: 18px;
+    }
+
+    .settings-label-group h3 {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .settings-avatar-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+    }
+
+    .settings-avatar-option {
+        font-size: 20px;
+    }
+
+    .current-avatar-display {
+        width: 60px;
+        height: 60px;
+        font-size: 30px;
+    }
+
+    .settings-card {
+        padding: 16px;
+    }
+}
