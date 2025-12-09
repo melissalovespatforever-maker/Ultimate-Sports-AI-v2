@@ -431,7 +431,9 @@ function initializeGameButtons() {
                 'Prize Wheel': 'minigame-wheel.html',
                 'Coin Flip': 'minigame-coinflip.html',
                 'Penalty Shootout': 'minigame-penalty-shootout.html',
-                'Sports Trivia': 'minigame-trivia.html'
+                'Sports Trivia': 'minigame-trivia.html',
+                'Beat the Streak': 'minigame-beat-the-streak.html',
+                '⚔️ 1v1 Parlay Battle': 'minigame-parlay-battle.html'
             };
             
             if (gameUrls[gameName]) {

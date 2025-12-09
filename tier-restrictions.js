@@ -149,6 +149,11 @@ class TierRestrictions {
         if (limits.maxDailyGames !== -1) {
             const played = this.dailyUsage.gamesPlayed || 0;
             if (played >= limits.maxDailyGames) {
+                // Track analytics
+                if (window.analyticsTracker) {
+                    window.analyticsTracker.onGameLimitReached(gameName);
+                }
+                
                 return {
                     allowed: false,
                     reason: `Daily game limit reached (${limits.maxDailyGames} games). Upgrade for more!`,
@@ -184,6 +189,11 @@ class TierRestrictions {
     trackGamePlayed() {
         this.dailyUsage.gamesPlayed = (this.dailyUsage.gamesPlayed || 0) + 1;
         this.saveDailyUsage();
+        
+        // Track analytics
+        if (window.analyticsTracker) {
+            window.analyticsTracker.trackGamePlayed(arguments[0] || 'Unknown Game');
+        }
     }
 
     getGameLimits() {

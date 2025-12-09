@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1v1 Parlay Battle | Ultimate Sports AI</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="parlay-battle-styles.css">
+</head>
+<body>
+    <!-- Main Container -->
+    <div class="battle-container" id="app">
+        
+        <!-- Header -->
+        <div class="battle-header">
+            <button class="back-btn" onclick="window.location.href='sports-lounge.html'">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h1 class="battle-title">⚔️ 1v1 Parlay Battle</h1>
+            <div class="user-coins">
+                <i class="fas fa-coins"></i>
+                <span id="user-coins">1000</span>
+            </div>
+        </div>
+
+        <!-- Mode Selection Screen -->
+        <div class="screen active" id="mode-screen">
+            <div class="screen-header">
+                <h2>Choose Your Battle Mode</h2>
+                <p>Select a game mode and challenge opponents</p>
+            </div>
+
+            <div class="modes-grid">
+                <!-- Quick Picks -->
+                <div class="mode-card" data-mode="quick-picks">
+                    <div class="mode-icon">⚡</div>
+                    <h3>Quick Picks</h3>
+                    <p>30 seconds to pick 3 winners. Fast-paced chaos!</p>
+                    <div class="mode-stats">
+                        <span><i class="fas fa-clock"></i> 30s</span>
+                        <span><i class="fas fa-users"></i> 234 active</span>
+                        <span><i class="fas fa-coins"></i> 50-500</span>
+                    </div>
+                    <button class="mode-btn">Play Quick Picks</button>
+                </div>
+
+                <!-- Parlay Wars -->
+                <div class="mode-card featured" data-mode="parlay-wars">
+                    <div class="mode-badge">MOST POPULAR</div>
+                    <div class="mode-icon">🔥</div>
+                    <h3>Parlay Wars</h3>
+                    <p>Build a 5-leg parlay. Best picks win!</p>
+                    <div class="mode-stats">
+                        <span><i class="fas fa-clock"></i> 2 min</span>
+                        <span><i class="fas fa-users"></i> 512 active</span>
+                        <span><i class="fas fa-coins"></i> 100-1000</span>
+                    </div>
+                    <button class="mode-btn">Play Parlay Wars</button>
+                </div>
+
+                <!-- TD Showdown -->
+                <div class="mode-card" data-mode="td-showdown">
+                    <div class="mode-icon">🏈</div>
+                    <h3>TD Showdown</h3>
+                    <p>Pick players to score TDs. Most points wins!</p>
+                    <div class="mode-stats">
+                        <span><i class="fas fa-clock"></i> 90s</span>
+                        <span><i class="fas fa-users"></i> 187 active</span>
+                        <span><i class="fas fa-coins"></i> 75-750</span>
+                    </div>
+                    <button class="mode-btn">Play TD Showdown</button>
+                </div>
+
+                <!-- Buzzer Beater -->
+                <div class="mode-card" data-mode="buzzer-beater">
+                    <div class="mode-icon">🏀</div>
+                    <h3>Buzzer Beater</h3>
+                    <p>NBA picks only. Race to 100 points!</p>
+                    <div class="mode-stats">
+                        <span><i class="fas fa-clock"></i> 60s</span>
+                        <span><i class="fas fa-users"></i> 321 active</span>
+                        <span><i class="fas fa-coins"></i> 100-800</span>
+                    </div>
+                    <button class="mode-btn">Play Buzzer Beater</button>
+                </div>
+
+                <!-- Home Run Derby -->
+                <div class="mode-card" data-mode="home-run-derby">
+                    <div class="mode-icon">⚾</div>
+                    <h3>Home Run Derby</h3>
+                    <p>MLB player props. Who goes deep?</p>
+                    <div class="mode-stats">
+                        <span><i class="fas fa-clock"></i> 60s</span>
+                        <span><i class="fas fa-users"></i> 156 active</span>
+                        <span><i class="fas fa-coins"></i> 50-600</span>
+                    </div>
+                    <button class="mode-btn">Play Home Run Derby</button>
+                </div>
+
+                <!-- Hat Trick Challenge -->
+                <div class="mode-card" data-mode="hat-trick">
+                    <div class="mode-icon">🏒</div>
+                    <h3>Hat Trick</h3>
+                    <p>NHL action. Pick 3 perfect games!</p>
+                    <div class="mode-stats">
+                        <span><i class="fas fa-clock"></i> 45s</span>
+                        <span><i class="fas fa-users"></i> 98 active</span>
+                        <span><i class="fas fa-coins"></i> 60-700</span>
+                    </div>
+                    <button class="mode-btn">Play Hat Trick</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Matchmaking Screen -->
+        <div class="screen" id="matchmaking-screen">
+            <div class="matchmaking-content">
+                <div class="matchmaking-spinner">
+                    <i class="fas fa-sync fa-spin"></i>
+                </div>
+                <h2>Finding Opponent...</h2>
+                <p id="matchmaking-status">Searching for players at your skill level</p>
+                <div class="matchmaking-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Players Online</span>
+                        <span class="stat-value" id="players-online">1,247</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Active Battles</span>
+                        <span class="stat-value" id="active-battles">45</span>
+                    </div>
+                </div>
+                <button class="cancel-btn" onclick="cancelMatchmaking()">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Battle Screen -->
+        <div class="screen" id="battle-screen">
+            <!-- Battle Header -->
+            <div class="battle-info">
+                <div class="mode-indicator" id="current-mode-indicator">⚡ Quick Picks</div>
+                <div class="timer-display">
+                    <i class="fas fa-clock"></i>
+                    <span id="battle-timer">30</span>
+                </div>
+            </div>
+
+            <!-- Players -->
+            <div class="players-section">
+                <div class="player-card you">
+                    <div class="player-header">
+                        <div class="player-avatar" id="your-avatar">😊</div>
+                        <div class="player-info">
+                            <div class="player-name" id="your-name">You</div>
+                            <div class="player-rank">⭐ Rank 15</div>
+                        </div>
+                    </div>
+                    <div class="player-picks" id="your-picks">
+                        <div class="picks-count">0 / 3 picks</div>
+                    </div>
+                </div>
+
+                <div class="vs-divider">
+                    <span>VS</span>
+                </div>
+
+                <div class="player-card opponent">
+                    <div class="player-header">
+                        <div class="player-avatar" id="opponent-avatar">🔥</div>
+                        <div class="player-info">
+                            <div class="player-name" id="opponent-name">Opponent</div>
+                            <div class="player-rank">⭐ Rank 12</div>
+                        </div>
+                    </div>
+                    <div class="player-picks" id="opponent-picks">
+                        <div class="picks-count">0 / 3 picks</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Games Selection -->
+            <div class="games-selection" id="games-selection">
+                <!-- Loaded by JS -->
+            </div>
+
+            <!-- Submit Button -->
+            <button class="submit-picks-btn" id="submit-battle-picks" disabled>
+                <i class="fas fa-check"></i> Submit Picks
+            </button>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="screen" id="results-screen">
+            <div class="results-content">
+                <div class="results-icon" id="results-icon">🎉</div>
+                <h2 class="results-title" id="results-title">Victory!</h2>
+                <p class="results-subtitle" id="results-subtitle">You crushed your opponent!</p>
+
+                <!-- Score Comparison -->
+                <div class="score-comparison">
+                    <div class="player-score you">
+                        <div class="score-label">You</div>
+                        <div class="score-value" id="your-score">3</div>
+                        <div class="score-sublabel">Correct Picks</div>
+                    </div>
+                    <div class="score-divider">-</div>
+                    <div class="player-score opponent">
+                        <div class="score-label">Opponent</div>
+                        <div class="score-value" id="opponent-score">1</div>
+                        <div class="score-sublabel">Correct Picks</div>
+                    </div>
+                </div>
+
+                <!-- Picks Breakdown -->
+                <div class="picks-breakdown" id="picks-breakdown">
+                    <!-- Loaded by JS -->
+                </div>
+
+                <!-- Rewards -->
+                <div class="rewards-section">
+                    <div class="reward-item">
+                        <i class="fas fa-coins"></i>
+                        <span id="coins-won">+250 coins</span>
+                    </div>
+                    <div class="reward-item">
+                        <i class="fas fa-trophy"></i>
+                        <span id="rank-change">+12 rank points</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="results-actions">
+                    <button class="btn-secondary" onclick="goToModeSelect()">
+                        <i class="fas fa-arrow-left"></i> Change Mode
+                    </button>
+                    <button class="btn-primary" onclick="playAgain()">
+                        <i class="fas fa-sync"></i> Play Again
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="minigame-parlay-battle.js"></script>
+</body>
+</html>

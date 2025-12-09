@@ -311,11 +311,14 @@ const aiCoachPicks = {
                         <span>"${this.currentCoach.catchphrase}"</span>
                     </div>
                     <div class="footer-actions">
+                        <button class="btn-secondary" onclick="window.location.href='my-bets.html'" title="View all saved bets">
+                            <i class="fas fa-clipboard-list"></i> My Bets
+                        </button>
                         <button class="btn-secondary" onclick="aiCoachPicks.exportPicks()">
-                            <i class="fas fa-download"></i> Export Picks
+                            <i class="fas fa-download"></i> Export
                         </button>
                         <button class="btn-primary" onclick="aiCoachPicks.addToParlay()">
-                            <i class="fas fa-plus"></i> Add to Parlay
+                            <i class="fas fa-plus"></i> Parlay
                         </button>
                     </div>
                 </div>
@@ -383,8 +386,11 @@ const aiCoachPicks = {
                 </div>
 
                 <div class="pick-actions">
+                    <button class="pick-action-btn" onclick="aiCoachPicks.saveToMyBets(${pick.id})" title="Save to My Bets">
+                        <i class="fas fa-bookmark"></i> Save
+                    </button>
                     <button class="pick-action-btn" onclick="aiCoachPicks.viewAnalysis(${pick.id})">
-                        <i class="fas fa-chart-line"></i> Full Analysis
+                        <i class="fas fa-chart-line"></i> Analysis
                     </button>
                     <button class="pick-action-btn primary" onclick="aiCoachPicks.addPickToSlip(${pick.id})">
                         <i class="fas fa-plus"></i> Add to Slip
@@ -435,6 +441,101 @@ const aiCoachPicks = {
         });
     },
 
+    saveToMyBets(pickId) {
+        // Get the current picks
+        const picks = Array.from(document.querySelectorAll('.pick-card')).map((card, index) => {
+            const id = index + 1;
+            if (id !== pickId) return null;
+            
+            // Extract pick data from the card
+            const matchup = card.querySelector('.pick-game')?.textContent || 'Unknown';
+            const betDetails = card.querySelector('.pick-matchup h4')?.textContent || 'Unknown';
+            const odds = card.querySelector('.odds-value')?.textContent || '-110';
+            const confidence = card.querySelector('.confidence-percentage')?.textContent || '0%';
+            const reasoning = card.querySelector('.pick-reasoning span')?.textContent || '';
+            const gameTime = card.querySelector('.pick-time')?.textContent?.replace('🕐', '').trim() || 'TBD';
+            
+            return {
+                matchup,
+                betDetails,
+                odds,
+                confidence,
+                reasoning,
+                gameTime
+            };
+        }).filter(p => p !== null)[0];
+        
+        if (!picks) {
+            console.error('Pick not found');
+            return;
+        }
+
+        // Calculate potential win based on odds
+        const stake = '$50'; // Default stake
+        const potentialWin = this.calculatePotentialWin(50, picks.odds);
+
+        // Create bet data for My Bets system
+        const betData = {
+            sport: this.currentCoach.sport,
+            match: picks.matchup,
+            pick: picks.betDetails,
+            odds: picks.odds,
+            stake: stake,
+            potentialWin: potentialWin,
+            coach: this.currentCoach.name,
+            confidence: picks.confidence,
+            reasoning: picks.reasoning,
+            gameTime: picks.gameTime,
+            status: 'pending'
+        };
+
+        // Check if My Bets system is loaded
+        if (window.addBetToMyBets) {
+            window.addBetToMyBets(betData);
+            
+            // Visual feedback
+            const btn = event.target.closest('.pick-action-btn');
+            if (btn) {
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                btn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                btn.disabled = true;
+                
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.style.background = '';
+                    btn.disabled = false;
+                }, 2000);
+            }
+            
+            // Show success toast
+            if (window.showToast) {
+                window.showToast(`✅ Pick saved to My Bets!`, 'success');
+            } else {
+                alert(`✅ ${this.currentCoach.name}'s pick saved to My Bets!\n\n📋 View all saved bets at /my-bets.html`);
+            }
+            
+            console.log('✅ Pick saved to My Bets:', betData);
+        } else {
+            console.warn('⚠️ My Bets system not loaded');
+            alert('⚠️ My Bets system is loading... Please try again in a moment, or navigate to My Bets page manually.');
+        }
+    },
+
+    calculatePotentialWin(stake, odds) {
+        // Remove + or - sign and parse
+        const oddsNum = parseInt(odds.replace(/[+\-]/g, ''));
+        const isPositive = odds.includes('+');
+        
+        if (isPositive) {
+            // Positive odds: stake * (odds/100)
+            return '$' + (stake + (stake * oddsNum / 100)).toFixed(2);
+        } else {
+            // Negative odds: stake * (100/odds)
+            return '$' + (stake + (stake * 100 / oddsNum)).toFixed(2);
+        }
+    },
+
     viewAnalysis(pickId) {
         alert(`📊 Full Analysis for Pick #${pickId}\n\n✨ Coming soon - Detailed breakdown with stats, trends, and projections`);
     },
@@ -448,7 +549,32 @@ const aiCoachPicks = {
     },
 
     exportPicks() {
-        alert(`📥 Export picks to your device\n\n✨ Coming soon - Download as PDF or share via email`);
+        const picks = Array.from(document.querySelectorAll('.pick-card')).map((card, index) => {
+            const matchup = card.querySelector('.pick-game')?.textContent || 'Unknown';
+            const betDetails = card.querySelector('.pick-matchup h4')?.textContent || 'Unknown';
+            const odds = card.querySelector('.odds-value')?.textContent || '-110';
+            const confidence = card.querySelector('.confidence-percentage')?.textContent || '0%';
+            
+            return `${matchup} - ${betDetails} (${odds}) - ${confidence} confidence`;
+        }).join('\n');
+        
+        const exportText = `${this.currentCoach.name}'s AI Picks\n` +
+                          `Sport: ${this.currentCoach.sport}\n` +
+                          `Win Rate: ${this.currentCoach.accuracy}%\n\n` +
+                          `${picks}\n\n` +
+                          `Generated by Ultimate Sports AI`;
+        
+        // Copy to clipboard
+        navigator.clipboard.writeText(exportText).then(() => {
+            if (window.showToast) {
+                window.showToast('📋 Picks copied to clipboard!', 'success');
+            } else {
+                alert('📋 Picks copied to clipboard!');
+            }
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+            alert('❌ Failed to export picks');
+        });
     }
 };
 

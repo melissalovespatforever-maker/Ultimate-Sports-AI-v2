@@ -463,6 +463,11 @@ const aiCoachesDeluxe = {
         const coach = this.coaches.find(c => c.id === coachId);
         if (!coach) return;
 
+        // Track analytics
+        if (window.analyticsTracker) {
+            window.analyticsTracker.trackCoachView(coachId, coach.name);
+        }
+
         console.log('📊 Opening picks for ' + coach.name);
         
         // Open picks modal with coach
@@ -499,6 +504,11 @@ const aiCoachesDeluxe = {
         const tierName = requiredTier === 'pro' ? 'PRO' : 'VIP';
         const price = requiredTier === 'pro' ? '$14.99/month' : '$29.99/month';
         
+        // Track analytics
+        if (window.analyticsTracker) {
+            window.analyticsTracker.onCoachLockClicked(coachId, coach.name);
+        }
+        
         const message = `🔒 ${coach.name} is only available for ${tierName} members!\n\n` +
                        `Upgrade to ${tierName} (${price}) to unlock:\n` +
                        `✅ ${coach.name}'s expert predictions\n` +
@@ -507,11 +517,20 @@ const aiCoachesDeluxe = {
                        `Go to subscription page?`;
         
         if (confirm(message)) {
+            // Track click
+            if (window.analyticsTracker) {
+                window.analyticsTracker.onUpgradePromptClicked('coachLock');
+            }
             this.navigateToSubscription();
         }
     },
 
     navigateToSubscription() {
+        // Track analytics
+        if (window.analyticsTracker) {
+            window.analyticsTracker.onSubscriptionPageOpened();
+        }
+        
         // Try to use app navigation if available
         if (window.appState && typeof window.appState.setPage === 'function') {
             window.appState.setPage('subscription');
