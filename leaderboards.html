@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Leaderboards | Ultimate Sports AI</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="leaderboards-styles.css">
+</head>
+<body>
+    <div class="leaderboards-container">
+        
+        <!-- Header -->
+        <div class="leaderboards-header">
+            <button class="back-btn" onclick="window.location.href='sports-lounge.html'">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="header-content">
+                <h1 class="page-title">🏆 Global Leaderboards</h1>
+                <p class="page-subtitle">Compete with the best players worldwide</p>
+            </div>
+            <div class="live-indicator">
+                <span class="pulse-dot"></span>
+                <span>LIVE</span>
+            </div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value" id="total-players">12,847</div>
+                <div class="stat-label">Total Players</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔥</div>
+                <div class="stat-value" id="active-now">1,247</div>
+                <div class="stat-label">Active Now</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚔️</div>
+                <div class="stat-value" id="battles-today">3,456</div>
+                <div class="stat-label">Battles Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-value" id="coins-won-today">1.2M</div>
+                <div class="stat-label">Coins Won Today</div>
+            </div>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="category-tabs">
+            <button class="category-tab active" data-category="overall">
+                <i class="fas fa-trophy"></i>
+                <span>Overall</span>
+            </button>
+            <button class="category-tab" data-category="parlay-battle">
+                <i class="fas fa-swords"></i>
+                <span>Parlay Battle</span>
+            </button>
+            <button class="category-tab" data-category="beat-streak">
+                <i class="fas fa-fire"></i>
+                <span>Beat the Streak</span>
+            </button>
+            <button class="category-tab" data-category="trivia">
+                <i class="fas fa-brain"></i>
+                <span>Trivia</span>
+            </button>
+            <button class="category-tab" data-category="coins">
+                <i class="fas fa-coins"></i>
+                <span>Richest</span>
+            </button>
+        </div>
+
+        <!-- Time Period Filters -->
+        <div class="time-filters">
+            <button class="time-filter active" data-period="today">Today</button>
+            <button class="time-filter" data-period="week">This Week</button>
+            <button class="time-filter" data-period="month">This Month</button>
+            <button class="time-filter" data-period="alltime">All Time</button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-section">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="player-search" placeholder="Search for a player...">
+            </div>
+            <button class="refresh-btn" onclick="refreshLeaderboards()">
+                <i class="fas fa-sync-alt"></i>
+                <span>Refresh</span>
+            </button>
+        </div>
+
+        <!-- Top 3 Podium -->
+        <div class="podium-section" id="podium-section">
+            <div class="podium-container">
+                <!-- 2nd Place -->
+                <div class="podium-place second">
+                    <div class="podium-rank-badge">2nd</div>
+                    <div class="medal">🥈</div>
+                    <div class="podium-avatar" id="podium-2-avatar">💎</div>
+                    <div class="podium-name" id="podium-2-name">BetMaster</div>
+                    <div class="podium-score" id="podium-2-score">2,450 pts</div>
+                    <div class="podium-stats" id="podium-2-stats">124 wins • 89% WR</div>
+                    <div class="podium-badge-collection">
+                        <span class="mini-badge">🔥</span>
+                        <span class="mini-badge">💎</span>
+                    </div>
+                </div>
+
+                <!-- 1st Place -->
+                <div class="podium-place first">
+                    <div class="crown-animation">👑</div>
+                    <div class="podium-rank-badge champion">1st</div>
+                    <div class="medal">🥇</div>
+                    <div class="podium-avatar" id="podium-1-avatar">🏆</div>
+                    <div class="podium-name" id="podium-1-name">ParlayKing</div>
+                    <div class="podium-score" id="podium-1-score">3,890 pts</div>
+                    <div class="podium-stats" id="podium-1-stats">187 wins • 92% WR</div>
+                    <div class="podium-badge-collection">
+                        <span class="mini-badge">👑</span>
+                        <span class="mini-badge">🔥</span>
+                        <span class="mini-badge">💎</span>
+                        <span class="mini-badge">⚡</span>
+                    </div>
+                </div>
+
+                <!-- 3rd Place -->
+                <div class="podium-place third">
+                    <div class="podium-rank-badge">3rd</div>
+                    <div class="medal">🥉</div>
+                    <div class="podium-avatar" id="podium-3-avatar">🔥</div>
+                    <div class="podium-name" id="podium-3-name">HotStreak</div>
+                    <div class="podium-score" id="podium-3-score">2,120 pts</div>
+                    <div class="podium-stats" id="podium-3-stats">98 wins • 85% WR</div>
+                    <div class="podium-badge-collection">
+                        <span class="mini-badge">🔥</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Your Rank Card (if ranked) -->
+        <div class="your-rank-card" id="your-rank-card">
+            <div class="your-rank-header">
+                <h3>Your Rank</h3>
+                <span class="rank-change up">
+                    <i class="fas fa-arrow-up"></i>
+                    +3
+                </span>
+            </div>
+            <div class="your-rank-content">
+                <div class="rank-number">#127</div>
+                <div class="rank-info">
+                    <div class="player-identity">
+                        <div class="player-avatar-small" id="your-avatar">😊</div>
+                        <div class="player-name" id="your-name">You</div>
+                    </div>
+                    <div class="rank-stats">
+                        <div class="stat-item-small">
+                            <span class="stat-value-small" id="your-score">1,240</span>
+                            <span class="stat-label-small">Points</span>
+                        </div>
+                        <div class="stat-item-small">
+                            <span class="stat-value-small" id="your-wins">42</span>
+                            <span class="stat-label-small">Wins</span>
+                        </div>
+                        <div class="stat-item-small">
+                            <span class="stat-value-small" id="your-winrate">73%</span>
+                            <span class="stat-label-small">Win Rate</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="next-rank-progress">
+                <div class="progress-info">
+                    <span>Next Rank: #126</span>
+                    <span>15 pts needed</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 68%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full Leaderboard Table -->
+        <div class="leaderboard-table-container">
+            <div class="table-header">
+                <h2>Full Rankings</h2>
+                <div class="view-controls">
+                    <button class="view-btn active" data-view="table">
+                        <i class="fas fa-list"></i>
+                    </button>
+                    <button class="view-btn" data-view="cards">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table View -->
+            <div class="leaderboard-table" id="leaderboard-table">
+                <div class="table-row table-header-row">
+                    <div class="table-cell rank-cell">Rank</div>
+                    <div class="table-cell player-cell">Player</div>
+                    <div class="table-cell stat-cell">Score</div>
+                    <div class="table-cell stat-cell">Wins</div>
+                    <div class="table-cell stat-cell">Win Rate</div>
+                    <div class="table-cell stat-cell">Streak</div>
+                    <div class="table-cell stat-cell">Badges</div>
+                </div>
+                
+                <!-- Rows loaded by JS -->
+                <div id="leaderboard-rows">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+
+            <!-- Load More -->
+            <button class="load-more-btn" id="load-more-btn">
+                <i class="fas fa-chevron-down"></i>
+                Load More Players
+            </button>
+        </div>
+
+        <!-- Last Updated -->
+        <div class="last-updated">
+            <i class="fas fa-clock"></i>
+            Last updated: <span id="last-updated-time">Just now</span>
+        </div>
+
+    </div>
+
+    <script src="leaderboards.js"></script>
+</body>
+</html>
