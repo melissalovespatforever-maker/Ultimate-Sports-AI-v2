@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucky Slots | Sports Lounge</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #e2e8f0;
+        }
+
+        .game-container {
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .back-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-4px);
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .game-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .game-subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        .balance-display {
+            background: rgba(251, 191, 36, 0.1);
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .balance-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .balance-amount {
+            font-size: 32px;
+            font-weight: 800;
+            color: #fbbf24;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .slots-machine {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            border-radius: 20px;
+            padding: 32px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slots-machine::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: translateX(-100%); }
+            50% { transform: translateX(100%); }
+        }
+
+        .reels-container {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .reel {
+            width: 90px;
+            height: 100px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .reel.spinning {
+            animation: reelSpin 0.1s linear infinite;
+        }
+
+        @keyframes reelSpin {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-20px); }
+        }
+
+        .bet-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .bet-button {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .bet-button.active {
+            background: rgba(251, 191, 36, 0.3);
+            border-color: #fbbf24;
+            color: #fbbf24;
+        }
+
+        .bet-button:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .spin-button {
+            width: 100%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: white;
+            padding: 18px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .spin-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(16, 185, 129, 0.5);
+        }
+
+        .spin-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result-message {
+            text-align: center;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .result-message.show {
+            opacity: 1;
+        }
+
+        .result-message.win {
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid #10b981;
+            color: #10b981;
+        }
+
+        .result-message.lose {
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid #ef4444;
+            color: #ef4444;
+        }
+
+        .paytable {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+        }
+
+        .paytable-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .paytable-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+        }
+
+        .paytable-row:last-child {
+            border-bottom: none;
+        }
+
+        .paytable-symbols {
+            display: flex;
+            gap: 4px;
+        }
+
+        .paytable-payout {
+            color: #fbbf24;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <button class="back-button" onclick="window.history.back()">
+            <i class="fas fa-arrow-left"></i>
+            Back to Lounge
+        </button>
+
+        <div class="game-card">
+            <div class="game-header">
+                <h1 class="game-title">🎰 Lucky Slots</h1>
+                <p class="game-subtitle">Match 3 symbols to win!</p>
+            </div>
+
+            <div class="balance-display">
+                <div class="balance-label">Your Balance</div>
+                <div class="balance-amount">
+                    <span id="balance">1000</span>
+                    <span>🪙</span>
+                </div>
+            </div>
+
+            <div class="result-message" id="result-message"></div>
+
+            <div class="slots-machine">
+                <div class="reels-container">
+                    <div class="reel" id="reel1">🎰</div>
+                    <div class="reel" id="reel2">🎰</div>
+                    <div class="reel" id="reel3">🎰</div>
+                </div>
+
+                <div class="bet-controls">
+                    <button class="bet-button" data-bet="10">10 🪙</button>
+                    <button class="bet-button active" data-bet="25">25 🪙</button>
+                    <button class="bet-button" data-bet="50">50 🪙</button>
+                    <button class="bet-button" data-bet="100">100 🪙</button>
+                </div>
+            </div>
+
+            <button class="spin-button" id="spin-button">
+                <i class="fas fa-rotate"></i>
+                <span>SPIN (25 coins)</span>
+            </button>
+
+            <div class="paytable">
+                <div class="paytable-title">💰 Paytable</div>
+                <div class="paytable-row">
+                    <div class="paytable-symbols">🏆 🏆 🏆</div>
+                    <div class="paytable-payout">x20 (500 🪙)</div>
+                </div>
+                <div class="paytable-row">
+                    <div class="paytable-symbols">💎 💎 💎</div>
+                    <div class="paytable-payout">x10 (250 🪙)</div>
+                </div>
+                <div class="paytable-row">
+                    <div class="paytable-symbols">⭐ ⭐ ⭐</div>
+                    <div class="paytable-payout">x8 (200 🪙)</div>
+                </div>
+                <div class="paytable-row">
+                    <div class="paytable-symbols">🎰 🎰 🎰</div>
+                    <div class="paytable-payout">x5 (125 🪙)</div>
+                </div>
+                <div class="paytable-row">
+                    <div class="paytable-symbols">🍀 🍀 🍀</div>
+                    <div class="paytable-payout">x3 (75 🪙)</div>
+                </div>
+                <div class="paytable-row">
+                    <div class="paytable-symbols">🎲 🎲 🎲</div>
+                    <div class="paytable-payout">x2 (50 🪙)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let balance = 1000;
+        let currentBet = 25;
+        let isSpinning = false;
+
+        // Symbols and their weights (rarer = higher payout)
+        const symbols = [
+            { icon: '🏆', weight: 1, payout: 20 },   // Rarest
+            { icon: '💎', weight: 2, payout: 10 },
+            { icon: '⭐', weight: 3, payout: 8 },
+            { icon: '🎰', weight: 5, payout: 5 },
+            { icon: '🍀', weight: 8, payout: 3 },
+            { icon: '🎲', weight: 10, payout: 2 },   // Most common
+            { icon: '🎯', weight: 15, payout: 0 },   // No payout
+            { icon: '🎪', weight: 15, payout: 0 }
+        ];
+
+        // Create weighted symbol pool
+        const symbolPool = [];
+        symbols.forEach(symbol => {
+            for (let i = 0; i < symbol.weight; i++) {
+                symbolPool.push(symbol);
+            }
+        });
+
+        // Elements
+        const balanceEl = document.getElementById('balance');
+        const spinButton = document.getElementById('spin-button');
+        const resultMessage = document.getElementById('result-message');
+        const reel1 = document.getElementById('reel1');
+        const reel2 = document.getElementById('reel2');
+        const reel3 = document.getElementById('reel3');
+        const betButtons = document.querySelectorAll('.bet-button');
+
+        // Bet selection
+        betButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (isSpinning) return;
+                
+                betButtons.forEach(b => b.classList.remove('active'));
+                button.classList.add('active');
+                currentBet = parseInt(button.dataset.bet);
+                
+                spinButton.querySelector('span').textContent = `SPIN (${currentBet} coins)`;
+            });
+        });
+
+        // Get random symbol
+        function getRandomSymbol() {
+            return symbolPool[Math.floor(Math.random() * symbolPool.length)];
+        }
+
+        // Spin animation
+        async function spinReels() {
+            const reels = [reel1, reel2, reel3];
+            const results = [];
+            
+            // Add spinning animation
+            reels.forEach(reel => reel.classList.add('spinning'));
+            
+            // Spin each reel with random symbols
+            const spinDuration = 2000;
+            const spinInterval = 100;
+            let elapsed = 0;
+            
+            const interval = setInterval(() => {
+                reels.forEach(reel => {
+                    reel.textContent = getRandomSymbol().icon;
+                });
+                elapsed += spinInterval;
+                
+                if (elapsed >= spinDuration) {
+                    clearInterval(interval);
+                }
+            }, spinInterval);
+            
+            // Stop reels one by one
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            const result1 = getRandomSymbol();
+            reel1.textContent = result1.icon;
+            reel1.classList.remove('spinning');
+            results.push(result1);
+            
+            await new Promise(resolve => setTimeout(resolve, 300));
+            const result2 = getRandomSymbol();
+            reel2.textContent = result2.icon;
+            reel2.classList.remove('spinning');
+            results.push(result2);
+            
+            await new Promise(resolve => setTimeout(resolve, 300));
+            const result3 = getRandomSymbol();
+            reel3.textContent = result3.icon;
+            reel3.classList.remove('spinning');
+            results.push(result3);
+            
+            return results;
+        }
+
+        // Check for win
+        function checkWin(results) {
+            // Check if all three match
+            if (results[0].icon === results[1].icon && results[1].icon === results[2].icon) {
+                return {
+                    isWin: true,
+                    payout: results[0].payout * currentBet
+                };
+            }
+            return { isWin: false, payout: 0 };
+        }
+
+        // Show result
+        function showResult(isWin, payout) {
+            resultMessage.classList.remove('show', 'win', 'lose');
+            
+            setTimeout(() => {
+                if (isWin) {
+                    resultMessage.textContent = `🎉 YOU WIN ${payout} COINS! 🎉`;
+                    resultMessage.classList.add('win');
+                } else {
+                    resultMessage.textContent = '❌ No match. Try again!';
+                    resultMessage.classList.add('lose');
+                }
+                resultMessage.classList.add('show');
+            }, 100);
+        }
+
+        // Update balance display
+        function updateBalance() {
+            balanceEl.textContent = balance;
+            
+            // Disable spin if can't afford bet
+            if (balance < currentBet) {
+                spinButton.disabled = true;
+                spinButton.querySelector('span').textContent = 'Insufficient funds';
+            } else {
+                spinButton.disabled = false;
+                spinButton.querySelector('span').textContent = `SPIN (${currentBet} coins)`;
+            }
+        }
+
+        // Main spin function
+        async function spin() {
+            if (isSpinning || balance < currentBet) return;
+            
+            isSpinning = true;
+            spinButton.disabled = true;
+            resultMessage.classList.remove('show');
+            
+            // Deduct bet
+            balance -= currentBet;
+            updateBalance();
+            
+            // Spin reels
+            const results = await spinReels();
+            
+            // Check win
+            const { isWin, payout } = checkWin(results);
+            
+            // Add winnings
+            if (isWin) {
+                balance += payout;
+                updateBalance();
+            }
+            
+            // Show result
+            showResult(isWin, payout);
+            
+            isSpinning = false;
+            spinButton.disabled = false;
+        }
+
+        // Event listeners
+        spinButton.addEventListener('click', spin);
+
+        // Initialize
+        updateBalance();
+        
+        // Save balance to localStorage
+        function saveBalance() {
+            localStorage.setItem('sportsLoungeBalance', balance);
+        }
+
+        // Load balance from localStorage
+        function loadBalance() {
+            const saved = localStorage.getItem('sportsLoungeBalance');
+            if (saved) {
+                balance = parseInt(saved);
+                updateBalance();
+            }
+        }
+
+        loadBalance();
+        window.addEventListener('beforeunload', saveBalance);
+    </script>
+</body>
+</html>

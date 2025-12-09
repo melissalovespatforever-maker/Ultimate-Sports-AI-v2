@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Ultimate Sports AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .profile-avatar:hover {
+            transform: scale(1.05);
+        }
+
+        .profile-info h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .profile-level {
+            display: inline-block;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .card-header h2 {
+            font-size: 22px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .edit-btn {
+            background: none;
+            border: none;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .edit-btn:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        /* Balance Card */
+        .balance-card {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            text-align: center;
+        }
+
+        .balance-amount {
+            font-size: 56px;
+            font-weight: 700;
+            color: #333;
+            margin: 20px 0;
+        }
+
+        .balance-label {
+            font-size: 18px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .balance-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .balance-actions button {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .balance-actions button:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-item {
+            background: linear-gradient(135deg, #e0e7ff, #f3e8ff);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* Personal Info Form */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e7ff;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .form-group input:disabled {
+            background: #f5f7fa;
+            cursor: not-allowed;
+        }
+
+        .save-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #84fab0, #8fd3f4);
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .save-btn.visible {
+            display: block;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(132, 250, 176, 0.4);
+        }
+
+        /* Achievements */
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .achievement-item {
+            background: linear-gradient(135deg, #e0e7ff, #f3e8ff);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .achievement-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .achievement-item.locked {
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+
+        .achievement-icon {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+
+        .achievement-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .achievement-desc {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .achievement-date {
+            font-size: 10px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        /* Game History */
+        .game-history-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .game-history-item {
+            background: linear-gradient(135deg, #f5f7fa, #e0e7ff);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .game-history-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .game-history-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .game-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .game-details h4 {
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .game-details p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .game-result {
+            text-align: right;
+        }
+
+        .game-result .amount {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .game-result .amount.win {
+            color: #27ae60;
+        }
+
+        .game-result .amount.lose {
+            color: #e74c3c;
+        }
+
+        .game-result .time {
+            font-size: 11px;
+            color: #999;
+        }
+
+        /* Level Progress */
+        .level-progress {
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            height: 30px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 15px;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .level-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* Full Width Cards */
+        .full-width-card {
+            grid-column: 1 / -1;
+        }
+
+        /* Preferences */
+        .preferences-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .preference-item {
+            background: linear-gradient(135deg, #e0e7ff, #f3e8ff);
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preference-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .toggle-switch {
+            width: 50px;
+            height: 26px;
+            background: #ccc;
+            border-radius: 13px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #667eea;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            left: 26px;
+        }
+
+        /* Avatar Selection Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h2 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .avatar-option {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #e0e7ff, #f3e8ff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .avatar-option:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .avatar-option.selected {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: #ffd700;
+        }
+
+        /* Responsive */
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .full-width-card {
+                grid-column: 1;
+            }
+
+            .preferences-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .achievements-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header {
+                padding: 15px;
+            }
+
+            .header-left {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-info h1 {
+                font-size: 22px;
+            }
+
+            .header-right {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .achievements-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .avatar-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header Profile Card -->
+        <div class="header">
+            <div class="header-left">
+                <div class="profile-avatar" id="profileAvatar" onclick="openAvatarModal()">
+                    🏆
+                </div>
+                <div class="profile-info">
+                    <h1 id="userName">Sports Champion</h1>
+                    <span class="profile-level" id="userLevel">Level 5 • Rookie</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <a href="index.html" class="btn btn-primary">← Dashboard</a>
+                <a href="sports-lounge.html" class="btn btn-secondary">Sports Lounge</a>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="main-grid">
+            <!-- Balance Card -->
+            <div class="card balance-card">
+                <h2 style="color: #333; font-size: 20px; margin-bottom: 10px;">💰 Your Balance</h2>
+                <div class="balance-amount" id="balanceAmount">1000 🪙</div>
+                <div class="balance-label">Total Coins</div>
+                <div class="balance-actions">
+                    <button onclick="window.location.href='sports-lounge.html'">Play Games</button>
+                    <button onclick="showComingSoon()">Buy Coins</button>
+                </div>
+
+                <div class="level-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="xpProgress" style="width: 65%;">
+                            650 / 1000 XP
+                        </div>
+                    </div>
+                    <div class="level-info">
+                        <span>Level 5</span>
+                        <span>350 XP to Level 6</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>📊 Quick Stats</h2>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="gamesPlayed">0</div>
+                        <div class="stat-label">Games Played</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="gamesWon">0</div>
+                        <div class="stat-label">Games Won</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="winRate">0%</div>
+                        <div class="stat-label">Win Rate</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="coinsEarned">0</div>
+                        <div class="stat-label">Coins Earned</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Personal Information -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>👤 Personal Info</h2>
+                    <button class="edit-btn" id="editInfoBtn" onclick="toggleEditMode()">✏️ Edit</button>
+                </div>
+                <form id="personalInfoForm">
+                    <div class="form-group">
+                        <label>Display Name</label>
+                        <input type="text" id="displayName" value="Sports Champion" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="email" value="champion@sports.ai" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Favorite Sport</label>
+                        <select id="favoriteSport" disabled>
+                            <option value="basketball">🏀 Basketball</option>
+                            <option value="football">🏈 Football</option>
+                            <option value="soccer">⚽ Soccer</option>
+                            <option value="baseball">⚾ Baseball</option>
+                            <option value="hockey">🏒 Hockey</option>
+                            <option value="tennis">🎾 Tennis</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Member Since</label>
+                        <input type="text" id="memberSince" value="January 2024" disabled>
+                    </div>
+                    <button type="submit" class="save-btn" id="saveInfoBtn">Save Changes</button>
+                </form>
+            </div>
+
+            <!-- Achievements -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>🏆 Achievements</h2>
+                </div>
+                <div class="achievements-grid" id="achievementsGrid">
+                    <!-- Achievements will be dynamically loaded -->
+                </div>
+            </div>
+
+            <!-- Game History -->
+            <div class="card full-width-card">
+                <div class="card-header">
+                    <h2>🎮 Recent Game History</h2>
+                    <button class="edit-btn" onclick="clearHistory()">Clear History</button>
+                </div>
+                <div class="game-history-list" id="gameHistoryList">
+                    <!-- Game history will be dynamically loaded -->
+                </div>
+            </div>
+
+            <!-- Preferences -->
+            <div class="card full-width-card">
+                <div class="card-header">
+                    <h2>⚙️ Preferences</h2>
+                </div>
+                <div class="preferences-grid">
+                    <div class="preference-item">
+                        <span class="preference-label">🔔 Notifications</span>
+                        <div class="toggle-switch active" onclick="togglePreference(this)" data-pref="notifications"></div>
+                    </div>
+                    <div class="preference-item">
+                        <span class="preference-label">🔊 Sound Effects</span>
+                        <div class="toggle-switch active" onclick="togglePreference(this)" data-pref="sound"></div>
+                    </div>
+                    <div class="preference-item">
+                        <span class="preference-label">📧 Email Updates</span>
+                        <div class="toggle-switch" onclick="togglePreference(this)" data-pref="email"></div>
+                    </div>
+                    <div class="preference-item">
+                        <span class="preference-label">🌙 Dark Mode</span>
+                        <div class="toggle-switch" onclick="togglePreference(this)" data-pref="darkMode"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Avatar Selection Modal -->
+    <div class="modal" id="avatarModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Choose Your Avatar</h2>
+                <button class="close-modal" onclick="closeAvatarModal()">×</button>
+            </div>
+            <div class="avatar-grid" id="avatarGrid">
+                <!-- Avatars will be dynamically loaded -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Local Storage Keys
+        const BALANCE_KEY = 'sportsLounge_balance';
+        const PROFILE_KEY = 'user_profile';
+        const GAME_HISTORY_KEY = 'game_history';
+        const PREFERENCES_KEY = 'user_preferences';
+
+        // Available Avatars
+        const AVATARS = ['🏆', '⚡', '🔥', '💎', '🎯', '👑', '🏀', '⚽', '🏈', '⚾', '🎾', '🏒', '🎮', '🌟', '💪', '🚀'];
+
+        // Achievements Definition
+        const ACHIEVEMENTS = [
+            { id: 'first_win', icon: '🎉', name: 'First Victory', desc: 'Win your first game', requirement: (stats) => stats.gamesWon >= 1 },
+            { id: 'coin_collector', icon: '💰', name: 'Coin Collector', desc: 'Earn 1,000 coins', requirement: (stats) => stats.coinsEarned >= 1000 },
+            { id: 'game_master', icon: '🎮', name: 'Game Master', desc: 'Play 50 games', requirement: (stats) => stats.gamesPlayed >= 50 },
+            { id: 'lucky_streak', icon: '🍀', name: 'Lucky Streak', desc: 'Win 5 games in a row', requirement: (stats) => stats.currentStreak >= 5 },
+            { id: 'trivia_expert', icon: '🧠', name: 'Trivia Expert', desc: 'Answer 100 questions correctly', requirement: (stats) => stats.triviaCorrect >= 100 },
+            { id: 'slot_champion', icon: '🎰', name: 'Slot Champion', desc: 'Win 10,000 from slots', requirement: (stats) => stats.slotsWon >= 10000 },
+            { id: 'scratch_master', icon: '🎫', name: 'Scratch Master', desc: 'Win 20 scratch cards', requirement: (stats) => stats.scratchWins >= 20 },
+            { id: 'high_roller', icon: '💎', name: 'High Roller', desc: 'Reach 5,000 coins', requirement: (stats) => stats.maxBalance >= 5000 },
+            { id: 'dedicated', icon: '⭐', name: 'Dedicated Player', desc: 'Play games for 7 days', requirement: (stats) => stats.daysActive >= 7 },
+        ];
+
+        // Load user profile
+        let userProfile = JSON.parse(localStorage.getItem(PROFILE_KEY)) || {
+            displayName: 'Sports Champion',
+            email: 'champion@sports.ai',
+            favoriteSport: 'basketball',
+            avatar: '🏆',
+            memberSince: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+            xp: 650,
+            level: 5
+        };
+
+        // Load preferences
+        let preferences = JSON.parse(localStorage.getItem(PREFERENCES_KEY)) || {
+            notifications: true,
+            sound: true,
+            email: false,
+            darkMode: false
+        };
+
+        // Initialize
+        function init() {
+            loadProfile();
+            loadBalance();
+            loadStats();
+            loadAchievements();
+            loadGameHistory();
+            loadPreferences();
+        }
+
+        function loadProfile() {
+            document.getElementById('userName').textContent = userProfile.displayName;
+            document.getElementById('profileAvatar').textContent = userProfile.avatar;
+            document.getElementById('displayName').value = userProfile.displayName;
+            document.getElementById('email').value = userProfile.email;
+            document.getElementById('favoriteSport').value = userProfile.favoriteSport;
+            document.getElementById('memberSince').value = userProfile.memberSince;
+
+            // Update level
+            const levelTier = getLevelTier(userProfile.level);
+            document.getElementById('userLevel').textContent = `Level ${userProfile.level} • ${levelTier}`;
+
+            // Update XP progress
+            const xpForNextLevel = userProfile.level * 200;
+            const xpProgress = (userProfile.xp / xpForNextLevel) * 100;
+            const xpRemaining = xpForNextLevel - userProfile.xp;
+            
+            document.getElementById('xpProgress').style.width = xpProgress + '%';
+            document.getElementById('xpProgress').textContent = `${userProfile.xp} / ${xpForNextLevel} XP`;
+            document.querySelector('.level-info').innerHTML = `
+                <span>Level ${userProfile.level}</span>
+                <span>${xpRemaining} XP to Level ${userProfile.level + 1}</span>
+            `;
+        }
+
+        function getLevelTier(level) {
+            if (level >= 50) return 'Legend';
+            if (level >= 40) return 'Master';
+            if (level >= 30) return 'Expert';
+            if (level >= 20) return 'Pro';
+            if (level >= 10) return 'Advanced';
+            return 'Rookie';
+        }
+
+        function loadBalance() {
+            const balance = parseInt(localStorage.getItem(BALANCE_KEY)) || 1000;
+            document.getElementById('balanceAmount').textContent = `${balance} 🪙`;
+        }
+
+        function loadStats() {
+            // Aggregate stats from all games
+            const slotsStats = JSON.parse(localStorage.getItem('slots_stats')) || { spins: 0, wins: 0, totalWon: 0 };
+            const wheelStats = JSON.parse(localStorage.getItem('wheel_stats')) || { spins: 0, totalWon: 0 };
+            const flipStats = JSON.parse(localStorage.getItem('coinFlip_stats')) || { flips: 0, wins: 0 };
+            const penaltyStats = JSON.parse(localStorage.getItem('penaltyShootout_stats')) || { gamesPlayed: 0, gamesWon: 0, totalGoals: 0 };
+            const triviaStats = JSON.parse(localStorage.getItem('trivia_stats')) || { gamesPlayed: 0, totalCorrect: 0 };
+
+            const totalGames = slotsStats.spins + wheelStats.spins + flipStats.flips + penaltyStats.gamesPlayed + triviaStats.gamesPlayed;
+            const totalWins = slotsStats.wins + wheelStats.spins + flipStats.wins + penaltyStats.gamesWon + triviaStats.totalCorrect;
+            const totalEarned = slotsStats.totalWon + wheelStats.totalWon;
+            const winRate = totalGames > 0 ? Math.round((totalWins / totalGames) * 100) : 0;
+
+            document.getElementById('gamesPlayed').textContent = totalGames;
+            document.getElementById('gamesWon').textContent = totalWins;
+            document.getElementById('winRate').textContent = winRate + '%';
+            document.getElementById('coinsEarned').textContent = totalEarned;
+        }
+
+        function loadAchievements() {
+            const achievementsGrid = document.getElementById('achievementsGrid');
+            achievementsGrid.innerHTML = '';
+
+            // Get aggregated stats
+            const stats = getAggregatedStats();
+
+            ACHIEVEMENTS.forEach(achievement => {
+                const unlocked = achievement.requirement(stats);
+                const div = document.createElement('div');
+                div.className = `achievement-item ${unlocked ? '' : 'locked'}`;
+                div.innerHTML = `
+                    <div class="achievement-icon">${achievement.icon}</div>
+                    <div class="achievement-name">${achievement.name}</div>
+                    <div class="achievement-desc">${achievement.desc}</div>
+                    ${unlocked ? '<div class="achievement-date">Unlocked!</div>' : ''}
+                `;
+                achievementsGrid.appendChild(div);
+            });
+        }
+
+        function getAggregatedStats() {
+            const slotsStats = JSON.parse(localStorage.getItem('slots_stats')) || { spins: 0, wins: 0, totalWon: 0 };
+            const wheelStats = JSON.parse(localStorage.getItem('wheel_stats')) || { spins: 0, totalWon: 0 };
+            const flipStats = JSON.parse(localStorage.getItem('coinFlip_stats')) || { flips: 0, wins: 0 };
+            const penaltyStats = JSON.parse(localStorage.getItem('penaltyShootout_stats')) || { gamesPlayed: 0, gamesWon: 0, totalGoals: 0 };
+            const triviaStats = JSON.parse(localStorage.getItem('trivia_stats')) || { gamesPlayed: 0, totalCorrect: 0 };
+            const balance = parseInt(localStorage.getItem(BALANCE_KEY)) || 1000;
+
+            return {
+                gamesPlayed: slotsStats.spins + wheelStats.spins + flipStats.flips + penaltyStats.gamesPlayed + triviaStats.gamesPlayed,
+                gamesWon: slotsStats.wins + wheelStats.spins + flipStats.wins + penaltyStats.gamesWon,
+                coinsEarned: slotsStats.totalWon + wheelStats.totalWon,
+                currentStreak: 0, // Would need to track separately
+                triviaCorrect: triviaStats.totalCorrect,
+                slotsWon: slotsStats.totalWon,
+                penaltyGoals: penaltyStats.totalGoals,
+                maxBalance: balance,
+                daysActive: 1 // Would need to track separately
+            };
+        }
+
+        function loadGameHistory() {
+            const history = JSON.parse(localStorage.getItem(GAME_HISTORY_KEY)) || [];
+            const historyList = document.getElementById('gameHistoryList');
+
+            if (history.length === 0) {
+                historyList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No game history yet. Start playing to see your history!</p>';
+                return;
+            }
+
+            historyList.innerHTML = '';
+            history.slice(-10).reverse().forEach(game => {
+                const div = document.createElement('div');
+                div.className = 'game-history-item';
+                div.innerHTML = `
+                    <div class="game-history-left">
+                        <div class="game-icon">${game.icon}</div>
+                        <div class="game-details">
+                            <h4>${game.name}</h4>
+                            <p>${game.details}</p>
+                        </div>
+                    </div>
+                    <div class="game-result">
+                        <div class="amount ${game.result > 0 ? 'win' : 'lose'}">
+                            ${game.result > 0 ? '+' : ''}${game.result} 🪙
+                        </div>
+                        <div class="time">${game.time}</div>
+                    </div>
+                `;
+                historyList.appendChild(div);
+            });
+        }
+
+        function loadPreferences() {
+            Object.entries(preferences).forEach(([key, value]) => {
+                const toggle = document.querySelector(`[data-pref="${key}"]`);
+                if (toggle) {
+                    if (value) {
+                        toggle.classList.add('active');
+                    } else {
+                        toggle.classList.remove('active');
+                    }
+                }
+            });
+        }
+
+        // Edit Mode
+        window.toggleEditMode = function() {
+            const form = document.getElementById('personalInfoForm');
+            const inputs = form.querySelectorAll('input:not([disabled]), select');
+            const isEditing = inputs.length > 0 && !inputs[0].disabled;
+
+            if (!isEditing) {
+                // Enable editing
+                document.getElementById('displayName').disabled = false;
+                document.getElementById('email').disabled = false;
+                document.getElementById('favoriteSport').disabled = false;
+                document.getElementById('saveInfoBtn').classList.add('visible');
+                document.getElementById('editInfoBtn').textContent = '✖ Cancel';
+            } else {
+                // Cancel editing
+                document.getElementById('displayName').disabled = true;
+                document.getElementById('email').disabled = true;
+                document.getElementById('favoriteSport').disabled = true;
+                document.getElementById('saveInfoBtn').classList.remove('visible');
+                document.getElementById('editInfoBtn').textContent = '✏️ Edit';
+                loadProfile();
+            }
+        };
+
+        // Save Profile
+        document.getElementById('personalInfoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            userProfile.displayName = document.getElementById('displayName').value;
+            userProfile.email = document.getElementById('email').value;
+            userProfile.favoriteSport = document.getElementById('favoriteSport').value;
+
+            localStorage.setItem(PROFILE_KEY, JSON.stringify(userProfile));
+            
+            document.getElementById('displayName').disabled = true;
+            document.getElementById('email').disabled = true;
+            document.getElementById('favoriteSport').disabled = true;
+            document.getElementById('saveInfoBtn').classList.remove('visible');
+            document.getElementById('editInfoBtn').textContent = '✏️ Edit';
+
+            loadProfile();
+            alert('Profile updated successfully!');
+        });
+
+        // Avatar Modal
+        window.openAvatarModal = function() {
+            const modal = document.getElementById('avatarModal');
+            const avatarGrid = document.getElementById('avatarGrid');
+            
+            avatarGrid.innerHTML = '';
+            AVATARS.forEach(avatar => {
+                const div = document.createElement('div');
+                div.className = 'avatar-option';
+                if (avatar === userProfile.avatar) {
+                    div.classList.add('selected');
+                }
+                div.textContent = avatar;
+                div.onclick = () => selectAvatar(avatar);
+                avatarGrid.appendChild(div);
+            });
+
+            modal.classList.add('active');
+        };
+
+        window.closeAvatarModal = function() {
+            document.getElementById('avatarModal').classList.remove('active');
+        };
+
+        function selectAvatar(avatar) {
+            userProfile.avatar = avatar;
+            localStorage.setItem(PROFILE_KEY, JSON.stringify(userProfile));
+            document.getElementById('profileAvatar').textContent = avatar;
+            closeAvatarModal();
+        }
+
+        // Preferences Toggle
+        window.togglePreference = function(element) {
+            const pref = element.dataset.pref;
+            element.classList.toggle('active');
+            preferences[pref] = element.classList.contains('active');
+            localStorage.setItem(PREFERENCES_KEY, JSON.stringify(preferences));
+        };
+
+        // Clear History
+        window.clearHistory = function() {
+            if (confirm('Are you sure you want to clear your game history?')) {
+                localStorage.removeItem(GAME_HISTORY_KEY);
+                loadGameHistory();
+            }
+        };
+
+        // Coming Soon
+        window.showComingSoon = function() {
+            alert('Coming soon! This feature will be available in the next update.');
+        };
+
+        // Initialize on load
+        init();
+
+        // Refresh stats every 30 seconds
+        setInterval(() => {
+            loadBalance();
+            loadStats();
+            loadAchievements();
+        }, 30000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penalty Shootout - Sports Lounge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .balance-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .balance-label {
+            font-size: 16px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .balance-amount {
+            font-size: 24px;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .game-info {
+            background: linear-gradient(135deg, #e0e7ff, #f3e8ff);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .game-info h2 {
+            font-size: 20px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .game-info p {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .bet-selection {
+            margin-bottom: 30px;
+        }
+
+        .bet-selection h3 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .bet-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .bet-option {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 10px;
+            border-radius: 12px;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .bet-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .bet-option.selected {
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .start-game-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #84fab0, #8fd3f4);
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .start-game-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(132, 250, 176, 0.4);
+        }
+
+        .start-game-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .game-area {
+            display: none;
+        }
+
+        .game-area.active {
+            display: block;
+        }
+
+        .score-display {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .score-item {
+            text-align: center;
+        }
+
+        .score-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .score-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .round-display {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 8px;
+        }
+
+        .goal-canvas-container {
+            position: relative;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        #goalCanvas {
+            width: 100%;
+            height: 350px;
+            display: block;
+            cursor: crosshair;
+        }
+
+        .goalkeeper {
+            position: absolute;
+            width: 60px;
+            height: 80px;
+            background: #ff6b6b;
+            border-radius: 50% 50% 0 0;
+            bottom: 40%;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            z-index: 10;
+        }
+
+        .shoot-instruction {
+            text-align: center;
+            font-size: 16px;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .result-message {
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: 700;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-message.goal {
+            background: linear-gradient(135deg, #84fab0, #8fd3f4);
+            color: #333;
+            display: block;
+        }
+
+        .result-message.save {
+            background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+            color: #333;
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #84fab0, #8fd3f4);
+            color: #333;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(132, 250, 176, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #cbd5e0, #a0aec0);
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(160, 174, 192, 0.4);
+        }
+
+        .stats {
+            background: linear-gradient(135deg, #e0e7ff, #f3e8ff);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stats h3 {
+            font-size: 18px;
+            color: #667eea;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .back-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #cbd5e0, #a0aec0);
+            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(160, 174, 192, 0.4);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .bet-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            #goalCanvas {
+                height: 280px;
+            }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #ffd700;
+            animation: confetti-fall 3s linear forwards;
+            z-index: 1000;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .ball {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: white;
+            border-radius: 50%;
+            border: 2px solid #333;
+            z-index: 5;
+            display: none;
+        }
+
+        .goal-net {
+            position: absolute;
+            top: 10%;
+            left: 15%;
+            width: 70%;
+            height: 50%;
+            border: 4px solid white;
+            border-bottom: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50% 50% 0 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚽ Penalty Shootout</h1>
+        </div>
+
+        <div class="balance-display">
+            <span class="balance-label">Your Balance</span>
+            <span class="balance-amount" id="balance">1000 🪙</span>
+        </div>
+
+        <div class="game-info">
+            <h2>How to Play</h2>
+            <p>Click anywhere on the goal to shoot! The goalkeeper will try to save it. Score more goals than the keeper saves to win!</p>
+        </div>
+
+        <!-- Bet Selection -->
+        <div class="bet-selection" id="betSelection">
+            <h3>Choose Your Bet</h3>
+            <div class="bet-options">
+                <div class="bet-option" data-bet="25">25 🪙</div>
+                <div class="bet-option" data-bet="50">50 🪙</div>
+                <div class="bet-option" data-bet="100">100 🪙</div>
+                <div class="bet-option" data-bet="200">200 🪙</div>
+            </div>
+            <button class="start-game-btn" id="startGameBtn" disabled>Start Shootout</button>
+        </div>
+
+        <!-- Game Area -->
+        <div class="game-area" id="gameArea">
+            <div class="round-display" id="roundDisplay">Round 1 of 5</div>
+
+            <div class="score-display">
+                <div class="score-item">
+                    <div class="score-label">Your Goals</div>
+                    <div class="score-value" id="playerScore">0</div>
+                </div>
+                <div class="score-item">
+                    <div class="score-label">Keeper Saves</div>
+                    <div class="score-value" id="keeperScore">0</div>
+                </div>
+            </div>
+
+            <div class="shoot-instruction" id="shootInstruction">
+                ⚽ Click on the goal to shoot!
+            </div>
+
+            <div class="goal-canvas-container">
+                <div class="goal-net"></div>
+                <div class="goalkeeper" id="goalkeeper">🧤</div>
+                <div class="ball" id="ball">⚽</div>
+                <canvas id="goalCanvas"></canvas>
+            </div>
+
+            <div id="resultMessage"></div>
+
+            <div class="controls">
+                <button class="btn btn-success" id="nextRoundBtn" style="display: none;">Next Round</button>
+                <button class="btn btn-success" id="finishBtn" style="display: none;">Finish Game</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <h3>📊 Your Stats</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Games Played</div>
+                    <div class="stat-value" id="gamesPlayed">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Games Won</div>
+                    <div class="stat-value" id="gamesWon">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Total Goals</div>
+                    <div class="stat-value" id="totalGoals">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Accuracy</div>
+                    <div class="stat-value" id="accuracy">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="back-button" onclick="window.location.href='sports-lounge.html'">
+            ← Back to Sports Lounge
+        </button>
+    </div>
+
+    <script type="module">
+        // Balance Management
+        const BALANCE_KEY = 'sportsLounge_balance';
+        let currentBalance = parseInt(localStorage.getItem(BALANCE_KEY)) || 1000;
+
+        // Game State
+        let selectedBet = 0;
+        let currentRound = 0;
+        let totalRounds = 5;
+        let playerGoals = 0;
+        let keeperSaves = 0;
+        let canShoot = false;
+        let canvas, ctx;
+
+        // Stats
+        const STATS_KEY = 'penaltyShootout_stats';
+        let stats = JSON.parse(localStorage.getItem(STATS_KEY)) || {
+            gamesPlayed: 0,
+            gamesWon: 0,
+            totalShots: 0,
+            totalGoals: 0
+        };
+
+        // Goalkeeper difficulty (increases each round)
+        const KEEPER_SPEED = [0.3, 0.35, 0.4, 0.45, 0.5]; // Speed multiplier per round
+
+        // Initialize
+        function init() {
+            updateBalanceDisplay();
+            updateStatsDisplay();
+            setupEventListeners();
+            setupCanvas();
+        }
+
+        function setupEventListeners() {
+            // Bet selection
+            document.querySelectorAll('.bet-option').forEach(option => {
+                option.addEventListener('click', () => selectBet(option));
+            });
+
+            document.getElementById('startGameBtn').addEventListener('click', startGame);
+            document.getElementById('nextRoundBtn').addEventListener('click', nextRound);
+            document.getElementById('finishBtn').addEventListener('click', finishGame);
+
+            // Canvas shooting
+            canvas = document.getElementById('goalCanvas');
+            canvas.addEventListener('click', handleShoot);
+        }
+
+        function setupCanvas() {
+            const container = document.querySelector('.goal-canvas-container');
+            canvas.width = container.offsetWidth;
+            canvas.height = 350;
+            ctx = canvas.getContext('2d');
+            drawGoalLines();
+        }
+
+        function drawGoalLines() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw goal posts
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 4;
+            
+            // Goal frame
+            const goalWidth = canvas.width * 0.7;
+            const goalHeight = canvas.height * 0.5;
+            const goalX = (canvas.width - goalWidth) / 2;
+            const goalY = canvas.height * 0.1;
+
+            ctx.beginPath();
+            ctx.moveTo(goalX, goalY + goalHeight);
+            ctx.lineTo(goalX, goalY);
+            ctx.lineTo(goalX + goalWidth, goalY);
+            ctx.lineTo(goalX + goalWidth, goalY + goalHeight);
+            ctx.stroke();
+
+            // Net pattern
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 1;
+
+            // Vertical lines
+            for (let i = 1; i < 7; i++) {
+                const x = goalX + (goalWidth / 7) * i;
+                ctx.beginPath();
+                ctx.moveTo(x, goalY);
+                ctx.lineTo(x, goalY + goalHeight);
+                ctx.stroke();
+            }
+
+            // Horizontal lines
+            for (let i = 1; i < 5; i++) {
+                const y = goalY + (goalHeight / 5) * i;
+                ctx.beginPath();
+                ctx.moveTo(goalX, y);
+                ctx.lineTo(goalX + goalWidth, y);
+                ctx.stroke();
+            }
+        }
+
+        function selectBet(option) {
+            const bet = parseInt(option.dataset.bet);
+            
+            if (currentBalance < bet) {
+                showMessage('Not enough coins!', 'save');
+                setTimeout(() => clearMessage(), 2000);
+                return;
+            }
+
+            document.querySelectorAll('.bet-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            option.classList.add('selected');
+            
+            selectedBet = bet;
+            document.getElementById('startGameBtn').disabled = false;
+        }
+
+        function startGame() {
+            if (selectedBet === 0 || currentBalance < selectedBet) return;
+
+            // Deduct bet
+            currentBalance -= selectedBet;
+            updateBalance();
+
+            // Reset game state
+            currentRound = 1;
+            playerGoals = 0;
+            keeperSaves = 0;
+            canShoot = false;
+
+            // Show game area
+            document.getElementById('betSelection').style.display = 'none';
+            document.getElementById('gameArea').classList.add('active');
+
+            // Start first round
+            startRound();
+        }
+
+        function startRound() {
+            canShoot = true;
+            updateScoreDisplay();
+            document.getElementById('roundDisplay').textContent = `Round ${currentRound} of ${totalRounds}`;
+            document.getElementById('shootInstruction').style.display = 'block';
+            
+            // Position goalkeeper randomly
+            positionGoalkeeper();
+            
+            // Clear previous result
+            clearMessage();
+        }
+
+        function positionGoalkeeper() {
+            const goalkeeper = document.getElementById('goalkeeper');
+            const container = document.querySelector('.goal-canvas-container');
+            const containerWidth = container.offsetWidth;
+            const keeperWidth = 60;
+            
+            // Random position within goal area (15% to 85% of width)
+            const minPos = containerWidth * 0.15;
+            const maxPos = containerWidth * 0.85 - keeperWidth;
+            const randomPos = minPos + Math.random() * (maxPos - minPos);
+            
+            goalkeeper.style.left = randomPos + 'px';
+        }
+
+        function handleShoot(e) {
+            if (!canShoot) return;
+            
+            canShoot = false;
+            document.getElementById('shootInstruction').style.display = 'none';
+
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            // Animate ball
+            animateBall(clickX, clickY);
+        }
+
+        function animateBall(targetX, targetY) {
+            const ball = document.getElementById('ball');
+            const goalkeeper = document.getElementById('goalkeeper');
+            
+            // Start position (bottom center)
+            const startX = canvas.width / 2;
+            const startY = canvas.height - 30;
+            
+            ball.style.left = startX + 'px';
+            ball.style.top = startY + 'px';
+            ball.style.display = 'block';
+
+            // Animate goalkeeper move
+            const keeperRect = goalkeeper.getBoundingClientRect();
+            const containerRect = goalkeeper.parentElement.getBoundingClientRect();
+            const keeperCenterX = keeperRect.left - containerRect.left + keeperRect.width / 2;
+            
+            // Keeper reacts based on difficulty
+            const reactionSpeed = KEEPER_SPEED[currentRound - 1] || 0.4;
+            const keeperMoveX = keeperCenterX + (targetX - keeperCenterX) * reactionSpeed;
+            
+            goalkeeper.style.left = Math.max(containerRect.width * 0.15, 
+                Math.min(containerRect.width * 0.85 - 60, keeperMoveX)) + 'px';
+
+            // Animate ball to target
+            let progress = 0;
+            const duration = 500; // ms
+            const startTime = Date.now();
+
+            const animate = () => {
+                progress = (Date.now() - startTime) / duration;
+                
+                if (progress >= 1) {
+                    ball.style.left = targetX + 'px';
+                    ball.style.top = targetY + 'px';
+                    
+                    // Check if goal or save
+                    setTimeout(() => {
+                        checkGoal(targetX, targetY, keeperMoveX);
+                        ball.style.display = 'none';
+                    }, 200);
+                    return;
+                }
+
+                const currentX = startX + (targetX - startX) * progress;
+                const currentY = startY + (targetY - startY) * progress;
+                
+                ball.style.left = currentX + 'px';
+                ball.style.top = currentY + 'px';
+
+                requestAnimationFrame(animate);
+            };
+
+            animate();
+        }
+
+        function checkGoal(shotX, shotY, keeperX) {
+            const goalkeeper = document.getElementById('goalkeeper');
+            const keeperRect = goalkeeper.getBoundingClientRect();
+            const containerRect = goalkeeper.parentElement.getBoundingClientRect();
+            
+            const relativeKeeperX = keeperRect.left - containerRect.left;
+            const keeperWidth = keeperRect.width;
+            const keeperReach = 80; // Keeper can reach 80px around center
+
+            // Check if shot is within goal area
+            const goalLeft = canvas.width * 0.15;
+            const goalRight = canvas.width * 0.85;
+            const goalTop = canvas.height * 0.1;
+            const goalBottom = canvas.height * 0.6;
+
+            const inGoal = shotX >= goalLeft && shotX <= goalRight && 
+                          shotY >= goalTop && shotY <= goalBottom;
+
+            if (!inGoal) {
+                // Missed the goal entirely
+                keeperSaves++;
+                showMessage('❌ Missed! Shot went wide!', 'save');
+                stats.totalShots++;
+            } else {
+                // Shot is on target, check if keeper saved it
+                const distanceFromKeeper = Math.abs(shotX - (relativeKeeperX + keeperWidth / 2));
+                
+                if (distanceFromKeeper <= keeperReach) {
+                    // Keeper saved it!
+                    keeperSaves++;
+                    showMessage('🧤 Saved! The goalkeeper got it!', 'save');
+                    stats.totalShots++;
+                } else {
+                    // Goal!
+                    playerGoals++;
+                    showMessage('⚽ GOAL! What a shot!', 'goal');
+                    stats.totalShots++;
+                    stats.totalGoals++;
+                    createConfetti();
+                }
+            }
+
+            updateScoreDisplay();
+
+            // Check if game should continue
+            if (currentRound < totalRounds) {
+                document.getElementById('nextRoundBtn').style.display = 'block';
+            } else {
+                document.getElementById('finishBtn').style.display = 'block';
+            }
+        }
+
+        function nextRound() {
+            currentRound++;
+            document.getElementById('nextRoundBtn').style.display = 'none';
+            startRound();
+        }
+
+        function finishGame() {
+            const won = playerGoals > keeperSaves;
+            
+            stats.gamesPlayed++;
+            if (won) {
+                stats.gamesWon++;
+                const winnings = Math.floor(selectedBet * 2.5); // 2.5x payout for winning
+                currentBalance += winnings;
+                showMessage(`🏆 You Won! +${winnings} coins!`, 'goal');
+                createConfetti();
+            } else {
+                showMessage('😔 Better luck next time!', 'save');
+            }
+
+            updateBalance();
+            saveStats();
+            updateStatsDisplay();
+
+            // Reset to bet selection
+            setTimeout(() => {
+                document.getElementById('gameArea').classList.remove('active');
+                document.getElementById('betSelection').style.display = 'block';
+                document.getElementById('finishBtn').style.display = 'none';
+                clearMessage();
+                
+                // Reset selections
+                document.querySelectorAll('.bet-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                selectedBet = 0;
+                document.getElementById('startGameBtn').disabled = true;
+            }, 3000);
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('playerScore').textContent = playerGoals;
+            document.getElementById('keeperScore').textContent = keeperSaves;
+        }
+
+        function showMessage(text, type) {
+            const resultMessage = document.getElementById('resultMessage');
+            resultMessage.innerHTML = text;
+            resultMessage.className = `result-message ${type}`;
+        }
+
+        function clearMessage() {
+            const resultMessage = document.getElementById('resultMessage');
+            resultMessage.className = 'result-message';
+            resultMessage.innerHTML = '';
+        }
+
+        function updateBalance() {
+            localStorage.setItem(BALANCE_KEY, currentBalance);
+            updateBalanceDisplay();
+        }
+
+        function updateBalanceDisplay() {
+            document.getElementById('balance').textContent = `${currentBalance} 🪙`;
+        }
+
+        function saveStats() {
+            localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('gamesPlayed').textContent = stats.gamesPlayed;
+            document.getElementById('gamesWon').textContent = stats.gamesWon;
+            document.getElementById('totalGoals').textContent = stats.totalGoals;
+            
+            const accuracy = stats.totalShots > 0 
+                ? Math.round((stats.totalGoals / stats.totalShots) * 100) 
+                : 0;
+            document.getElementById('accuracy').textContent = `${accuracy}%`;
+        }
+
+        function createConfetti() {
+            const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#f093fb'];
+            for (let i = 0; i < 30; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * window.innerWidth + 'px';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                    document.body.appendChild(confetti);
+
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+
+        // Resize canvas on window resize
+        window.addEventListener('resize', () => {
+            setupCanvas();
+        });
+
+        // Start the game
+        init();
+    </script>
+</body>
+</html>

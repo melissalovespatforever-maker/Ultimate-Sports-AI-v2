@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Trivia - Sports Lounge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .balance-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .balance-label {
+            font-size: 16px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .balance-amount {
+            font-size: 24px;
+            color: #333;
+            font-weight: 700;
+        }
+
+        .game-mode-selection {
+            margin-bottom: 30px;
+        }
+
+        .game-mode-selection h2 {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .mode-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .mode-option {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px 15px;
+            border-radius: 12px;
+            border: 3px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .mode-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .mode-option.selected {
+            border-color: #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+        }
+
+        .mode-option .mode-name {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .mode-option .mode-cost {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .mode-option .mode-desc {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .difficulty-selection {
+            margin-bottom: 20px;
+        }
+
+        .difficulty-selection h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .difficulty-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .difficulty-btn {
+            flex: 1;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #e0e7ff;
+            color: #667eea;
+        }
+
+        .difficulty-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .difficulty-btn.selected {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #ffd700;
+        }
+
+        .start-game-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #84fab0, #8fd3f4);
+            color: #333;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .start-game-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(132, 250, 176, 0.4);
+        }
+
+        .start-game-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .game-area {
+            display: none;
+        }
+
+        .game-area.active {
+            display: block;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .question-counter {
+            background: linear-gradient(135deg, #e0e7ff, #f3e8ff);
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .timer {
+            background: linear-gradient(135deg, #fbc2eb, #a6c1ee);
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .timer.warning {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            animation: pulse-timer 1s infinite;
+        }
+
+        @keyframes pulse-timer {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .streak-display {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .question-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .category-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .question-text {
+            font-size: 20px;
+            color: #333;
+            font-weight: 600;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .answers-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .answer-option {
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            padding: 18px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            border: 3px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .answer-option:hover:not(.disabled) {
+            transform: translateX(5px);
+            background: linear-gradient(135deg, #e0e7ff, #f3e8ff);
+            border-color: #667eea;
+        }
+
+        .answer-option.selected {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-color: #ffd700;
+        }
+
+        .answer-option.correct {
+            background: linear-gradient(135deg, #84fab0, #8fd3f4);
+            border-color: #2ecc71;
+            animation: correct-flash 0.5s ease;
+        }
+
+        .answer-option.incorrect {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            border-color: #e74c3c;
+            animation: incorrect-shake 0.5s ease;
+        }
+
+        .answer-option.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        @keyframes correct-flash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes incorrect-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .answer-letter {
+            background: rgba(255, 255, 255, 0.3);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .results-screen {
+            text-align: center;
+            display: none;
+        }
+
+        .results-screen.active {
+            display: block;
+        }
+
+        .results-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .results-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .results-score {
+            font-size: 48px;
+            font-weight: 700;
+            color: #ffd700;
+            margin-bottom: 20px;
+        }
+
+        .results-summary {
+            background: linear-gradient(135deg, #e0e7ff, #f3e8ff);
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+
+        .results-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            font-size: 16px;
+        }
+
+        .results-row:last-child {
+            border-bottom: none;
+        }
+
+        .results-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .results-value {
+            color: #333;
+            font-weight: 700;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #84fab0, #8fd3f4);
+            color: #333;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(132, 250, 176, 0.4);
+        }
+
+        .stats {
+            background: linear-gradient(135deg, #e0e7ff, #f3e8ff);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stats h3 {
+            font-size: 18px;
+            color: #667eea;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .back-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #cbd5e0, #a0aec0);
+            color: #333;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(160, 174, 192, 0.4);
+        }
+
+        .lifeline-section {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px dashed rgba(102, 126, 234, 0.2);
+        }
+
+        .lifeline-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .lifeline-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+        }
+
+        .lifeline-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .mode-options {
+                grid-template-columns: 1fr;
+            }
+
+            .game-header {
+                flex-direction: column;
+            }
+
+            .question-text {
+                font-size: 18px;
+            }
+
+            .answer-option {
+                padding: 15px;
+                font-size: 14px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #ffd700;
+            position: fixed;
+            animation: confetti-fall 3s linear forwards;
+            z-index: 1000;
+        }
+
+        @keyframes confetti-fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Sports Trivia</h1>
+        </div>
+
+        <div class="balance-display">
+            <span class="balance-label">Your Balance</span>
+            <span class="balance-amount" id="balance">1000 🪙</span>
+        </div>
+
+        <!-- Mode Selection -->
+        <div class="game-mode-selection" id="modeSelection">
+            <h2>Choose Your Challenge</h2>
+            <div class="mode-options">
+                <div class="mode-option" data-mode="quick" data-cost="25" data-questions="5">
+                    <div class="mode-name">⚡ Quick Quiz</div>
+                    <div class="mode-cost">25 🪙 Entry</div>
+                    <div class="mode-desc">5 questions • 15s each</div>
+                </div>
+                <div class="mode-option" data-mode="classic" data-cost="50" data-questions="10">
+                    <div class="mode-name">🎯 Classic Mode</div>
+                    <div class="mode-cost">50 🪙 Entry</div>
+                    <div class="mode-desc">10 questions • 20s each</div>
+                </div>
+                <div class="mode-option" data-mode="marathon" data-cost="100" data-questions="20">
+                    <div class="mode-name">🏆 Marathon</div>
+                    <div class="mode-cost">100 🪙 Entry</div>
+                    <div class="mode-desc">20 questions • 25s each</div>
+                </div>
+                <div class="mode-option" data-mode="expert" data-cost="200" data-questions="15">
+                    <div class="mode-name">💎 Expert Challenge</div>
+                    <div class="mode-cost">200 🪙 Entry</div>
+                    <div class="mode-desc">15 hard questions • 30s each</div>
+                </div>
+            </div>
+
+            <div class="difficulty-selection">
+                <h3>Difficulty Level</h3>
+                <div class="difficulty-buttons">
+                    <button class="difficulty-btn selected" data-difficulty="easy">Easy</button>
+                    <button class="difficulty-btn" data-difficulty="medium">Medium</button>
+                    <button class="difficulty-btn" data-difficulty="hard">Hard</button>
+                </div>
+            </div>
+
+            <button class="start-game-btn" id="startGameBtn" disabled>Start Game</button>
+        </div>
+
+        <!-- Game Area -->
+        <div class="game-area" id="gameArea">
+            <div class="game-header">
+                <div class="question-counter" id="questionCounter">Question 1/5</div>
+                <div class="timer" id="timer">15</div>
+                <div class="streak-display" id="streakDisplay">🔥 Streak: 0</div>
+            </div>
+
+            <div class="question-card">
+                <div class="category-badge" id="categoryBadge">Basketball</div>
+                <div class="question-text" id="questionText">Loading question...</div>
+                <div class="answers-grid" id="answersGrid"></div>
+                
+                <div class="lifeline-section">
+                    <button class="lifeline-btn" id="fiftyFiftyBtn">🎯 50/50 (50 🪙)</button>
+                    <button class="lifeline-btn" id="skipBtn">⏭️ Skip (30 🪙)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="results-screen" id="resultsScreen">
+            <div class="results-icon" id="resultsIcon">🏆</div>
+            <div class="results-title" id="resultsTitle">Quiz Complete!</div>
+            <div class="results-score" id="resultsScore">+500 🪙</div>
+            
+            <div class="results-summary">
+                <div class="results-row">
+                    <span class="results-label">Correct Answers</span>
+                    <span class="results-value" id="correctAnswers">0/5</span>
+                </div>
+                <div class="results-row">
+                    <span class="results-label">Accuracy</span>
+                    <span class="results-value" id="accuracy">0%</span>
+                </div>
+                <div class="results-row">
+                    <span class="results-label">Best Streak</span>
+                    <span class="results-value" id="bestStreak">0</span>
+                </div>
+                <div class="results-row">
+                    <span class="results-label">Time Bonus</span>
+                    <span class="results-value" id="timeBonus">+0 🪙</span>
+                </div>
+                <div class="results-row">
+                    <span class="results-label">Streak Bonus</span>
+                    <span class="results-value" id="streakBonus">+0 🪙</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-success" id="playAgainBtn">Play Again</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <h3>📊 Your Stats</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-label">Games Played</div>
+                    <div class="stat-value" id="gamesPlayed">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Questions Answered</div>
+                    <div class="stat-value" id="totalQuestions">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Overall Accuracy</div>
+                    <div class="stat-value" id="overallAccuracy">0%</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Best Streak</div>
+                    <div class="stat-value" id="allTimeBestStreak">0</div>
+                </div>
+            </div>
+        </div>
+
+        <button class="back-button" onclick="window.location.href='sports-lounge.html'">
+            ← Back to Sports Lounge
+        </button>
+    </div>
+
+    <script type="module">
+        // Balance Management
+        const BALANCE_KEY = 'sportsLounge_balance';
+        let currentBalance = parseInt(localStorage.getItem(BALANCE_KEY)) || 1000;
+
+        // Game State
+        let selectedMode = null;
+        let selectedDifficulty = 'easy';
+        let currentQuestionIndex = 0;
+        let currentQuestions = [];
+        let score = 0;
+        let correctCount = 0;
+        let streak = 0;
+        let bestStreak = 0;
+        let timeRemaining = 0;
+        let timerInterval = null;
+        let totalTimeBonus = 0;
+        let fiftyFiftyUsed = false;
+
+        // Game Configuration
+        const MODES = {
+            quick: { cost: 25, questions: 5, timePerQuestion: 15, pointsPerCorrect: 50 },
+            classic: { cost: 50, questions: 10, timePerQuestion: 20, pointsPerCorrect: 50 },
+            marathon: { cost: 100, questions: 20, timePerQuestion: 25, pointsPerCorrect: 60 },
+            expert: { cost: 200, questions: 15, timePerQuestion: 30, pointsPerCorrect: 80 }
+        };
+
+        // Stats
+        const STATS_KEY = 'trivia_stats';
+        let stats = JSON.parse(localStorage.getItem(STATS_KEY)) || {
+            gamesPlayed: 0,
+            totalQuestions: 0,
+            totalCorrect: 0,
+            bestStreak: 0
+        };
+
+        // Question Bank
+        const QUESTIONS = {
+            easy: [
+                { category: 'Basketball', question: 'How many players are on a basketball team on the court at one time?', answers: ['5', '6', '7', '4'], correct: 0 },
+                { category: 'Football', question: 'How many points is a touchdown worth in American football?', answers: ['6', '7', '3', '8'], correct: 0 },
+                { category: 'Soccer', question: 'What color card does a referee show for a player ejection?', answers: ['Red', 'Yellow', 'Blue', 'Green'], correct: 0 },
+                { category: 'Baseball', question: 'How many strikes does a batter get before they are out?', answers: ['3', '4', '2', '5'], correct: 0 },
+                { category: 'Tennis', question: 'What is the term for zero points in tennis?', answers: ['Love', 'Nil', 'Zero', 'Nought'], correct: 0 },
+                { category: 'Basketball', question: 'How many points is a free throw worth?', answers: ['1', '2', '3', '0'], correct: 0 },
+                { category: 'Hockey', question: 'What shape is a hockey puck?', answers: ['Circular disk', 'Square', 'Oval', 'Triangle'], correct: 0 },
+                { category: 'Olympics', question: 'How often are the Summer Olympics held?', answers: ['Every 4 years', 'Every 2 years', 'Annually', 'Every 5 years'], correct: 0 },
+                { category: 'Golf', question: 'What is a hole-in-one?', answers: ['Ball in hole in one stroke', 'First hole of the course', 'Winning by one stroke', 'Missing by one stroke'], correct: 0 },
+                { category: 'Boxing', question: 'How many rounds are in a typical professional boxing match?', answers: ['12', '10', '15', '8'], correct: 0 },
+                { category: 'Soccer', question: 'Which body part can\'t a soccer player use to touch the ball?', answers: ['Hands', 'Head', 'Chest', 'Feet'], correct: 0 },
+                { category: 'Basketball', question: 'What is the painted area under the basket called?', answers: ['The key', 'The box', 'The zone', 'The arc'], correct: 0 },
+                { category: 'Baseball', question: 'How many bases are there on a baseball field?', answers: ['4', '3', '5', '6'], correct: 0 },
+                { category: 'Football', question: 'What is the line of scrimmage?', answers: ['Where play starts', 'End zone line', 'Sideline', 'Goal line'], correct: 0 },
+                { category: 'Tennis', question: 'What surface is Wimbledon played on?', answers: ['Grass', 'Clay', 'Hard court', 'Carpet'], correct: 0 }
+            ],
+            medium: [
+                { category: 'Basketball', question: 'Who holds the NBA record for most career points?', answers: ['LeBron James', 'Michael Jordan', 'Kobe Bryant', 'Kareem Abdul-Jabbar'], correct: 0 },
+                { category: 'Football', question: 'Which team has won the most Super Bowl championships?', answers: ['New England Patriots', 'Dallas Cowboys', 'Pittsburgh Steelers', 'San Francisco 49ers'], correct: 2 },
+                { category: 'Soccer', question: 'Which country has won the most FIFA World Cups?', answers: ['Brazil', 'Germany', 'Argentina', 'Italy'], correct: 0 },
+                { category: 'Baseball', question: 'What team did Babe Ruth play most of his career with?', answers: ['New York Yankees', 'Boston Red Sox', 'Chicago Cubs', 'St. Louis Cardinals'], correct: 0 },
+                { category: 'Tennis', question: 'How many Grand Slam tournaments are there each year?', answers: ['4', '3', '5', '6'], correct: 0 },
+                { category: 'Olympics', question: 'Which city hosted the 2016 Summer Olympics?', answers: ['Rio de Janeiro', 'London', 'Tokyo', 'Beijing'], correct: 0 },
+                { category: 'Hockey', question: 'How many periods are in a regulation NHL game?', answers: ['3', '2', '4', '5'], correct: 0 },
+                { category: 'Golf', question: 'Which golfer is known as "The Golden Bear"?', answers: ['Jack Nicklaus', 'Tiger Woods', 'Arnold Palmer', 'Gary Player'], correct: 0 },
+                { category: 'Basketball', question: 'How long is a shot clock in the NBA?', answers: ['24 seconds', '30 seconds', '20 seconds', '15 seconds'], correct: 0 },
+                { category: 'Football', question: 'What is the diameter of a football field from goal line to goal line?', answers: ['100 yards', '110 yards', '90 yards', '120 yards'], correct: 0 },
+                { category: 'Boxing', question: 'What weight class is over 200 pounds in boxing?', answers: ['Heavyweight', 'Super heavyweight', 'Cruiserweight', 'Light heavyweight'], correct: 0 },
+                { category: 'Soccer', question: 'How long is a standard soccer match?', answers: ['90 minutes', '80 minutes', '100 minutes', '120 minutes'], correct: 0 },
+                { category: 'Baseball', question: 'What is the maximum number of players on a baseball roster?', answers: ['26', '25', '30', '40'], correct: 0 },
+                { category: 'Tennis', question: 'What is the minimum number of games to win a set?', answers: ['6', '5', '7', '8'], correct: 0 },
+                { category: 'Olympics', question: 'What do the Olympic rings represent?', answers: ['Five continents', 'Five sports', 'Five countries', 'Five values'], correct: 0 }
+            ],
+            hard: [
+                { category: 'Basketball', question: 'Who was the first player to score 100 points in an NBA game?', answers: ['Wilt Chamberlain', 'Michael Jordan', 'Kobe Bryant', 'Elgin Baylor'], correct: 0 },
+                { category: 'Football', question: 'Which player has thrown the most touchdown passes in NFL history?', answers: ['Tom Brady', 'Peyton Manning', 'Drew Brees', 'Brett Favre'], correct: 0 },
+                { category: 'Soccer', question: 'Who scored the "Hand of God" goal in the 1986 World Cup?', answers: ['Diego Maradona', 'Pelé', 'Lionel Messi', 'Johan Cruyff'], correct: 0 },
+                { category: 'Baseball', question: 'Who holds the record for most stolen bases in a single season?', answers: ['Rickey Henderson', 'Lou Brock', 'Vince Coleman', 'Tim Raines'], correct: 0 },
+                { category: 'Tennis', question: 'Who has won the most Grand Slam singles titles in men\'s tennis?', answers: ['Novak Djokovic', 'Roger Federer', 'Rafael Nadal', 'Pete Sampras'], correct: 0 },
+                { category: 'Olympics', question: 'Which country has hosted the most Olympic Games?', answers: ['USA', 'France', 'UK', 'Greece'], correct: 0 },
+                { category: 'Hockey', question: 'Who holds the NHL record for most career goals?', answers: ['Wayne Gretzky', 'Gordie Howe', 'Jaromir Jagr', 'Brett Hull'], correct: 0 },
+                { category: 'Golf', question: 'Who was the youngest golfer to win the Masters Tournament?', answers: ['Tiger Woods', 'Jack Nicklaus', 'Jordan Spieth', 'Rory McIlroy'], correct: 0 },
+                { category: 'Boxing', question: 'Which boxer was known as "The Greatest"?', answers: ['Muhammad Ali', 'Mike Tyson', 'Sugar Ray Leonard', 'Floyd Mayweather'], correct: 0 },
+                { category: 'Basketball', question: 'Which team won the first NBA championship in 1947?', answers: ['Philadelphia Warriors', 'Boston Celtics', 'Minneapolis Lakers', 'New York Knicks'], correct: 0 },
+                { category: 'Football', question: 'Who is the only player to win the Super Bowl MVP from a losing team?', answers: ['Chuck Howley', 'Terry Bradshaw', 'Joe Namath', 'Jim Brown'], correct: 0 },
+                { category: 'Soccer', question: 'Which club has won the most UEFA Champions League titles?', answers: ['Real Madrid', 'Barcelona', 'AC Milan', 'Bayern Munich'], correct: 0 },
+                { category: 'Baseball', question: 'Who pitched the only perfect game in World Series history?', answers: ['Don Larsen', 'Sandy Koufax', 'Bob Gibson', 'Randy Johnson'], correct: 0 },
+                { category: 'Tennis', question: 'What is the fastest recorded tennis serve?', answers: ['163.7 mph', '157.2 mph', '169.3 mph', '155.0 mph'], correct: 0 },
+                { category: 'Olympics', question: 'Which athlete has won the most Olympic gold medals?', answers: ['Michael Phelps', 'Usain Bolt', 'Carl Lewis', 'Mark Spitz'], correct: 0 }
+            ]
+        };
+
+        // Initialize
+        function init() {
+            updateBalanceDisplay();
+            updateStatsDisplay();
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
+            // Mode selection
+            document.querySelectorAll('.mode-option').forEach(option => {
+                option.addEventListener('click', () => selectMode(option));
+            });
+
+            // Difficulty selection
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.addEventListener('click', () => selectDifficulty(btn));
+            });
+
+            document.getElementById('startGameBtn').addEventListener('click', startGame);
+            document.getElementById('playAgainBtn').addEventListener('click', resetToMenu);
+            document.getElementById('fiftyFiftyBtn').addEventListener('click', useFiftyFifty);
+            document.getElementById('skipBtn').addEventListener('click', skipQuestion);
+        }
+
+        function selectMode(option) {
+            const mode = option.dataset.mode;
+            const cost = parseInt(option.dataset.cost);
+
+            if (currentBalance < cost) {
+                alert('Not enough coins!');
+                return;
+            }
+
+            document.querySelectorAll('.mode-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            option.classList.add('selected');
+
+            selectedMode = mode;
+            document.getElementById('startGameBtn').disabled = false;
+        }
+
+        function selectDifficulty(btn) {
+            document.querySelectorAll('.difficulty-btn').forEach(b => {
+                b.classList.remove('selected');
+            });
+            btn.classList.add('selected');
+            selectedDifficulty = btn.dataset.difficulty;
+        }
+
+        function startGame() {
+            if (!selectedMode) return;
+
+            const config = MODES[selectedMode];
+            
+            // Deduct entry cost
+            currentBalance -= config.cost;
+            updateBalance();
+
+            // Reset game state
+            currentQuestionIndex = 0;
+            score = 0;
+            correctCount = 0;
+            streak = 0;
+            bestStreak = 0;
+            totalTimeBonus = 0;
+            fiftyFiftyUsed = false;
+
+            // Generate questions
+            generateQuestions(config.questions);
+
+            // Show game area
+            document.getElementById('modeSelection').style.display = 'none';
+            document.getElementById('gameArea').classList.add('active');
+
+            // Start first question
+            loadQuestion();
+        }
+
+        function generateQuestions(count) {
+            const questionPool = [...QUESTIONS[selectedDifficulty]];
+            currentQuestions = [];
+
+            // Shuffle and select questions
+            for (let i = 0; i < count && questionPool.length > 0; i++) {
+                const randomIndex = Math.floor(Math.random() * questionPool.length);
+                currentQuestions.push(questionPool.splice(randomIndex, 1)[0]);
+            }
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= currentQuestions.length) {
+                endGame();
+                return;
+            }
+
+            const question = currentQuestions[currentQuestionIndex];
+            const config = MODES[selectedMode];
+
+            // Reset lifelines for new question
+            fiftyFiftyUsed = false;
+            document.getElementById('fiftyFiftyBtn').disabled = false;
+
+            // Update UI
+            document.getElementById('questionCounter').textContent = 
+                `Question ${currentQuestionIndex + 1}/${currentQuestions.length}`;
+            document.getElementById('categoryBadge').textContent = question.category;
+            document.getElementById('questionText').textContent = question.question;
+            document.getElementById('streakDisplay').textContent = `🔥 Streak: ${streak}`;
+
+            // Render answers
+            const answersGrid = document.getElementById('answersGrid');
+            answersGrid.innerHTML = '';
+
+            question.answers.forEach((answer, index) => {
+                const answerDiv = document.createElement('div');
+                answerDiv.className = 'answer-option';
+                answerDiv.innerHTML = `
+                    <div class="answer-letter">${String.fromCharCode(65 + index)}</div>
+                    <div>${answer}</div>
+                `;
+                answerDiv.addEventListener('click', () => selectAnswer(index));
+                answersGrid.appendChild(answerDiv);
+            });
+
+            // Start timer
+            startTimer(config.timePerQuestion);
+        }
+
+        function startTimer(seconds) {
+            timeRemaining = seconds;
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    timeOut();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const timerEl = document.getElementById('timer');
+            timerEl.textContent = timeRemaining;
+            
+            if (timeRemaining <= 5) {
+                timerEl.classList.add('warning');
+            } else {
+                timerEl.classList.remove('warning');
+            }
+        }
+
+        function selectAnswer(index) {
+            clearInterval(timerInterval);
+
+            const question = currentQuestions[currentQuestionIndex];
+            const config = MODES[selectedMode];
+            const answerOptions = document.querySelectorAll('.answer-option');
+
+            // Disable all answers
+            answerOptions.forEach(opt => opt.classList.add('disabled'));
+
+            // Check if correct
+            const isCorrect = index === question.correct;
+
+            if (isCorrect) {
+                answerOptions[index].classList.add('correct');
+                correctCount++;
+                streak++;
+                
+                // Calculate points
+                const basePoints = config.pointsPerCorrect;
+                const timeBonus = Math.floor(timeRemaining * 2);
+                const streakMultiplier = Math.min(streak, 5);
+                const totalPoints = basePoints + timeBonus + (streakMultiplier * 10);
+                
+                score += totalPoints;
+                totalTimeBonus += timeBonus;
+
+                if (streak > bestStreak) {
+                    bestStreak = streak;
+                }
+            } else {
+                answerOptions[index].classList.add('incorrect');
+                answerOptions[question.correct].classList.add('correct');
+                streak = 0;
+            }
+
+            // Next question after delay
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 2000);
+        }
+
+        function timeOut() {
+            const question = currentQuestions[currentQuestionIndex];
+            const answerOptions = document.querySelectorAll('.answer-option');
+
+            // Show correct answer
+            answerOptions[question.correct].classList.add('correct');
+            answerOptions.forEach(opt => opt.classList.add('disabled'));
+
+            streak = 0;
+
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 2000);
+        }
+
+        function useFiftyFifty() {
+            if (currentBalance < 50 || fiftyFiftyUsed) return;
+
+            currentBalance -= 50;
+            updateBalance();
+            fiftyFiftyUsed = true;
+            document.getElementById('fiftyFiftyBtn').disabled = true;
+
+            const question = currentQuestions[currentQuestionIndex];
+            const answerOptions = document.querySelectorAll('.answer-option');
+
+            // Remove 2 wrong answers
+            let removed = 0;
+            for (let i = 0; i < answerOptions.length && removed < 2; i++) {
+                if (i !== question.correct) {
+                    answerOptions[i].style.display = 'none';
+                    removed++;
+                }
+            }
+        }
+
+        function skipQuestion() {
+            if (currentBalance < 30) {
+                alert('Not enough coins to skip!');
+                return;
+            }
+
+            currentBalance -= 30;
+            updateBalance();
+
+            clearInterval(timerInterval);
+            streak = 0;
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+
+            // Calculate final score
+            const config = MODES[selectedMode];
+            const streakBonus = bestStreak * 20;
+            const totalEarnings = score + streakBonus;
+
+            // Update balance
+            currentBalance += totalEarnings;
+            updateBalance();
+
+            // Update stats
+            stats.gamesPlayed++;
+            stats.totalQuestions += currentQuestions.length;
+            stats.totalCorrect += correctCount;
+            if (bestStreak > stats.bestStreak) {
+                stats.bestStreak = bestStreak;
+            }
+            saveStats();
+            updateStatsDisplay();
+
+            // Show results
+            const accuracy = Math.round((correctCount / currentQuestions.length) * 100);
+            document.getElementById('gameArea').classList.remove('active');
+            document.getElementById('resultsScreen').classList.add('active');
+
+            if (accuracy >= 80) {
+                document.getElementById('resultsIcon').textContent = '🏆';
+                document.getElementById('resultsTitle').textContent = 'Outstanding!';
+                createConfetti();
+            } else if (accuracy >= 60) {
+                document.getElementById('resultsIcon').textContent = '🎯';
+                document.getElementById('resultsTitle').textContent = 'Great Job!';
+            } else {
+                document.getElementById('resultsIcon').textContent = '📚';
+                document.getElementById('resultsTitle').textContent = 'Keep Learning!';
+            }
+
+            document.getElementById('resultsScore').textContent = `+${totalEarnings} 🪙`;
+            document.getElementById('correctAnswers').textContent = `${correctCount}/${currentQuestions.length}`;
+            document.getElementById('accuracy').textContent = `${accuracy}%`;
+            document.getElementById('bestStreak').textContent = bestStreak;
+            document.getElementById('timeBonus').textContent = `+${totalTimeBonus} 🪙`;
+            document.getElementById('streakBonus').textContent = `+${streakBonus} 🪙`;
+        }
+
+        function resetToMenu() {
+            document.getElementById('resultsScreen').classList.remove('active');
+            document.getElementById('modeSelection').style.display = 'block';
+            
+            document.querySelectorAll('.mode-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            selectedMode = null;
+            document.getElementById('startGameBtn').disabled = true;
+        }
+
+        function updateBalance() {
+            localStorage.setItem(BALANCE_KEY, currentBalance);
+            updateBalanceDisplay();
+        }
+
+        function updateBalanceDisplay() {
+            document.getElementById('balance').textContent = `${currentBalance} 🪙`;
+        }
+
+        function saveStats() {
+            localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('gamesPlayed').textContent = stats.gamesPlayed;
+            document.getElementById('totalQuestions').textContent = stats.totalQuestions;
+            
+            const accuracy = stats.totalQuestions > 0 
+                ? Math.round((stats.totalCorrect / stats.totalQuestions) * 100) 
+                : 0;
+            document.getElementById('overallAccuracy').textContent = `${accuracy}%`;
+            document.getElementById('allTimeBestStreak').textContent = stats.bestStreak;
+        }
+
+        function createConfetti() {
+            const colors = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#f093fb'];
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * window.innerWidth + 'px';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                    document.body.appendChild(confetti);
+
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+
+        // Start the game
+        init();
+    </script>
+</body>
+</html>
