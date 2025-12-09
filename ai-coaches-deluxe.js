@@ -287,6 +287,9 @@ const aiCoachesDeluxe = {
     async init() {
         console.log('✨ Initializing Deluxe AI Coaches System');
         
+        // Initialize tier restrictions
+        this.tierRestrictions = window.tierRestrictions || new TierRestrictions();
+        
         // Fetch real stats from backend
         await this.updateCoachesWithRealStats();
         
@@ -295,17 +298,49 @@ const aiCoachesDeluxe = {
     },
 
     renderCoachCard(coach) {
+        // Check tier access
+        const coachIndex = coach.id - 1; // Coaches are 1-indexed, array is 0-indexed
+        const accessCheck = this.tierRestrictions.canAccessCoach(coachIndex);
+        const isLocked = !accessCheck.allowed;
+        
         const tierColor = coach.tier === 'VIP' ? '#fbbf24' : '#6366f1';
         const tierGlow = coach.tier === 'VIP' ? '0 0 20px rgba(251, 191, 36, 0.5)' : '0 0 20px rgba(99, 102, 241, 0.3)';
-        const chatBtn = coach.hasChat ? `
-            <button class="coach-chat-btn" onclick="aiCoachesDeluxe.openChat(${coach.id})">
-                <i class="fas fa-comments"></i> Chat with ${coach.name}
-            </button>
-        ` : `
-            <button class="coach-chat-btn locked" disabled title="Upgrade to VIP">
-                <i class="fas fa-lock"></i> Chat Locked
-            </button>
-        `;
+        
+        // Determine chat button based on access and tier
+        let chatBtn;
+        if (isLocked) {
+            chatBtn = `
+                <button class="coach-chat-btn locked" disabled>
+                    <i class="fas fa-lock"></i> Locked
+                </button>
+            `;
+        } else if (coach.hasChat) {
+            chatBtn = `
+                <button class="coach-chat-btn" onclick="aiCoachesDeluxe.openChat(${coach.id})">
+                    <i class="fas fa-comments"></i> Chat with ${coach.name}
+                </button>
+            `;
+        } else {
+            chatBtn = `
+                <button class="coach-chat-btn locked" disabled title="Upgrade to VIP for Chat">
+                    <i class="fas fa-lock"></i> Chat Locked
+                </button>
+            `;
+        }
+
+        // Locked overlay
+        const lockedOverlay = isLocked ? `
+            <div class="coach-locked-overlay" onclick="aiCoachesDeluxe.showUpgradeForCoach(${coach.id}, '${accessCheck.upgradeRequired}')">
+                <div class="lock-content">
+                    <i class="fas fa-lock fa-3x"></i>
+                    <h3>${accessCheck.upgradeRequired === 'pro' ? 'PRO' : 'VIP'} Only</h3>
+                    <p>${accessCheck.reason}</p>
+                    <button class="upgrade-btn-inline">
+                        <i class="fas fa-crown"></i> Upgrade Now
+                    </button>
+                </div>
+            </div>
+        ` : '';
 
         return `
             <div class="coach-card-deluxe" style="--coach-color: ${coach.color};">
@@ -363,11 +398,13 @@ const aiCoachesDeluxe = {
                 </div>
 
                 <div class="coach-actions">
-                    <button class="coach-action-btn" onclick="aiCoachesDeluxe.viewPicks(${coach.id})">
+                    <button class="coach-action-btn" onclick="aiCoachesDeluxe.viewPicks(${coach.id})" ${isLocked ? 'disabled' : ''}>
                         <i class="fas fa-eye"></i> View Picks
                     </button>
                     ${chatBtn}
                 </div>
+                
+                ${lockedOverlay}
             </div>
         `;
     },
@@ -376,13 +413,44 @@ const aiCoachesDeluxe = {
         const container = document.getElementById(containerId);
         if (!container) return;
 
+        // Get current tier info
+        const tierInfo = this.tierRestrictions.getCurrentTierInfo();
+        const currentTier = tierInfo.tier.toUpperCase();
+        const maxCoaches = tierInfo.benefits.coaches;
+        
+        // Tier status banner
+        const tierBanner = currentTier === 'FREE' ? `
+            <div class="tier-status-banner free">
+                <i class="fas fa-info-circle"></i>
+                <span>You're on the FREE plan - Access to <strong>3 coaches</strong>. Upgrade to unlock all ${this.coaches.length} coaches!</span>
+                <button class="upgrade-quick-btn" onclick="aiCoachesDeluxe.navigateToSubscription()">
+                    <i class="fas fa-crown"></i> Upgrade
+                </button>
+            </div>
+        ` : currentTier === 'PRO' ? `
+            <div class="tier-status-banner pro">
+                <i class="fas fa-star"></i>
+                <span>PRO Member - Access to <strong>8 coaches</strong>. Upgrade to VIP for all ${this.coaches.length} coaches + exclusive chat!</span>
+                <button class="upgrade-quick-btn" onclick="aiCoachesDeluxe.navigateToSubscription()">
+                    <i class="fas fa-crown"></i> Upgrade to VIP
+                </button>
+            </div>
+        ` : `
+            <div class="tier-status-banner vip">
+                <i class="fas fa-crown"></i>
+                <span>VIP Member - Full access to all <strong>${this.coaches.length} coaches</strong> with exclusive chat!</span>
+            </div>
+        `;
+
         container.innerHTML = `
             <div class="coaches-header-deluxe">
                 <h1>🤖 Elite AI Prediction Coaches</h1>
                 <p>Powered by Advanced Machine Learning & Data Intelligence</p>
+                ${tierBanner}
                 <div class="tier-legend">
-                    <span><span class="legend-badge">PRO</span> Pro Tier - Unlimited Picks</span>
-                    <span><span class="legend-badge vip">VIP</span> VIP Tier - Chat + Exclusive Access</span>
+                    <span><span class="legend-badge">FREE</span> 3 Coaches</span>
+                    <span><span class="legend-badge pro">PRO</span> 8 Coaches - Unlimited Picks</span>
+                    <span><span class="legend-badge vip">VIP</span> All ${this.coaches.length} Coaches - Chat + Exclusive</span>
                 </div>
             </div>
             <div class="coaches-grid-deluxe">
@@ -423,6 +491,35 @@ const aiCoachesDeluxe = {
         } else {
             console.error('❌ Chat module not loaded');
             alert('Chat system is loading... Please try again in a moment.');
+        }
+    },
+
+    showUpgradeForCoach(coachId, requiredTier) {
+        const coach = this.coaches.find(c => c.id === coachId);
+        const tierName = requiredTier === 'pro' ? 'PRO' : 'VIP';
+        const price = requiredTier === 'pro' ? '$14.99/month' : '$29.99/month';
+        
+        const message = `🔒 ${coach.name} is only available for ${tierName} members!\n\n` +
+                       `Upgrade to ${tierName} (${price}) to unlock:\n` +
+                       `✅ ${coach.name}'s expert predictions\n` +
+                       `✅ ${requiredTier === 'vip' ? 'All 11 coaches + exclusive chat' : '8 top coaches'}\n` +
+                       `✅ ${requiredTier === 'vip' ? 'Unlimited' : '15'} mini-games per day\n\n` +
+                       `Go to subscription page?`;
+        
+        if (confirm(message)) {
+            this.navigateToSubscription();
+        }
+    },
+
+    navigateToSubscription() {
+        // Try to use app navigation if available
+        if (window.appState && typeof window.appState.setPage === 'function') {
+            window.appState.setPage('subscription');
+        } else if (window.parent && window.parent.postMessage) {
+            window.parent.postMessage({ action: 'navigate', page: 'subscription' }, '*');
+        } else {
+            // Fallback
+            window.location.href = 'index.html#subscription';
         }
     }
 };

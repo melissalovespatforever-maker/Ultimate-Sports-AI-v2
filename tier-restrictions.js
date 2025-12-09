@@ -11,10 +11,10 @@ class TierRestrictions {
         this.tierLimits = {
             free: {
                 // Mini-Games Limits
-                maxDailyGames: 10,
+                maxDailyGames: 5,
                 maxBetAmount: 100,
                 minBetAmount: 10,
-                gameAccess: ['slots', 'wheel', 'coinflip'], // Limited games
+                gameAccess: ['slots', 'wheel', 'coinflip', 'penalty', 'trivia'], // All games but limited plays
                 
                 // AI Coaches
                 maxCoachAccess: 3, // Only 3 coaches
@@ -38,7 +38,7 @@ class TierRestrictions {
             },
             pro: {
                 // Mini-Games Limits
-                maxDailyGames: 50,
+                maxDailyGames: 15,
                 maxBetAmount: 500,
                 minBetAmount: 10,
                 gameAccess: ['slots', 'wheel', 'coinflip', 'penalty', 'trivia'], // All games

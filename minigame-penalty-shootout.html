@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Penalty Shootout - Sports Lounge</title>
+    
+    <!-- Tier Restrictions -->
+    <script src="tier-restrictions.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -439,6 +443,11 @@
             <span class="balance-amount" id="balance">1000 🪙</span>
         </div>
 
+        <!-- Games Remaining Counter -->
+        <div id="games-remaining" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px; margin: 0 0 20px 0; text-align: center; font-size: 14px; color: #10b981;">
+            <span style="margin-right: 8px;">🎮</span><span id="games-count">Loading...</span>
+        </div>
+
         <div class="game-info">
             <h2>How to Play</h2>
             <p>Click anywhere on the goal to shoot! The goalkeeper will try to save it. Score more goals than the keeper saves to win!</p>
@@ -531,6 +540,51 @@
         let keeperSaves = 0;
         let canShoot = false;
         let canvas, ctx;
+        let restrictions = null;
+
+        // Tier restriction functions
+        function initTierRestrictions() {
+            restrictions = new TierRestrictions();
+            updateGamesRemaining();
+        }
+
+        function updateGamesRemaining() {
+            if (!restrictions) return;
+            const limits = restrictions.getGameLimits();
+            const countEl = document.getElementById('games-count');
+            const containerEl = document.getElementById('games-remaining');
+            
+            if (limits.maxDailyGames === -1) {
+                countEl.textContent = 'Unlimited Games (VIP)';
+                containerEl.style.background = 'rgba(251, 191, 36, 0.1)';
+                containerEl.style.borderColor = 'rgba(251, 191, 36, 0.3)';
+                containerEl.style.color = '#fbbf24';
+            } else {
+                const remaining = limits.gamesRemaining;
+                countEl.textContent = `${remaining}/${limits.maxDailyGames} Games Remaining Today`;
+                
+                if (remaining === 0) {
+                    containerEl.style.background = 'rgba(239, 68, 68, 0.1)';
+                    containerEl.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                    containerEl.style.color = '#ef4444';
+                } else if (remaining <= 2) {
+                    containerEl.style.background = 'rgba(251, 191, 36, 0.1)';
+                    containerEl.style.borderColor = 'rgba(251, 191, 36, 0.3)';
+                    containerEl.style.color = '#fbbf24';
+                } else {
+                    containerEl.style.background = 'rgba(16, 185, 129, 0.1)';
+                    containerEl.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                    containerEl.style.color = '#10b981';
+                }
+            }
+        }
+
+        function showUpgradePrompt(reason) {
+            const message = `${reason}\n\nUpgrade to PRO for 15 games/day or VIP for unlimited games!`;
+            if (confirm(message + '\n\nGo to subscription page?')) {
+                window.parent.postMessage({ action: 'navigate', page: 'subscription' }, '*');
+            }
+        }
 
         // Stats
         const STATS_KEY = 'penaltyShootout_stats';
@@ -546,6 +600,7 @@
 
         // Initialize
         function init() {
+            initTierRestrictions();
             updateBalanceDisplay();
             updateStatsDisplay();
             setupEventListeners();
@@ -638,6 +693,15 @@
 
         function startGame() {
             if (selectedBet === 0 || currentBalance < selectedBet) return;
+
+            // Check tier restrictions
+            if (restrictions) {
+                const canPlay = restrictions.canPlayGame('Penalty Shootout');
+                if (!canPlay.allowed) {
+                    showUpgradePrompt(canPlay.reason);
+                    return;
+                }
+            }
 
             // Deduct bet
             currentBalance -= selectedBet;
@@ -829,6 +893,12 @@
             updateBalance();
             saveStats();
             updateStatsDisplay();
+
+            // Track game played
+            if (restrictions) {
+                restrictions.trackGamePlayed();
+                updateGamesRemaining();
+            }
 
             // Reset to bet selection
             setTimeout(() => {

@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sports Trivia - Sports Lounge</title>
+    
+    <!-- Tier Restrictions -->
+    <script src="tier-restrictions.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -585,6 +589,11 @@
             <span class="balance-amount" id="balance">1000 🪙</span>
         </div>
 
+        <!-- Games Remaining Counter -->
+        <div id="games-remaining" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px; margin: 0 0 20px 0; text-align: center; font-size: 14px; color: #10b981;">
+            <span style="margin-right: 8px;">🎮</span><span id="games-count">Loading...</span>
+        </div>
+
         <!-- Mode Selection -->
         <div class="game-mode-selection" id="modeSelection">
             <h2>Choose Your Challenge</h2>
@@ -723,6 +732,51 @@
         let timerInterval = null;
         let totalTimeBonus = 0;
         let fiftyFiftyUsed = false;
+        let restrictions = null;
+
+        // Tier restriction functions
+        function initTierRestrictions() {
+            restrictions = new TierRestrictions();
+            updateGamesRemaining();
+        }
+
+        function updateGamesRemaining() {
+            if (!restrictions) return;
+            const limits = restrictions.getGameLimits();
+            const countEl = document.getElementById('games-count');
+            const containerEl = document.getElementById('games-remaining');
+            
+            if (limits.maxDailyGames === -1) {
+                countEl.textContent = 'Unlimited Games (VIP)';
+                containerEl.style.background = 'rgba(251, 191, 36, 0.1)';
+                containerEl.style.borderColor = 'rgba(251, 191, 36, 0.3)';
+                containerEl.style.color = '#fbbf24';
+            } else {
+                const remaining = limits.gamesRemaining;
+                countEl.textContent = `${remaining}/${limits.maxDailyGames} Games Remaining Today`;
+                
+                if (remaining === 0) {
+                    containerEl.style.background = 'rgba(239, 68, 68, 0.1)';
+                    containerEl.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                    containerEl.style.color = '#ef4444';
+                } else if (remaining <= 2) {
+                    containerEl.style.background = 'rgba(251, 191, 36, 0.1)';
+                    containerEl.style.borderColor = 'rgba(251, 191, 36, 0.3)';
+                    containerEl.style.color = '#fbbf24';
+                } else {
+                    containerEl.style.background = 'rgba(16, 185, 129, 0.1)';
+                    containerEl.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                    containerEl.style.color = '#10b981';
+                }
+            }
+        }
+
+        function showUpgradePrompt(reason) {
+            const message = `${reason}\n\nUpgrade to PRO for 15 games/day or VIP for unlimited games!`;
+            if (confirm(message + '\n\nGo to subscription page?')) {
+                window.parent.postMessage({ action: 'navigate', page: 'subscription' }, '*');
+            }
+        }
 
         // Game Configuration
         const MODES = {
@@ -798,6 +852,7 @@
 
         // Initialize
         function init() {
+            initTierRestrictions();
             updateBalanceDisplay();
             updateStatsDisplay();
             setupEventListeners();
@@ -850,6 +905,15 @@
             if (!selectedMode) return;
 
             const config = MODES[selectedMode];
+
+            // Check tier restrictions
+            if (restrictions) {
+                const canPlay = restrictions.canPlayGame('Sports Trivia');
+                if (!canPlay.allowed) {
+                    showUpgradePrompt(canPlay.reason);
+                    return;
+                }
+            }
             
             // Deduct entry cost
             currentBalance -= config.cost;
@@ -1067,6 +1131,12 @@
             }
             saveStats();
             updateStatsDisplay();
+
+            // Track game played
+            if (restrictions) {
+                restrictions.trackGamePlayed();
+                updateGamesRemaining();
+            }
 
             // Show results
             const accuracy = Math.round((correctCount / currentQuestions.length) * 100);
