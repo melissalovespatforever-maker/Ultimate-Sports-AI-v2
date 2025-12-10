@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournaments | Ultimate Sports AI</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="tournaments-styles.css">
+</head>
+<body>
+
+    <div class="tournaments-container">
+        
+        <!-- Header -->
+        <div class="tournaments-header">
+            <div class="header-top">
+                <button class="back-btn" onclick="window.location.href='sports-lounge.html'">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="header-title">
+                    <h1><i class="fas fa-trophy"></i> Tournaments</h1>
+                    <p>Compete for glory and prizes</p>
+                </div>
+                <div class="header-balance">
+                    <i class="fas fa-coins"></i>
+                    <span id="user-balance">975</span>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+                <div class="stat-card">
+                    <i class="fas fa-crown"></i>
+                    <div class="stat-info">
+                        <span class="stat-value" id="tournaments-won">0</span>
+                        <span class="stat-label">Tournaments Won</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-trophy"></i>
+                    <div class="stat-info">
+                        <span class="stat-value" id="total-winnings">0</span>
+                        <span class="stat-label">Total Winnings</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-medal"></i>
+                    <div class="stat-info">
+                        <span class="stat-value" id="current-rank">Unranked</span>
+                        <span class="stat-label">Current Rank</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tournament-tabs">
+            <button class="tournament-tab active" data-tab="available">
+                <i class="fas fa-calendar-plus"></i>
+                Available
+            </button>
+            <button class="tournament-tab" data-tab="active">
+                <i class="fas fa-fire"></i>
+                Active
+                <span class="tab-badge" id="active-count">0</span>
+            </button>
+            <button class="tournament-tab" data-tab="completed">
+                <i class="fas fa-history"></i>
+                History
+            </button>
+        </div>
+
+        <!-- Available Tournaments Tab -->
+        <div class="tab-content active" id="available-tab">
+            <div class="tournaments-grid" id="available-tournaments">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Active Tournaments Tab -->
+        <div class="tab-content" id="active-tab">
+            <div class="tournaments-list" id="active-tournaments">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Completed Tournaments Tab -->
+        <div class="tab-content" id="completed-tab">
+            <div class="tournaments-list" id="completed-tournaments">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Tournament Detail Modal -->
+    <div id="tournament-modal" class="modal">
+        <div class="modal-overlay" onclick="TournamentSystem.closeModal()"></div>
+        <div class="modal-content tournament-detail">
+            <button class="modal-close" onclick="TournamentSystem.closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="tournament-detail-content">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Bracket Modal -->
+    <div id="bracket-modal" class="modal">
+        <div class="modal-overlay" onclick="TournamentSystem.closeBracket()"></div>
+        <div class="modal-content bracket-viewer">
+            <button class="modal-close" onclick="TournamentSystem.closeBracket()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="bracket-content">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script src="tournaments.js"></script>
+</body>
+</html>
