@@ -14,8 +14,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=20250107002">
-    <link rel="stylesheet" href="sports-lounge-styles.css?v=20250107002">
+    <link rel="stylesheet" href="styles.css?v=20250107003">
+    <link rel="stylesheet" href="sports-lounge-styles.css?v=20250107003">
+    <link rel="stylesheet" href="shop-styles.css?v=20250107003">
+    <link rel="stylesheet" href="daily-deals-styles.css?v=20250107003">
 </head>
 <body>
 
@@ -61,6 +63,11 @@
             <button class="lounge-tab" data-tab="game-room">
                 <i class="fas fa-gamepad"></i>
                 <span>Game Room</span>
+            </button>
+            <button class="lounge-tab" data-tab="shop">
+                <i class="fas fa-store"></i>
+                <span>Shop</span>
+                <span class="tab-badge">NEW</span>
             </button>
             <button class="lounge-tab" data-tab="leaderboard" onclick="window.location.href='leaderboards.html'">
                 <i class="fas fa-ranking-star"></i>
@@ -163,7 +170,14 @@
                                 <div class="stat-label">Streak</div>
                             </div>
                         </div>
-                        <button class="btn-profile">View Full Profile</button>
+                        <div class="profile-actions">
+                            <button class="btn-profile-view" onclick="window.parent.postMessage({type: 'navigate', page: 'profile'}, '*')">
+                                <i class="fas fa-user"></i> View Profile
+                            </button>
+                            <button class="btn-profile-edit" onclick="window.parent.postMessage({type: 'navigate', page: 'settings'}, '*')">
+                                <i class="fas fa-cog"></i> Settings
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -243,14 +257,15 @@
                         <button class="btn-game-play">Play Now</button>
                     </div>
 
-                    <!-- Penalty Shootout -->
+                    <!-- Arcade Basketball -->
                     <div class="game-card">
-                        <div class="game-icon-large">⚽</div>
-                        <h3>Penalty Shootout</h3>
-                        <p>Score goals and defend to win big</p>
+                        <div class="game-badge">🔥 NEW</div>
+                        <div class="game-icon-large">🏀</div>
+                        <h3>Arcade Basketball</h3>
+                        <p>Shoot hoops in this addictive arcade game!</p>
                         <div class="game-meta">
-                            <span><i class="fas fa-clock"></i> 2 min</span>
-                            <span><i class="fas fa-coins"></i> 50-800</span>
+                            <span><i class="fas fa-clock"></i> 60 sec</span>
+                            <span><i class="fas fa-coins"></i> 50-1,000</span>
                         </div>
                         <button class="btn-game-play">Play Now</button>
                     </div>
@@ -267,17 +282,17 @@
                         <button class="btn-game-play">Play Now</button>
                     </div>
 
-                    <!-- Tournament -->
-                    <div class="game-card tournament-card">
+                    <!-- Tournaments -->
+                    <div class="game-card tournament-card" onclick="window.location.href='tournaments.html'" style="cursor: pointer;">
                         <div class="game-badge-small">LIVE</div>
                         <div class="game-icon-large">🏆</div>
-                        <h3>Weekly Championship</h3>
-                        <p>64-player bracket tournament</p>
+                        <h3>Tournaments</h3>
+                        <p>Compete in bracket tournaments for prizes</p>
                         <div class="game-meta">
-                            <span><i class="fas fa-users"></i> 48/64</span>
-                            <span><i class="fas fa-coins"></i> $5,000 Pool</span>
+                            <span><i class="fas fa-trophy"></i> 6 Active</span>
+                            <span><i class="fas fa-coins"></i> 50-500 Entry</span>
                         </div>
-                        <button class="btn-game-play btn-tournament">Join Tournament</button>
+                        <button class="btn-game-play btn-tournament">View Tournaments</button>
                     </div>
 
                 </div>
@@ -403,6 +418,320 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             SHOP TAB
+             ============================================ -->
+        <div class="tab-content" id="shop">
+            <div class="shop-grid">
+                
+                <!-- Shop Header -->
+                <div class="shop-header">
+                    <div>
+                        <h1><i class="fas fa-store"></i> Ultimate Shop</h1>
+                        <p>Level up your game with premium items & power-ups!</p>
+                    </div>
+                    <div class="shop-balance">
+                        <div class="balance-label">Your Balance</div>
+                        <div class="balance-amount"><span class="profile-coins">0</span> 🪙</div>
+                    </div>
+                </div>
+
+                <!-- Shop Categories -->
+                <div class="shop-categories">
+                    <button class="shop-cat-btn active" data-category="all">
+                        <i class="fas fa-th"></i> All Items
+                    </button>
+                    <button class="shop-cat-btn" data-category="boosters">
+                        <i class="fas fa-rocket"></i> Boosters
+                    </button>
+                    <button class="shop-cat-btn" data-category="avatars">
+                        <i class="fas fa-user-circle"></i> Avatars
+                    </button>
+                    <button class="shop-cat-btn" data-category="exclusive">
+                        <i class="fas fa-crown"></i> Exclusive
+                    </button>
+                </div>
+
+                <!-- Boosters Section -->
+                <div class="shop-section" data-category="boosters">
+                    <h2 class="section-title"><i class="fas fa-rocket"></i> Power-Up Boosters</h2>
+                    <div class="shop-items-grid">
+                        
+                        <!-- Coin Booster - 2x -->
+                        <div class="shop-item" data-item-id="coin-2x">
+                            <div class="item-badge">POPULAR</div>
+                            <div class="item-icon">💰</div>
+                            <h3>2x Coin Booster</h3>
+                            <p>Double all coin earnings for 1 hour</p>
+                            <div class="item-duration">⏰ Duration: 1 hour</div>
+                            <div class="item-price">
+                                <span class="price-amount">500</span>
+                                <span class="price-currency">🪙</span>
+                            </div>
+                            <button class="btn-buy" onclick="ShopSystem.purchase('coin-2x', 500)">
+                                <i class="fas fa-shopping-cart"></i> Buy Now
+                            </button>
+                        </div>
+
+                        <!-- Coin Booster - 3x -->
+                        <div class="shop-item vip-item" data-item-id="coin-3x">
+                            <div class="item-badge vip-badge">VIP</div>
+                            <div class="item-icon">💎</div>
+                            <h3>3x Coin Booster</h3>
+                            <p>Triple all coin earnings for 1 hour</p>
+                            <div class="item-duration">⏰ Duration: 1 hour</div>
+                            <div class="item-price">
+                                <span class="price-amount">1,200</span>
+                                <span class="price-currency">🪙</span>
+                            </div>
+                            <button class="btn-buy vip-btn" onclick="ShopSystem.purchase('coin-3x', 1200)">
+                                <i class="fas fa-crown"></i> VIP Purchase
+                            </button>
+                        </div>
+
+                        <!-- XP Booster -->
+                        <div class="shop-item" data-item-id="xp-2x">
+                            <div class="item-icon">📈</div>
+                            <h3>2x XP Booster</h3>
+                            <p>Double experience gains for 2 hours</p>
+                            <div class="item-duration">⏰ Duration: 2 hours</div>
+                            <div class="item-price">
+                                <span class="price-amount">400</span>
+                                <span class="price-currency">🪙</span>
+                            </div>
+                            <button class="btn-buy" onclick="ShopSystem.purchase('xp-2x', 400)">
+                                <i class="fas fa-shopping-cart"></i> Buy Now
+                            </button>
+                        </div>
+
+                        <!-- Mega Pack -->
+                        <div class="shop-item pro-item" data-item-id="mega-pack">
+                            <div class="item-badge pro-badge">PRO</div>
+                            <div class="item-icon">🎁</div>
+                            <h3>Mega Booster Pack</h3>
+                            <p>2x Coins + 2x XP for 3 hours</p>
+                            <div class="item-duration">⏰ Duration: 3 hours</div>
+                            <div class="item-price">
+                                <span class="price-amount">800</span>
+                                <span class="price-currency">🪙</span>
+                                <span class="price-discount">Save 15%!</span>
+                            </div>
+                            <button class="btn-buy pro-btn" onclick="ShopSystem.purchase('mega-pack', 800)">
+                                <i class="fas fa-gift"></i> PRO Deal
+                            </button>
+                        </div>
+
+                        <!-- Streak Shield -->
+                        <div class="shop-item" data-item-id="streak-shield">
+                            <div class="item-icon">🛡️</div>
+                            <h3>Streak Shield</h3>
+                            <p>Protect your win streak from one loss</p>
+                            <div class="item-duration">⏰ Single Use</div>
+                            <div class="item-price">
+                                <span class="price-amount">600</span>
+                                <span class="price-currency">🪙</span>
+                            </div>
+                            <button class="btn-buy" onclick="ShopSystem.purchase('streak-shield', 600)">
+                                <i class="fas fa-shopping-cart"></i> Buy Now
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Avatars Section -->
+                <div class="shop-section" data-category="avatars">
+                    <h2 class="section-title"><i class="fas fa-user-circle"></i> Premium Avatars</h2>
+                    <div class="shop-items-grid avatars-grid">
+                        
+                        <!-- PRO Avatars -->
+                        <div class="shop-item avatar-item pro-item" data-item-id="jordan-1">
+                            <div class="item-badge pro-badge">PRO</div>
+                            <img src="https://play.rosebud.ai/assets/Jordan 1 icon.png?xjeN" alt="Jordan 1" class="avatar-preview">
+                            <h3>Jordan 1 Icon</h3>
+                            <p>Legendary sneaker avatar</p>
+                            <div class="item-price">
+                                <span class="price-amount">1,500</span>
+                                <span class="price-currency">🪙</span>
+                            </div>
+                            <button class="btn-buy pro-btn" onclick="ShopSystem.purchaseAvatar('jordan-1', 1500, 'PRO')">
+                                <i class="fas fa-unlock"></i> Unlock PRO
+                            </button>
+                        </div>
+
+                        <div class="shop-item avatar-item pro-item" data-item-id="js-4">
+                            <div class="item-badge pro-badge">PRO</div>
+                            <img src="https://play.rosebud.ai/assets/J's 4 avatar (pro).png?p1Kf" alt="J's 4" class="avatar-preview">
+                            <h3>J's 4 Avatar</h3>
+                            <p>Classic kicks collection</p>
+                            <div class="item-price">
+                                <span class="price-amount">1,500</span>
+                                <span class="price-currency">🪙</span>
+                            </div>
+                            <button class="btn-buy pro-btn" onclick="ShopSystem.purchaseAvatar('js-4', 1500, 'PRO')">
+                                <i class="fas fa-unlock"></i> Unlock PRO
+                            </button>
+                        </div>
+
+                        <div class="shop-item avatar-item pro-item" data-item-id="king-chess">
+                            <div class="item-badge pro-badge">PRO</div>
+                            <img src="https://play.rosebud.ai/assets/King chess (pro).png?DAxj" alt="King Chess" class="avatar-preview">
+                            <h3>King Chess Piece</h3>
+                            <p>Strategic mastermind</p>
+                            <div class="item-price">
+                                <span class="price-amount">1,800</span>
+                                <span class="price-currency">🪙</span>
+                            </div>
+                            <button class="btn-buy pro-btn" onclick="ShopSystem.purchaseAvatar('king-chess', 1800, 'PRO')">
+                                <i class="fas fa-unlock"></i> Unlock PRO
+                            </button>
+                        </div>
+
+                        <div class="shop-item avatar-item pro-item" data-item-id="lucky-charm">
+                            <div class="item-badge pro-badge">PRO</div>
+                            <img src="https://play.rosebud.ai/assets/Lucky charm avatar (pro).png?ekNh" alt="Lucky Charm" class="avatar-preview">
+                            <h3>Lucky Charm</h3>
+                            <p>Fortune favors the bold</p>
+                            <div class="item-price">
+                                <span class="price-amount">2,000</span>
+                                <span class="price-currency">🪙</span>
+                            </div>
+                            <button class="btn-buy pro-btn" onclick="ShopSystem.purchaseAvatar('lucky-charm', 2000, 'PRO')">
+                                <i class="fas fa-unlock"></i> Unlock PRO
+                            </button>
+                        </div>
+
+                        <div class="shop-item avatar-item pro-item" data-item-id="crown">
+                            <div class="item-badge pro-badge">PRO</div>
+                            <img src="https://play.rosebud.ai/assets/Ultimate sports crown 👑 (pro).png?ktnj" alt="Crown" class="avatar-preview">
+                            <h3>Ultimate Crown</h3>
+                            <p>Royalty in the game</p>
+                            <div class="item-price">
+                                <span class="price-amount">2,500</span>
+                                <span class="price-currency">🪙</span>
+                            </div>
+                            <button class="btn-buy pro-btn" onclick="ShopSystem.purchaseAvatar('crown', 2500, 'PRO')">
+                                <i class="fas fa-unlock"></i> Unlock PRO
+                            </button>
+                        </div>
+
+                        <!-- VIP Avatars -->
+                        <div class="shop-item avatar-item vip-item" data-item-id="money-tree">
+                            <div class="item-badge vip-badge">VIP</div>
+                            <img src="https://play.rosebud.ai/assets/Money tree avatar VIP.png?EHQP" alt="Money Tree" class="avatar-preview">
+                            <h3>Money Tree</h3>
+                            <p>Wealth and prosperity</p>
+                            <div class="item-price">
+                                <span class="price-amount">5,000</span>
+                                <span class="price-currency">🪙</span>
+                            </div>
+                            <button class="btn-buy vip-btn" onclick="ShopSystem.purchaseAvatar('money-tree', 5000, 'VIP')">
+                                <i class="fas fa-crown"></i> Unlock VIP
+                            </button>
+                        </div>
+
+                        <div class="shop-item avatar-item vip-item" data-item-id="scrooge">
+                            <div class="item-badge vip-badge">VIP</div>
+                            <img src="https://play.rosebud.ai/assets/Scrooge (VIP).png?up5M" alt="Scrooge" class="avatar-preview">
+                            <h3>Scrooge McDuck</h3>
+                            <p>Swimming in wealth</p>
+                            <div class="item-price">
+                                <span class="price-amount">6,000</span>
+                                <span class="price-currency">🪙</span>
+                            </div>
+                            <button class="btn-buy vip-btn" onclick="ShopSystem.purchaseAvatar('scrooge', 6000, 'VIP')">
+                                <i class="fas fa-crown"></i> Unlock VIP
+                            </button>
+                        </div>
+
+                        <div class="shop-item avatar-item vip-item" data-item-id="game-boys">
+                            <div class="item-badge vip-badge">VIP</div>
+                            <img src="https://play.rosebud.ai/assets/Game boys avatar (VIP).png?Yjjl" alt="Game Boys" class="avatar-preview">
+                            <h3>Game Boys Stack</h3>
+                            <p>Retro gaming legend</p>
+                            <div class="item-price">
+                                <span class="price-amount">7,500</span>
+                                <span class="price-currency">🪙</span>
+                            </div>
+                            <button class="btn-buy vip-btn" onclick="ShopSystem.purchaseAvatar('game-boys', 7500, 'VIP')">
+                                <i class="fas fa-crown"></i> Unlock VIP
+                            </button>
+                        </div>
+
+                        <div class="shop-item avatar-item vip-item" data-item-id="gotrich">
+                            <div class="item-badge vip-badge">VIP</div>
+                            <img src="https://play.rosebud.ai/assets/Gotrich off sports betting avatar (VIP).png?Idcs" alt="Gotrich" class="avatar-preview">
+                            <h3>Gotrich Baller</h3>
+                            <p>Living the dream</p>
+                            <div class="item-price">
+                                <span class="price-amount">8,000</span>
+                                <span class="price-currency">🪙</span>
+                            </div>
+                            <button class="btn-buy vip-btn" onclick="ShopSystem.purchaseAvatar('gotrich', 8000, 'VIP')">
+                                <i class="fas fa-crown"></i> Unlock VIP
+                            </button>
+                        </div>
+
+                        <div class="shop-item avatar-item vip-item" data-item-id="guccii-duffel">
+                            <div class="item-badge vip-badge">VIP</div>
+                            <img src="https://play.rosebud.ai/assets/Guccii duffel avatar (vip).png?7z2L" alt="Guccii Duffel" class="avatar-preview">
+                            <h3>Guccii Duffel</h3>
+                            <p>Ultimate luxury flex</p>
+                            <div class="item-price">
+                                <span class="price-amount">10,000</span>
+                                <span class="price-currency">🪙</span>
+                            </div>
+                            <button class="btn-buy vip-btn" onclick="ShopSystem.purchaseAvatar('guccii-duffel', 10000, 'VIP')">
+                                <i class="fas fa-crown"></i> Unlock VIP
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Exclusive Section -->
+                <div class="shop-section" data-category="exclusive">
+                    <h2 class="section-title"><i class="fas fa-gem"></i> Exclusive Items</h2>
+                    <div class="shop-items-grid">
+                        
+                        <!-- Championship Ring -->
+                        <div class="shop-item exclusive-item" data-item-id="championship-ring">
+                            <div class="item-badge exclusive-badge">EXCLUSIVE</div>
+                            <img src="https://play.rosebud.ai/assets/Ultimate sports championship diamond ring.png?1Esq" alt="Championship Ring" class="avatar-preview">
+                            <h3>Diamond Championship Ring</h3>
+                            <p>Symbol of ultimate victory</p>
+                            <div class="item-note">🏆 Displayed on profile</div>
+                            <div class="item-price">
+                                <span class="price-amount">25,000</span>
+                                <span class="price-currency">🪙</span>
+                            </div>
+                            <button class="btn-buy exclusive-btn" onclick="ShopSystem.purchase('championship-ring', 25000)">
+                                <i class="fas fa-gem"></i> Buy Exclusive
+                            </button>
+                        </div>
+
+                        <!-- Golden Coin -->
+                        <div class="shop-item exclusive-item" data-item-id="golden-coin">
+                            <div class="item-badge exclusive-badge">EXCLUSIVE</div>
+                            <img src="https://play.rosebud.ai/assets/Gold coin with ultimate sports logo in diamonds.png?BD5X" alt="Golden Coin" class="avatar-preview">
+                            <h3>Golden Diamond Coin</h3>
+                            <p>Permanent +5% coin earnings</p>
+                            <div class="item-note">♾️ Permanent Bonus</div>
+                            <div class="item-price">
+                                <span class="price-amount">50,000</span>
+                                <span class="price-currency">🪙</span>
+                            </div>
+                            <button class="btn-buy exclusive-btn" onclick="ShopSystem.purchase('golden-coin', 50000)">
+                                <i class="fas fa-gem"></i> Buy Exclusive
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -568,5 +897,7 @@
 
     <!-- Scripts -->
     <script src="sports-lounge.js?v=20250107002"></script>
+    <script src="shop-system.js?v=20250107003"></script>
+    <script src="daily-deals-system.js?v=20250107003"></script>
 </body>
 </html>
