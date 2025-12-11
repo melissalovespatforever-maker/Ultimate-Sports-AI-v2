@@ -1,0 +1,426 @@
+/* ============================================
+   ENHANCED PROFILE PAGE
+   Beautiful user profile with stats & achievements
+   ============================================ */
+
+.profile-hero-banner {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    height: 150px;
+    border-radius: 20px 20px 0 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.profile-hero-banner::before {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: drift 15s linear infinite;
+}
+
+@keyframes drift {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+.profile-content-wrapper {
+    background: white;
+    border-radius: 20px;
+    margin-top: -40px;
+    position: relative;
+    z-index: 1;
+}
+
+.profile-header-card {
+    padding: 0 20px 20px;
+    text-align: center;
+}
+
+.profile-avatar-wrapper {
+    margin-top: -60px;
+    margin-bottom: 15px;
+    position: relative;
+    display: inline-block;
+}
+
+.profile-avatar-large {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 5px solid white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    background: linear-gradient(135deg, #f0f4ff, #e8eeff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    position: relative;
+}
+
+.profile-level-badge {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border-radius: 50%;
+    border: 3px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.9rem;
+    color: white;
+    box-shadow: 0 2px 10px rgba(16, 185, 129, 0.4);
+}
+
+.profile-username {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #1a202c;
+    margin-bottom: 6px;
+}
+
+.profile-tier-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+}
+
+.profile-tier-badge.free {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.profile-tier-badge.pro {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.profile-tier-badge.vip {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: white;
+    box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3);
+}
+
+.profile-bio {
+    color: #6b7280;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    max-width: 400px;
+    margin: 0 auto 20px;
+}
+
+.profile-quick-stats {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    padding: 20px 0;
+    border-top: 1px solid #f0f0f0;
+}
+
+.quick-stat {
+    text-align: center;
+}
+
+.quick-stat-value {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #1a202c;
+    display: block;
+}
+
+.quick-stat-label {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+/* Stats Section */
+.profile-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    padding: 20px;
+}
+
+.profile-stat-card {
+    background: #f9fafb;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.profile-stat-card:hover {
+    background: linear-gradient(135deg, #f0f4ff, #e8eeff);
+    transform: translateY(-3px);
+}
+
+.profile-stat-icon {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+.profile-stat-value {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #1a202c;
+    margin-bottom: 4px;
+}
+
+.profile-stat-label {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+/* Achievements Section */
+.profile-achievements {
+    padding: 20px;
+    background: white;
+    border-radius: 16px;
+    margin-bottom: 15px;
+}
+
+.profile-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.profile-section-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a202c;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.view-all-link {
+    color: #667eea;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 12px;
+}
+
+.achievement-badge {
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.achievement-badge.unlocked {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    box-shadow: 0 4px 15px rgba(252, 211, 77, 0.3);
+}
+
+.achievement-badge:hover {
+    transform: translateY(-5px);
+}
+
+.achievement-icon {
+    font-size: 2.5rem;
+    margin-bottom: 6px;
+    filter: grayscale(100%);
+    opacity: 0.4;
+}
+
+.achievement-badge.unlocked .achievement-icon {
+    filter: none;
+    opacity: 1;
+}
+
+.achievement-name {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-align: center;
+}
+
+.achievement-badge.unlocked .achievement-name {
+    color: #92400e;
+}
+
+/* Recent Activity */
+.profile-activity {
+    padding: 20px;
+    background: white;
+    border-radius: 16px;
+    margin-bottom: 15px;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.activity-item-profile {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    background: #f9fafb;
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+
+.activity-item-profile:hover {
+    background: #f0f4ff;
+}
+
+.activity-icon-wrapper {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.activity-details {
+    flex: 1;
+}
+
+.activity-title {
+    font-weight: 600;
+    color: #1a202c;
+    font-size: 0.95rem;
+    margin-bottom: 3px;
+}
+
+.activity-time {
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+
+/* Settings Section */
+.profile-settings {
+    padding: 20px;
+    background: white;
+    border-radius: 16px;
+}
+
+.settings-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.settings-item:last-child {
+    border-bottom: none;
+}
+
+.settings-item:hover {
+    padding-left: 10px;
+}
+
+.settings-item-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.settings-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: #f0f4ff;
+    color: #667eea;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-label {
+    font-weight: 600;
+    color: #1a202c;
+}
+
+.settings-chevron {
+    color: #d1d5db;
+}
+
+/* Action Buttons */
+.profile-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 20px;
+}
+
+.profile-action-btn {
+    padding: 14px 20px;
+    border: 2px solid #e5e7eb;
+    background: white;
+    border-radius: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.profile-action-btn.primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-color: #667eea;
+}
+
+.profile-action-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .profile-quick-stats {
+        gap: 20px;
+    }
+    
+    .quick-stat-value {
+        font-size: 1.4rem;
+    }
+    
+    .achievements-grid {
+        grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    }
+}

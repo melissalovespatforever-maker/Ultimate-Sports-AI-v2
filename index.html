@@ -29,11 +29,20 @@
     
     <!-- Main Styles -->
     <link rel="stylesheet" href="styles.css?v=20250107002">
+    <link rel="stylesheet" href="styles-premium.css?v=20250115001">
+    <link rel="stylesheet" href="home-premium-layout.css?v=20250115001">
+    <link rel="stylesheet" href="home-enhanced-styles.css?v=20250107004">
+    <link rel="stylesheet" href="activity-feed-styles.css?v=20250107004">
     <link rel="stylesheet" href="ai-coach-card-styles.css?v=20250107002">
     <link rel="stylesheet" href="ai-coaches-deluxe-styles.css?v=20250107002">
     <link rel="stylesheet" href="ai-coach-chat-styles.css?v=20250107002">
     <link rel="stylesheet" href="ai-coach-picks-styles.css?v=20250107002">
     <link rel="stylesheet" href="settings-styles.css?v=20250107002">
+    <link rel="stylesheet" href="dashboard-stats-enhanced.css?v=20250111001">
+    <link rel="stylesheet" href="live-scores-enhanced.css?v=20250111001">
+    <link rel="stylesheet" href="profile-enhanced.css?v=20250111001">
+    <link rel="stylesheet" href="analytics-enhanced.css?v=20250111001">
+    <link rel="stylesheet" href="ai-coaches-enhanced.css?v=20250111001">
 </head>
 <body>
     <!-- Loading Overlay -->
@@ -64,13 +73,57 @@
             <div class="app-bar-actions">
                 <button class="icon-button" id="notifications-btn" aria-label="Notifications">
                     <i class="fas fa-bell"></i>
-                    <span class="notification-badge" style="display: none;">0</span>
+                    <span class="notification-badge">3</span>
                 </button>
                 <button class="icon-button profile-btn" data-page="profile" aria-label="Profile">
                     <i class="fas fa-user-circle"></i>
                 </button>
             </div>
         </header>
+
+        <!-- Notifications Dropdown -->
+        <div id="notifications-dropdown" class="notifications-dropdown" style="display: none;">
+            <div class="notifications-header">
+                <div>
+                    <h3 class="notifications-title">
+                        <i class="fas fa-bolt"></i> Live Activity
+                    </h3>
+                    <div class="live-indicator">
+                        <div class="live-dot"></div>
+                        LIVE
+                    </div>
+                </div>
+                <button class="activity-feed-refresh" id="notifications-refresh" title="Refresh">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            
+            <!-- Activity Filters -->
+            <div class="activity-filters">
+                <button class="filter-btn active" data-filter="all">
+                    <i class="fas fa-globe"></i> All
+                </button>
+                <button class="filter-btn" data-filter="achievement">
+                    <i class="fas fa-trophy"></i> Badges
+                </button>
+                <button class="filter-btn" data-filter="game_win">
+                    <i class="fas fa-coins"></i> Wins
+                </button>
+                <button class="filter-btn" data-filter="streak">
+                    <i class="fas fa-fire"></i> Streaks
+                </button>
+                <button class="filter-btn" data-filter="tournament">
+                    <i class="fas fa-medal"></i> Tournaments
+                </button>
+                <button class="filter-btn" data-filter="big_win">
+                    <i class="fas fa-gem"></i> Mega
+                </button>
+            </div>
+            
+            <div class="notifications-list" id="activity-feed-list">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
 
         <!-- Drawer Overlay -->
         <div id="drawer-overlay" class="drawer-overlay"></div>
@@ -128,6 +181,16 @@
                         <i class="fas fa-gamepad"></i>
                         <span>Sports Lounge</span>
                         <span class="badge badge-new">NEW</span>
+                    </button>
+                    <button class="menu-item" onclick="window.open('tournaments.html', '_blank')">
+                        <i class="fas fa-trophy"></i>
+                        <span>Tournaments</span>
+                        <span class="badge badge-hot">🔥</span>
+                    </button>
+                    <button class="menu-item" onclick="window.open('leaderboards.html', '_blank')">
+                        <i class="fas fa-ranking-star"></i>
+                        <span>Global Leaderboards</span>
+                        <span class="badge badge-live">LIVE</span>
                     </button>
                 </div>
 
@@ -675,13 +738,36 @@
     <!-- Live Scores Module (Real Sports Data) -->
     <script src="live-scores.js?v=20250101012"></script>
     
+    <!-- Activity Feed Module (Live Activity) -->
+    <script src="activity-feed.js?v=20250107004"></script>
+    
+    <!-- Confetti Effect Module -->
+    <script src="confetti.js?v=20250107001"></script>
+    
+    <!-- Sound Effects Module -->
+    <script src="sound-effects.js?v=20250107001"></script>
+    
+    <!-- Premium Animations & UI Enhancements -->
+    <script src="premium-animations.js?v=20250115001"></script>
+    
     <!-- Subscription Module (Payment Flow) -->
     <script src="subscription.js?v=20250101012"></script>
+    
+    <!-- Enhanced UI Modules (NEW - Production Ready) -->
+    <script src="dashboard-stats-enhanced.js?v=20250111001"></script>
+    <script src="live-scores-enhanced.js?v=20250111001"></script>
+    <script src="analytics-enhanced.js?v=20250111001"></script>
+    <script src="ai-coaches-premium-ui.js?v=20250111001"></script>
 
     <script>
         // Initialize navigation system
         document.addEventListener('DOMContentLoaded', () => {
             console.log('✅ DOM fully loaded');
+            console.log('✨ Premium UI animations loaded');
+            console.log('📊 Enhanced dashboard stats ready');
+            console.log('⚡ Live scores enhanced ready');
+            console.log('📈 Analytics enhanced ready');
+            console.log('🤖 AI coaches premium UI ready');
             // Navigation is auto-initialized
         });
     </script>
