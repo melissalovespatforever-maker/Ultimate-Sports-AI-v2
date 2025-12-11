@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Referral Program - Ultimate Sports AI</title>
+    <link rel="stylesheet" href="styles-premium.css">
+    <link rel="stylesheet" href="referral-program-styles.css">
+</head>
+<body>
+    <!-- Navigation (reuse from main app) -->
+    <div id="nav-container"></div>
+
+    <!-- Hero Section -->
+    <section class="referral-hero">
+        <div class="hero-glow"></div>
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    🎁 <span class="gradient-text">Invite Friends</span><br>
+                    Earn Rewards Together
+                </h1>
+                <p class="hero-subtitle">
+                    Share your referral code and get rewarded when friends join. 
+                    Both of you earn coins, XP, and exclusive bonuses!
+                </p>
+                
+                <!-- Referral Code Card -->
+                <div class="referral-code-card glass-card">
+                    <div class="code-header">
+                        <span class="code-label">Your Referral Code</span>
+                        <button id="refreshCodeBtn" class="btn-icon" title="Generate new code">
+                            <span>🔄</span>
+                        </button>
+                    </div>
+                    <div class="code-display">
+                        <span id="referralCode" class="code-text">Loading...</span>
+                        <button id="copyCodeBtn" class="btn-copy">
+                            <span class="copy-icon">📋</span>
+                            <span class="copy-text">Copy</span>
+                        </button>
+                    </div>
+                    <div class="share-links">
+                        <button class="share-btn share-twitter" data-platform="twitter">
+                            <span>🐦</span> Twitter
+                        </button>
+                        <button class="share-btn share-facebook" data-platform="facebook">
+                            <span>👤</span> Facebook
+                        </button>
+                        <button class="share-btn share-whatsapp" data-platform="whatsapp">
+                            <span>💬</span> WhatsApp
+                        </button>
+                        <button class="share-btn share-email" data-platform="email">
+                            <span>📧</span> Email
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Overview -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-card glass-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-value" id="totalReferrals">0</div>
+                    <div class="stat-label">Total Referrals</div>
+                </div>
+                <div class="stat-card glass-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-value" id="completedReferrals">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+                <div class="stat-card glass-card">
+                    <div class="stat-icon">🪙</div>
+                    <div class="stat-value" id="totalCoins">0</div>
+                    <div class="stat-label">Coins Earned</div>
+                </div>
+                <div class="stat-card glass-card">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-value" id="totalXP">0</div>
+                    <div class="stat-label">XP Earned</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Rewards Info -->
+    <section class="rewards-section">
+        <div class="container">
+            <h2 class="section-title">How Rewards Work</h2>
+            
+            <div class="rewards-grid">
+                <!-- Friend Joins -->
+                <div class="reward-card glass-card">
+                    <div class="reward-step">1</div>
+                    <div class="reward-icon">👋</div>
+                    <h3 class="reward-title">Friend Joins</h3>
+                    <p class="reward-description">
+                        Your friend signs up using your referral code
+                    </p>
+                    <div class="reward-items">
+                        <div class="reward-item">
+                            <span class="reward-emoji">🎁</span>
+                            <span>They get: <strong>300 coins + 100 XP</strong></span>
+                        </div>
+                        <div class="reward-item">
+                            <span class="reward-emoji">✨</span>
+                            <span>They get: <strong>7-day PRO trial</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- First Pick -->
+                <div class="reward-card glass-card">
+                    <div class="reward-step">2</div>
+                    <div class="reward-icon">🎯</div>
+                    <h3 class="reward-title">First Pick Made</h3>
+                    <p class="reward-description">
+                        When your friend makes their first AI-powered pick
+                    </p>
+                    <div class="reward-items">
+                        <div class="reward-item">
+                            <span class="reward-emoji">🪙</span>
+                            <span>You get: <strong>200 coins + 50 XP</strong></span>
+                        </div>
+                        <div class="reward-item">
+                            <span class="reward-emoji">🎁</span>
+                            <span>They get: <strong>100 bonus coins</strong></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subscription -->
+                <div class="reward-card glass-card featured">
+                    <div class="reward-step">3</div>
+                    <div class="reward-icon">💎</div>
+                    <h3 class="reward-title">They Subscribe</h3>
+                    <p class="reward-description">
+                        When your friend upgrades to PRO or VIP
+                    </p>
+                    <div class="reward-items">
+                        <div class="reward-item">
+                            <span class="reward-emoji">💰</span>
+                            <span>You get: <strong>2,000 coins (PRO)</strong></span>
+                        </div>
+                        <div class="reward-item">
+                            <span class="reward-emoji">🏆</span>
+                            <span>You get: <strong>5,000 coins (VIP)</strong></span>
+                        </div>
+                        <div class="reward-item">
+                            <span class="reward-emoji">⏰</span>
+                            <span>You get: <strong>+14-30 days free</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Milestones -->
+    <section class="milestones-section">
+        <div class="container">
+            <h2 class="section-title">Referral Milestones</h2>
+            <p class="section-subtitle">Reach milestones to unlock massive bonus rewards!</p>
+            
+            <div class="milestones-track">
+                <div class="milestone-item" data-count="5">
+                    <div class="milestone-badge">🥉</div>
+                    <div class="milestone-info">
+                        <div class="milestone-title">Recruiter</div>
+                        <div class="milestone-count">5 Referrals</div>
+                        <div class="milestone-reward">+1,000 coins</div>
+                    </div>
+                </div>
+
+                <div class="milestone-item" data-count="10">
+                    <div class="milestone-badge">🥈</div>
+                    <div class="milestone-info">
+                        <div class="milestone-title">Talent Scout</div>
+                        <div class="milestone-count">10 Referrals</div>
+                        <div class="milestone-reward">+2,500 coins</div>
+                    </div>
+                </div>
+
+                <div class="milestone-item" data-count="25">
+                    <div class="milestone-badge">🥇</div>
+                    <div class="milestone-info">
+                        <div class="milestone-title">Community Builder</div>
+                        <div class="milestone-count">25 Referrals</div>
+                        <div class="milestone-reward">+5,000 coins</div>
+                    </div>
+                </div>
+
+                <div class="milestone-item" data-count="50">
+                    <div class="milestone-badge">💎</div>
+                    <div class="milestone-info">
+                        <div class="milestone-title">Influencer</div>
+                        <div class="milestone-count">50 Referrals</div>
+                        <div class="milestone-reward">+10,000 coins</div>
+                    </div>
+                </div>
+
+                <div class="milestone-item" data-count="100">
+                    <div class="milestone-badge">👑</div>
+                    <div class="milestone-info">
+                        <div class="milestone-title">Legend</div>
+                        <div class="milestone-count">100 Referrals</div>
+                        <div class="milestone-reward">+25,000 coins</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Your Referrals -->
+    <section class="referrals-list-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Your Referrals</h2>
+                <div class="filter-tabs">
+                    <button class="filter-tab active" data-status="all">All</button>
+                    <button class="filter-tab" data-status="completed">Completed</button>
+                    <button class="filter-tab" data-status="active">Active</button>
+                    <button class="filter-tab" data-status="pending">Pending</button>
+                </div>
+            </div>
+
+            <div id="referralsList" class="referrals-list">
+                <!-- Populated by JS -->
+            </div>
+
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <div class="empty-icon">😊</div>
+                <h3>No Referrals Yet</h3>
+                <p>Share your referral code with friends to start earning rewards!</p>
+                <button id="copyCodeBtnEmpty" class="btn-primary">Copy Referral Code</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Leaderboard -->
+    <section class="leaderboard-section">
+        <div class="container">
+            <h2 class="section-title">Top Referrers</h2>
+            <p class="section-subtitle">See who's crushing it with referrals!</p>
+            
+            <div id="leaderboardList" class="leaderboard-list glass-card">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </section>
+
+    <script type="module" src="referral-program.js"></script>
+</body>
+</html>
