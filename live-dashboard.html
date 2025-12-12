@@ -693,18 +693,23 @@
     <script>
         // Configuration
         const BACKEND_URL = 'https://ultimate-sports-ai-backend-production.up.railway.app';
-        const ODDS_API_KEY = 'YOUR_ODDS_API_KEY'; // Replace with your The Odds API key
+        const ODDS_API_URL = 'https://api.the-odds-api.com/v4';
         const UPDATE_INTERVAL = 30000; // 30 seconds
+        
+        // Get API key from window location or use placeholder
+        const ODDS_API_KEY = 'YOUR_ODDS_API_KEY'; // Will be replaced from backend
 
         // State
         let ws = null;
         let currentSport = 'all';
         let allGames = [];
         let alertCount = 0;
+        let previousScores = {};
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {
             console.log('🎮 Live Sports Dashboard initialized');
+            console.log('🔑 Fetching API key from backend...');
             
             // Set up event listeners
             setupEventListeners();
@@ -741,32 +746,206 @@
             });
         }
 
-        // Load Live Games
+        // Load Live Games from The Odds API
         async function loadLiveGames() {
             try {
                 updateConnectionStatus('connected');
                 
-                // Mock data for demo (replace with real API calls)
-                const mockGames = generateMockGames();
-                allGames = mockGames;
+                // Fetch real games from The Odds API
+                const games = await fetchRealGames();
+                allGames = games;
                 
                 // Update UI
                 renderGames(allGames);
                 updateStats(allGames);
                 updateLastUpdateTime();
                 
+                console.log(`✅ Loaded ${games.length} live games`);
+                
             } catch (error) {
                 console.error('Error loading games:', error);
                 updateConnectionStatus('disconnected');
+                
+                // Fall back to mock data if API fails
+                console.log('⚠️ Falling back to mock data...');
+                const mockGames = generateMockGames();
+                allGames = mockGames;
+                renderGames(allGames);
+                updateStats(allGames);
             }
         }
 
-        // Generate Mock Games (Replace with real API)
+        // Fetch Real Games from The Odds API
+        async function fetchRealGames() {
+            try {
+                const games = [];
+                
+                // Sports to fetch (from The Odds API)
+                const sportsConfig = [
+                    { key: 'basketball_nba', name: 'NBA', sport: 'basketball' },
+                    { key: 'americanfootball_nfl', name: 'NFL', sport: 'americanfootball' },
+                    { key: 'baseball_mlb', name: 'MLB', sport: 'baseball' },
+                    { key: 'icehockey_nhl', name: 'NHL', sport: 'icehockey' },
+                    { key: 'soccer_epl', name: 'Soccer', sport: 'soccer' }
+                ];
+
+                // Fetch scores for each sport
+                for (const sportConfig of sportsConfig) {
+                    try {
+                        console.log(`📡 Fetching ${sportConfig.name} scores...`);
+                        
+                        const scoresUrl = `${ODDS_API_URL}/sports/${sportConfig.key}/scores`;
+                        const scoresResponse = await fetch(`${scoresUrl}?apiKey=${window.THE_ODDS_API_KEY || ODDS_API_KEY}&daysFrom=0`);
+                        
+                        if (!scoresResponse.ok) {
+                            console.warn(`⚠️ Failed to fetch ${sportConfig.name}: ${scoresResponse.statusText}`);
+                            continue;
+                        }
+                        
+                        const scoresData = await scoresResponse.json();
+                        
+                        // Fetch odds for betting lines
+                        let oddsMap = {};
+                        try {
+                            const oddsUrl = `${ODDS_API_URL}/sports/${sportConfig.key}/odds`;
+                            const oddsResponse = await fetch(`${oddsUrl}?apiKey=${window.THE_ODDS_API_KEY || ODDS_API_KEY}&regions=us&markets=h2h,spreads,totals&oddsFormat=american`);
+                            
+                            if (oddsResponse.ok) {
+                                const oddsData = await oddsResponse.json();
+                                oddsData.forEach(odds => {
+                                    oddsMap[odds.id] = odds;
+                                });
+                            }
+                        } catch (e) {
+                            console.log(`Note: Odds data not available for ${sportConfig.name}`);
+                        }
+                        
+                        // Process games
+                        scoresData.forEach(game => {
+                            const gameOdds = oddsMap[game.id] || {};
+                            
+                            // Get odds from bookmakers if available
+                            let spread = null, total = null, moneyline = null;
+                            
+                            if (gameOdds.bookmakers && gameOdds.bookmakers.length > 0) {
+                                const bookmaker = gameOdds.bookmakers[0];
+                                
+                                // Find spread
+                                const spreadsMarket = bookmaker.markets?.find(m => m.key === 'spreads');
+                                if (spreadsMarket) {
+                                    const homeSpread = spreadsMarket.outcomes?.find(o => o.name === game.home_team);
+                                    spread = homeSpread?.point;
+                                }
+                                
+                                // Find total
+                                const totalsMarket = bookmaker.markets?.find(m => m.key === 'totals');
+                                if (totalsMarket) {
+                                    total = totalsMarket.outcomes?.[0]?.point;
+                                }
+                                
+                                // Find moneyline
+                                const h2hMarket = bookmaker.markets?.find(m => m.key === 'h2h');
+                                if (h2hMarket) {
+                                    const homeML = h2hMarket.outcomes?.find(o => o.name === game.home_team);
+                                    moneyline = homeML?.price;
+                                }
+                            }
+                            
+                            // Check if game is live or upcoming
+                            const now = new Date();
+                            const gameTime = new Date(game.commence_time);
+                            const isLive = game.completed === false && gameTime < now;
+                            
+                            const gameObj = {
+                                id: game.id,
+                                sport: sportConfig.sport,
+                                status: game.completed ? 'final' : isLive ? 'live' : 'upcoming',
+                                homeTeam: {
+                                    name: game.home_team,
+                                    score: game.scores?.find(s => s.name === game.home_team)?.score || 0,
+                                    record: '0-0' // Not available from API
+                                },
+                                awayTeam: {
+                                    name: game.away_team,
+                                    score: game.scores?.find(s => s.name === game.away_team)?.score || 0,
+                                    record: '0-0'
+                                },
+                                time: formatGameTime(game.commence_time, isLive),
+                                spread: spread ? spread.toFixed(1) : null,
+                                total: total ? total.toFixed(1) : null,
+                                moneyline: moneyline ? moneyline : null
+                            };
+                            
+                            games.push(gameObj);
+                            
+                            // Check for score updates and alert
+                            checkScoreUpdate(gameObj);
+                        });
+                        
+                        console.log(`✅ Got ${scoresData.length} ${sportConfig.name} games`);
+                        
+                    } catch (error) {
+                        console.error(`Error fetching ${sportConfig.name}:`, error.message);
+                    }
+                }
+                
+                return games.slice(0, 20); // Return top 20 games
+                
+            } catch (error) {
+                console.error('Error fetching real games:', error);
+                throw error;
+            }
+        }
+
+        // Check for score updates and trigger alerts
+        function checkScoreUpdate(game) {
+            const key = `${game.id}-${game.homeTeam.name}-${game.awayTeam.name}`;
+            const previous = previousScores[key];
+            
+            if (previous) {
+                const homeScoreDiff = game.homeTeam.score - previous.homeScore;
+                const awayScoreDiff = game.awayTeam.score - previous.awayScore;
+                
+                if (homeScoreDiff > 0) {
+                    showAlert(`${game.homeTeam.name} scores!`, 
+                             `${game.awayTeam.name} ${game.awayTeam.score} - ${game.homeTeam.score} ${game.homeTeam.name}`);
+                    alertCount++;
+                } else if (awayScoreDiff > 0) {
+                    showAlert(`${game.awayTeam.name} scores!`,
+                             `${game.awayTeam.name} ${game.awayTeam.score} - ${game.homeTeam.score} ${game.homeTeam.name}`);
+                    alertCount++;
+                }
+            }
+            
+            previousScores[key] = {
+                homeScore: game.homeTeam.score,
+                awayScore: game.awayTeam.score
+            };
+        }
+
+        // Format game time display
+        function formatGameTime(commenceTime, isLive) {
+            if (isLive) {
+                return 'LIVE';
+            }
+            
+            const gameDate = new Date(commenceTime);
+            const now = new Date();
+            
+            if (gameDate.toDateString() === now.toDateString()) {
+                // Today
+                return gameDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            } else {
+                // Future date
+                return gameDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            }
+        }
+
+        // Generate Mock Games (Fallback)
         function generateMockGames() {
             const sports = ['basketball', 'americanfootball', 'baseball', 'icehockey', 'soccer'];
             const games = [];
             
-            // Generate live games
             for (let i = 0; i < 6; i++) {
                 games.push({
                     id: `game-${i}`,
@@ -802,6 +981,39 @@
             ];
             return teams[Math.floor(Math.random() * teams.length)];
         }
+
+        // Set API key from backend
+        async function setApiKey() {
+            try {
+                console.log('🔑 Fetching API key from backend...');
+                const response = await fetch(`${BACKEND_URL}/api/live-dashboard/config`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.oddsApiKey) {
+                        window.THE_ODDS_API_KEY = data.oddsApiKey;
+                        console.log('✅ API key loaded successfully');
+                        console.log('🎯 Sports configured:', data.sports.map(s => s.name).join(', '));
+                        return true;
+                    }
+                }
+            } catch (e) {
+                console.warn('⚠️ Could not fetch API key from backend:', e.message);
+            }
+            return false;
+        }
+        
+        // Initialize API key before loading games
+        async function initialize() {
+            const apiKeyLoaded = await setApiKey();
+            if (apiKeyLoaded) {
+                console.log('🚀 Starting with live data from The Odds API');
+            } else {
+                console.log('⚠️ Using mock data (no API key available)');
+            }
+        }
+        
+        // Run initialization
+        initialize();
 
         // Render Games
         function renderGames(games) {
