@@ -164,18 +164,16 @@ class APIService {
         return this.request(`/api/ai/predictions/${gameId}`);
     }
 
-    // User analytics
+    // User analytics - Client-side only (no backend call)
     async getUserAnalytics() {
-        try {
-            return await this.request('/api/analytics/user');
-        } catch (error) {
-            // Silently handle 404 - analytics endpoint not yet implemented
-            if (error.message && error.message.includes('404')) {
-                console.log('Analytics endpoint not available yet');
-                return { picks: 0, wins: 0, accuracy: 0, streak: 0 };
-            }
-            throw error;
-        }
+        // Return empty analytics object - no backend endpoint needed
+        // All analytics are tracked client-side via analytics-tracker.js
+        return {
+            picks: 0,
+            wins: 0,
+            accuracy: 0,
+            streak: 0
+        };
     }
 
     // Subscription
@@ -190,6 +188,108 @@ class APIService {
         return this.request('/api/payments/cancel', {
             method: 'POST'
         });
+    }
+
+    // ============================================
+    // SECURE USER PROFILE & WALLET METHODS
+    // ============================================
+
+    async getUserProfile() {
+        return this.request('/api/users/me/profile');
+    }
+
+    async updateUserProfile(username, avatar) {
+        return this.request('/api/users/me/profile', {
+            method: 'PUT',
+            body: JSON.stringify({ username, avatar })
+        });
+    }
+
+    async walletTransaction(type, amount, reason, metadata = {}) {
+        return this.request('/api/users/me/wallet/transaction', {
+            method: 'POST',
+            body: JSON.stringify({ type, amount, reason, metadata })
+        });
+    }
+
+    async getTransactionHistory(limit = 50, offset = 0) {
+        return this.request(`/api/users/me/wallet/transactions?limit=${limit}&offset=${offset}`);
+    }
+
+    // ============================================
+    // SECURE TOURNAMENT METHODS
+    // ============================================
+
+    async getTournaments() {
+        return this.request('/api/tournaments');
+    }
+
+    async joinTournament(tournamentId) {
+        return this.request(`/api/tournaments/${tournamentId}/join`, {
+            method: 'POST'
+        });
+    }
+
+    async getUserTournaments() {
+        return this.request('/api/users/me/tournaments');
+    }
+
+    // ============================================
+    // SECURE MINI-GAMES METHODS
+    // ============================================
+
+    async startGame(gameType, wager) {
+        return this.request('/api/games/start', {
+            method: 'POST',
+            body: JSON.stringify({ gameType, wager })
+        });
+    }
+
+    async submitGameResult(gameId, outcome, score = null, multiplier = 2) {
+        return this.request(`/api/games/${gameId}/result`, {
+            method: 'POST',
+            body: JSON.stringify({ outcome, score, multiplier })
+        });
+    }
+
+    async getGameStats() {
+        return this.request('/api/users/me/games/stats');
+    }
+
+    // ============================================
+    // SECURE LEADERBOARD METHODS
+    // ============================================
+
+    async getLeaderboardBalance(limit = 100) {
+        return this.request(`/api/leaderboards/balance?limit=${limit}`);
+    }
+
+    async getLeaderboardTournaments(limit = 100) {
+        return this.request(`/api/leaderboards/tournaments?limit=${limit}`);
+    }
+
+    // ============================================
+    // HELPER METHODS
+    // ============================================
+
+    async hasSufficientBalance(amount) {
+        try {
+            const profile = await this.getUserProfile();
+            return profile.user.balance >= amount;
+        } catch (error) {
+            console.error('Error checking balance:', error);
+            return false;
+        }
+    }
+
+    async getBalance() {
+        try {
+            const profile = await this.getUserProfile();
+            return profile.user.balance;
+        } catch (error) {
+            console.error('Error fetching balance:', error);
+            return 0;
+        }
     }
 }
 
@@ -242,8 +342,23 @@ class AuthManager {
         try {
             console.log('🔐 Attempting login:', { email });
             const response = await api.login(email, password);
+            
+            // Check if 2FA is required
+            if (response.requiresTwoFactor) {
+                console.log('🔐 2FA required for this account');
+                showToast('Please enter your 2FA code', 'info');
+                // Open 2FA verification modal
+                if (window.twoFactorManager) {
+                    window.twoFactorManager.openVerifyModal({
+                        userId: response.userId,
+                        email: response.email
+                    });
+                }
+                return false; // Don't complete login yet
+            }
+            
             console.log('✅ Login successful:', response);
-            localStorage.setItem('auth_token', response.accessToken); // Backend returns accessToken
+            localStorage.setItem('auth_token', response.accessToken);
             appState.setUser(response.user);
             showToast('Welcome back!', 'success');
             return true;

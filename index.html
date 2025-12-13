@@ -31,18 +31,16 @@
     <link rel="stylesheet" href="styles.css?v=20250107002">
     <link rel="stylesheet" href="styles-premium.css?v=20250115001">
     <link rel="stylesheet" href="home-premium-layout.css?v=20250115001">
-    <link rel="stylesheet" href="home-enhanced-styles.css?v=20250107004">
     <link rel="stylesheet" href="activity-feed-styles.css?v=20250107004">
     <link rel="stylesheet" href="ai-coach-card-styles.css?v=20250107002">
     <link rel="stylesheet" href="ai-coaches-deluxe-styles.css?v=20250107002">
     <link rel="stylesheet" href="ai-coach-chat-styles.css?v=20250107002">
     <link rel="stylesheet" href="ai-coach-picks-styles.css?v=20250107002">
     <link rel="stylesheet" href="settings-styles.css?v=20250107002">
-    <link rel="stylesheet" href="dashboard-stats-enhanced.css?v=20250111001">
-    <link rel="stylesheet" href="live-scores-enhanced.css?v=20250111001">
-    <link rel="stylesheet" href="profile-enhanced.css?v=20250111001">
-    <link rel="stylesheet" href="analytics-enhanced.css?v=20250111001">
-    <link rel="stylesheet" href="ai-coaches-enhanced.css?v=20250111001">
+    <link rel="stylesheet" href="live-scores-styles.css?v=20250107002">
+    <link rel="stylesheet" href="my-bets-styles.css?v=20250107002">
+    <link rel="stylesheet" href="profile-styles.css?v=20250107002">
+    <link rel="stylesheet" href="two-factor-styles.css?v=20250107002">
 </head>
 <body>
     <!-- Loading Overlay -->
@@ -707,68 +705,35 @@
         </nav>
     </div>
 
-    <!-- Main App Script (defines appState, api, authManager) - MUST load FIRST -->
+    <!-- Core App & Navigation (Load First) -->
     <script src="app.js?v=20250101012"></script>
-    
-    <!-- Navigation System (must load before page modules) -->
     <script src="navigation.js?v=20250101012"></script>
     
-    <!-- Tier Restrictions & Upgrade System -->
-    <script src="tier-restrictions.js?v=20250107003"></script>
-    <script src="upgrade-prompt.js?v=20250107003"></script>
-    
-    <!-- AI Coaches Deluxe System (Premium ID Cards) -->
-    <script src="ai-coaches-deluxe.js?v=20250101012"></script>
-    
-    <!-- AI Coach Chat Module (VIP Feature) -->
-    <script src="ai-coach-chat.js?v=20250101012"></script>
-    
-    <!-- AI Coach Picks Module (Live Picks Display) -->
-    <script src="ai-coach-picks.js?v=20250101012"></script>
-    
-    <!-- Auth Module (Form Validation & UX) -->
+    <!-- User Authentication & Profile -->
     <script src="auth.js?v=20250101012"></script>
-    
-    <!-- Password Reset Module (Email Verification & Flow) -->
     <script src="password-reset.js?v=20250101012"></script>
-    
-    <!-- Profile Module (Profile Management) -->
     <script src="profile.js?v=20250101012"></script>
     
-    <!-- Live Scores Module (Real Sports Data) -->
+    <!-- Core Modules -->
+    <script src="tier-restrictions.js?v=20250107003"></script>
+    <script src="upgrade-prompt.js?v=20250107003"></script>
     <script src="live-scores.js?v=20250101012"></script>
-    
-    <!-- Activity Feed Module (Live Activity) -->
-    <script src="activity-feed.js?v=20250107004"></script>
-    
-    <!-- Confetti Effect Module -->
-    <script src="confetti.js?v=20250107001"></script>
-    
-    <!-- Sound Effects Module -->
-    <script src="sound-effects.js?v=20250107001"></script>
-    
-    <!-- Premium Animations & UI Enhancements -->
-    <script src="premium-animations.js?v=20250115001"></script>
-    
-    <!-- Subscription Module (Payment Flow) -->
+    <script src="ai-coaches-deluxe.js?v=20250101012"></script>
+    <script src="ai-coach-chat.js?v=20250101012"></script>
+    <script src="ai-coach-picks.js?v=20250101012"></script>
     <script src="subscription.js?v=20250101012"></script>
     
-    <!-- Enhanced UI Modules (NEW - Production Ready) -->
-    <script src="dashboard-stats-enhanced.js?v=20250111001"></script>
-    <script src="live-scores-enhanced.js?v=20250111001"></script>
-    <script src="analytics-enhanced.js?v=20250111001"></script>
-    <script src="ai-coaches-premium-ui.js?v=20250111001"></script>
+    <!-- UI & Experience -->
+    <script src="activity-feed.js?v=20250107004"></script>
+    <script src="confetti.js?v=20250107001"></script>
+    <script src="sound-effects.js?v=20250107001"></script>
+    <script src="premium-animations.js?v=20250115001"></script>
+    <script src="two-factor-auth.js?v=20250107002"></script>
 
     <script>
-        // Initialize navigation system
+        // App initialization complete
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('✅ DOM fully loaded');
-            console.log('✨ Premium UI animations loaded');
-            console.log('📊 Enhanced dashboard stats ready');
-            console.log('⚡ Live scores enhanced ready');
-            console.log('📈 Analytics enhanced ready');
-            console.log('🤖 AI coaches premium UI ready');
-            // Navigation is auto-initialized
+            // Navigation and core modules auto-initialize
         });
     </script>
 </body>
