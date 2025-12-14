@@ -2027,7 +2027,7 @@ window.saveGuestUsername = function() {
     // Validate username
     if (username.length === 0) {
         // Generate random username if empty
-        username = `Player${window.crypto.getRandomValues(new Uint32Array(1))[0] % 100000}`;
+        username = `Player${secureRandomInt(100000)}`;
     }
 
     // Clean username (remove special characters except numbers and letters)
@@ -2035,7 +2035,7 @@ window.saveGuestUsername = function() {
     
     // Ensure not too short
     if (username.length < 3) {
-        username = `Player${window.crypto.getRandomValues(new Uint32Array(1))[0] % 100000}`;
+        username = `Player${secureRandomInt(100000)}`;
     }
 
     // Get selected avatar (default to 😊 if none selected)
