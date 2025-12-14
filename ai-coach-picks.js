@@ -26,58 +26,83 @@ const aiCoachPicks = {
 
             console.log('🔄 Fetching real picks from backend for', coach.name);
             
-            // Fetch from backend API
-            const apiUrl = window.CONFIG?.API_BASE_URL || 'https://ultimate-sports-ai-backend-production.up.railway.app';
-            const response = await fetch(`${apiUrl}/api/ai-coaches/picks`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                timeout: 10000
-            });
-
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
-            }
-
-            const data = await response.json();
+            // List of API endpoints to try
+            const apiEndpoints = [
+                window.CONFIG?.API_BASE_URL || 'https://ultimate-sports-ai-backend-production.up.railway.app',
+                '' // Fallback to same-origin with relative path
+            ];
             
-            if (data.success && data.coaches) {
-                // Find this coach's picks
-                const coachData = data.coaches.find(c => c.id === coach.id);
-                
-                if (coachData && coachData.recentPicks) {
-                    // Convert backend format to frontend format
-                    const picks = coachData.recentPicks.map((pick, index) => ({
-                        id: index + 1,
-                        matchup: pick.game,
-                        betType: this.determineBetType(pick.pick),
-                        betDetails: pick.pick,
-                        odds: this.formatOdds(pick.odds),
-                        confidence: pick.confidence,
-                        stake: this.calculateStake(pick.confidence),
-                        status: 'pending',
-                        reasoning: pick.reasoning,
-                        time: pick.gameTime,
-                        injuries: pick.injuries // Include injury data
-                    }));
-
-                    // Cache the picks
-                    this.cachedPicks.set(cacheKey, picks);
-                    this.cacheTimestamp = Date.now();
+            let lastError = null;
+            
+            for (const apiUrl of apiEndpoints) {
+                try {
+                    // Create abort controller for timeout
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 8000);
                     
-                    console.log(`✅ Fetched ${picks.length} real picks for ${coach.name}`);
-                    return picks;
+                    const response = await fetch(`${apiUrl}/api/ai-coaches/picks`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+
+                    if (!response.ok) {
+                        throw new Error(`API error: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    
+                    if (data.success && data.coaches) {
+                        // Find this coach's picks
+                        const coachData = data.coaches.find(c => c.id === coach.id);
+                        
+                        if (coachData && coachData.recentPicks) {
+                            // Convert backend format to frontend format
+                            const picks = coachData.recentPicks.map((pick, index) => ({
+                                id: index + 1,
+                                matchup: pick.game,
+                                betType: this.determineBetType(pick.pick),
+                                betDetails: pick.pick,
+                                odds: this.formatOdds(pick.odds),
+                                confidence: pick.confidence,
+                                stake: this.calculateStake(pick.confidence),
+                                status: 'pending',
+                                reasoning: pick.reasoning,
+                                time: pick.gameTime,
+                                injuries: pick.injuries // Include injury data
+                            }));
+
+                            // Cache the picks
+                            this.cachedPicks.set(cacheKey, picks);
+                            this.cacheTimestamp = Date.now();
+                            
+                            console.log(`✅ Fetched ${picks.length} real picks for ${coach.name} from ${apiUrl}`);
+                            return picks;
+                        }
+                    }
+                    
+                    // If we got here, API worked but no picks
+                    throw new Error('No picks in response');
+                    
+                } catch (err) {
+                    lastError = err;
+                    console.warn(`⚠️ Failed to fetch from ${apiUrl}: ${err.message}`);
+                    continue; // Try next endpoint
                 }
             }
-
-            // Fallback to generated picks if API fails
-            console.warn('⚠️ No picks from backend, using fallback');
+            
+            // All endpoints failed or no picks found
+            console.warn('⚠️ Could not fetch picks from any endpoint, using fallback');
             return this.generatePicks(coach);
 
         } catch (error) {
-            console.error('❌ Error fetching real picks:', error);
+            console.error('❌ Error fetching real picks:', error.message);
             // Fallback to generated picks
+            console.log(`📋 Falling back to generated picks for ${coach.name}`);
             return this.generatePicks(coach);
         }
     },
@@ -133,7 +158,21 @@ const aiCoachPicks = {
             } else if (betType === 'Moneyline') {
                 betDetails = `${team1} ML`;
             } else if (betType === 'Over/Under') {
-                const total = (Math.random() * 50 + 200).toFixed(1);
+                // Sport-specific totals (FIXED!)
+                let total;
+                if (coach.sport === 'NBA Basketball') {
+                    total = (Math.random() * 30 + 215).toFixed(1); // 215-245 (NBA range)
+                } else if (coach.sport === 'NFL Football') {
+                    total = (Math.random() * 15 + 40).toFixed(1); // 40-55 (NFL range)
+                } else if (coach.sport === 'MLB Baseball') {
+                    total = (Math.random() * 4 + 7).toFixed(1); // 7-11 runs (MLB range)
+                } else if (coach.sport === 'NHL Hockey') {
+                    total = (Math.random() * 2 + 5.5).toFixed(1); // 5.5-7.5 goals (NHL range)
+                } else if (coach.sport === 'International Soccer') {
+                    total = (Math.random() * 2 + 2.5).toFixed(1); // 2.5-4.5 goals (Soccer range)
+                } else {
+                    total = (Math.random() * 30 + 215).toFixed(1); // Default to NBA range
+                }
                 betDetails = `${team1} vs ${team2} O${total}`;
             } else {
                 const players = ['LeBron', 'Curry', 'Mahomes', 'Allen', 'Judge', 'Ohtani'];
@@ -161,9 +200,11 @@ const aiCoachPicks = {
     },
 
     generateReasoning(coach, betType) {
+        const strengths = coach.strengths || ['statistical', 'matchup'];
+        
         const reasons = {
             'Spread': [
-                `${coach.strengths[0]} analysis shows value here`,
+                `${strengths[0]} analysis shows value here`,
                 `Line movement indicates sharp money on this side`,
                 `Historical matchup data heavily favors this pick`,
                 `Key player advantage creates significant edge`
@@ -175,7 +216,7 @@ const aiCoachPicks = {
                 `Superior roster depth gives edge in close game`
             ],
             'Over/Under': [
-                `Pace metrics and ${coach.strengths[1]} point to this total`,
+                `Pace metrics and ${strengths[1] || 'offensive'} point to this total`,
                 `Weather conditions favor high-scoring affair`,
                 `Both defenses struggling - expect points`,
                 `Offensive efficiency ratings indicate under`
@@ -256,6 +297,17 @@ const aiCoachPicks = {
         // Remove existing modal if any
         const existing = document.getElementById('ai-coach-picks-modal');
         if (existing) existing.remove();
+
+        // Safety check: ensure picks is an array
+        if (!Array.isArray(picks)) {
+            console.error('❌ Invalid picks data, regenerating...');
+            picks = this.generatePicks(this.currentCoach);
+        }
+        
+        if (picks.length === 0) {
+            console.warn('⚠️ No picks available, generating fallback...');
+            picks = this.generatePicks(this.currentCoach);
+        }
 
         const modal = document.createElement('div');
         modal.id = 'ai-coach-picks-modal';
