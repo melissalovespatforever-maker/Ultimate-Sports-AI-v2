@@ -5,6 +5,31 @@
 
 console.log('🚀 Ultimate Sports AI v4.0 - Clean Build');
 
+// Add diagnostic function for debugging
+window.diagnoseConnection = async function() {
+    console.log('🔍 Running connection diagnostics...');
+    const endpoints = [
+        'https://ultimate-sports-ai-backend-production.up.railway.app',
+        'http://localhost:3001',
+        '/api'
+    ];
+    
+    for (const endpoint of endpoints) {
+        try {
+            console.log(`Testing: ${endpoint}/api/health`);
+            const response = await fetch(`${endpoint}/api/health`, { signal: AbortSignal.timeout(5000) });
+            if (response.ok) {
+                console.log(`✅ ${endpoint} - WORKING`);
+            } else {
+                console.warn(`⚠️ ${endpoint} - HTTP ${response.status}`);
+            }
+        } catch (error) {
+            console.warn(`❌ ${endpoint} - ${error.message}`);
+        }
+    }
+    console.log('Diagnostics complete!');
+};
+
 // Emergency loader removal - in case initialization fails
 setTimeout(() => {
     const loader = document.getElementById('app-loader');
@@ -19,13 +44,20 @@ setTimeout(() => {
 // ============================================
 
 const CONFIG = {
-    // Backend API URL - UPDATE THIS if your Railway URL is different
+    // Backend API URLs - Multiple fallback options
+    API_ENDPOINTS: [
+        'https://ultimate-sports-ai-backend-production.up.railway.app',
+        'http://localhost:3001',
+        '/api' // Same-origin fallback
+    ],
     API_BASE_URL: 'https://ultimate-sports-ai-backend-production.up.railway.app',
     // For local development: API_BASE_URL: 'http://localhost:3001',
     
     WS_URL: 'wss://ultimate-sports-ai-backend-production.up.railway.app',
+    WS_FALLBACK: 'ws://localhost:3001',
     PAYPAL_CLIENT_ID: 'YOUR_PAYPAL_CLIENT_ID',
-    VERSION: '4.0.0'
+    VERSION: '4.0.0',
+    REQUEST_TIMEOUT: 15000 // 15 second timeout
 };
 
 // ============================================
@@ -74,6 +106,7 @@ const appState = new AppState();
 class APIService {
     constructor() {
         this.baseURL = CONFIG.API_BASE_URL;
+        this.workingEndpoint = null;
     }
 
     getHeaders() {
@@ -89,15 +122,16 @@ class APIService {
         return headers;
     }
 
-    async request(endpoint, options = {}) {
+    async tryEndpoint(endpoint, url, options) {
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+            const timeoutId = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT);
 
-            const response = await fetch(`${this.baseURL}${endpoint}`, {
+            const response = await fetch(`${url}${endpoint}`, {
                 ...options,
                 headers: this.getHeaders(),
-                signal: controller.signal
+                signal: controller.signal,
+                credentials: 'include'
             });
 
             clearTimeout(timeoutId);
@@ -110,16 +144,47 @@ class APIService {
             }
 
             if (!response.ok) {
-                // Use backend error message if available
                 throw new Error(data.message || data.error || `Request failed with status ${response.status}`);
             }
 
-            return data;
+            return { success: true, data };
         } catch (error) {
             if (error.name === 'AbortError') {
-                throw new Error('Request timeout - please check your connection');
+                return { success: false, error: 'timeout' };
             }
-            console.error('API Error:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    async request(endpoint, options = {}) {
+        try {
+            // Try working endpoint first if we have one
+            if (this.workingEndpoint) {
+                const result = await this.tryEndpoint(endpoint, this.workingEndpoint, options);
+                if (result.success) {
+                    return result.data;
+                }
+                // If it fails, clear it and try all endpoints
+                this.workingEndpoint = null;
+            }
+
+            // Try all configured endpoints
+            for (const baseUrl of CONFIG.API_ENDPOINTS) {
+                console.log(`🔄 Trying endpoint: ${baseUrl}${endpoint}`);
+                const result = await this.tryEndpoint(endpoint, baseUrl, options);
+                
+                if (result.success) {
+                    this.workingEndpoint = baseUrl;
+                    console.log(`✅ Connected to: ${baseUrl}`);
+                    return result.data;
+                }
+                console.warn(`⚠️ Failed ${baseUrl}: ${result.error}`);
+            }
+
+            // If all endpoints fail
+            throw new Error('Unable to connect to backend - please check your internet connection and try again');
+        } catch (error) {
+            console.error('❌ API Error:', error.message);
             throw error;
         }
     }
@@ -327,13 +392,26 @@ class AuthManager {
             console.log('🔐 Attempting signup:', { email, username: name });
             const response = await api.signup(email, password, name);
             console.log('✅ Signup successful:', response);
-            localStorage.setItem('auth_token', response.accessToken); // Backend returns accessToken
+            localStorage.setItem('auth_token', response.accessToken || response.token); // Backend returns accessToken or token
             appState.setUser(response.user);
-            showToast('Account created successfully!', 'success');
+            showToast('Account created successfully! 🎉', 'success');
             return true;
         } catch (error) {
             console.error('❌ Signup failed:', error);
-            showToast(error.message || 'Signup failed', 'error');
+            let errorMsg = error.message;
+            
+            // Parse specific error messages
+            if (errorMsg.includes('already exists')) {
+                errorMsg = 'Email already registered. Try logging in or use a different email.';
+            } else if (errorMsg.includes('password')) {
+                errorMsg = 'Password must be at least 8 characters with uppercase, lowercase, and numbers.';
+            } else if (errorMsg.includes('Unable to connect')) {
+                errorMsg = 'Connection failed. Please check your internet and try again.';
+            } else if (errorMsg.includes('timeout')) {
+                errorMsg = 'Request timed out. Please try again.';
+            }
+            
+            showToast(errorMsg || 'Signup failed. Please try again.', 'error');
             return false;
         }
     }
@@ -358,13 +436,26 @@ class AuthManager {
             }
             
             console.log('✅ Login successful:', response);
-            localStorage.setItem('auth_token', response.accessToken);
+            localStorage.setItem('auth_token', response.accessToken || response.token);
             appState.setUser(response.user);
-            showToast('Welcome back!', 'success');
+            showToast('Welcome back! 🎉', 'success');
             return true;
         } catch (error) {
             console.error('❌ Login failed:', error);
-            showToast(error.message || 'Login failed', 'error');
+            let errorMsg = error.message;
+            
+            // Parse specific error messages
+            if (errorMsg.includes('not found') || errorMsg.includes('does not exist')) {
+                errorMsg = 'Email not found. Check your email or create a new account.';
+            } else if (errorMsg.includes('password') || errorMsg.includes('incorrect')) {
+                errorMsg = 'Invalid email or password. Please try again.';
+            } else if (errorMsg.includes('Unable to connect')) {
+                errorMsg = 'Connection failed. Please check your internet and try again.';
+            } else if (errorMsg.includes('timeout')) {
+                errorMsg = 'Request timed out. Please try again.';
+            }
+            
+            showToast(errorMsg || 'Login failed. Please try again.', 'error');
             return false;
         }
     }
@@ -493,6 +584,11 @@ class Navigation {
             targetPage.classList.add('active');
             this.currentPage = page;
             
+            // Update breadcrumb navigation
+            if (window.breadcrumbManager) {
+                window.breadcrumbManager.update(page);
+            }
+            
             // Reinitialize auth form when navigating to auth page
             if (page === 'auth' && typeof window.reinitAuthForm === 'function') {
                 console.log('🔄 Reinitializing auth form');
@@ -520,10 +616,34 @@ class Navigation {
         document.getElementById('auth-page')?.classList.add('active');
     }
 
+    async loadIframePage(pageName, htmlFile) {
+        const container = document.getElementById(`${pageName}-page`);
+        if (!container) return;
+
+        // Check if iframe already exists
+        let iframe = container.querySelector('iframe');
+        if (!iframe) {
+            iframe = document.createElement('iframe');
+            iframe.src = htmlFile;
+            iframe.style.width = '100%';
+            iframe.style.height = 'calc(100vh - 120px)';
+            iframe.style.border = 'none';
+            iframe.style.display = 'block';
+            iframe.title = pageName;
+            container.appendChild(iframe);
+        }
+    }
+
     async loadPageData(page) {
         switch(page) {
             case 'live-scores':
                 await liveScoresModule.load();
+                break;
+            case 'my-bets':
+                await this.loadIframePage('my-bets', 'my-bets.html');
+                break;
+            case 'tournaments':
+                await this.loadIframePage('tournaments', 'tournaments.html');
                 break;
             case 'ai-coaches':
                 await aiCoachesModule.load();
@@ -2027,7 +2147,7 @@ window.saveGuestUsername = function() {
     // Validate username
     if (username.length === 0) {
         // Generate random username if empty
-        username = `Player${secureRandomInt(100000)}`;
+        username = `Player${Math.floor(Math.random() * 99999)}`;
     }
 
     // Clean username (remove special characters except numbers and letters)
@@ -2035,7 +2155,7 @@ window.saveGuestUsername = function() {
     
     // Ensure not too short
     if (username.length < 3) {
-        username = `Player${secureRandomInt(100000)}`;
+        username = `Player${Math.floor(Math.random() * 99999)}`;
     }
 
     // Get selected avatar (default to 😊 if none selected)
