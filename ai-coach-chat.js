@@ -5,6 +5,20 @@
 
 console.log('💬 AI Coach Chat Module loading...');
 
+/**
+ * Escapes special HTML characters in a string to prevent XSS.
+ * @param {string} str
+ * @returns {string}
+ */
+function escapeHTML(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 const aiCoachChat = {
     currentCoach: null,
     messages: [],
@@ -142,7 +156,7 @@ const aiCoachChat = {
                 <img src="${this.currentCoach.avatar}" alt="${this.currentCoach.name}" class="message-avatar">
                 <div class="message-content">
                     <div class="message-bubble" style="background: ${this.currentCoach.color}15; border-color: ${this.currentCoach.color}30;">
-                        ${typing ? '<span class="typing-indicator"><span></span><span></span><span></span></span>' : text}
+                        ${typing ? '<span class="typing-indicator"><span></span><span></span><span></span></span>' : escapeHTML(text)}
                     </div>
                     <span class="message-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                 </div>
@@ -151,7 +165,7 @@ const aiCoachChat = {
             messageEl.innerHTML = `
                 <div class="message-content">
                     <div class="message-bubble">
-                        ${text}
+                        ${escapeHTML(text)}
                     </div>
                     <span class="message-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                 </div>
