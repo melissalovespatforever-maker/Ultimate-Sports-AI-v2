@@ -138,7 +138,8 @@ const DailyDealsSystem = {
             description: '+5% permanent bonus',
             tier: 'exclusive',
             type: 'lightning-deal'
-        }
+        },
+
     ],
 
     // Get today's date as a simple day counter
@@ -455,7 +456,9 @@ const DailyDealsSystem = {
                     ${deal.type === 'limited-stock' ? '<span class="deal-type">📦 LIMITED</span>' : ''}
                 </div>
 
-                <div class="deal-icon">${deal.emoji || deal.icon}</div>
+                <div class="deal-icon">
+                    ${deal.image ? `<img src="${deal.image}" alt="${deal.name}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 8px;">` : deal.emoji || deal.icon}
+                </div>
 
                 <h3 class="deal-name">${deal.name}</h3>
                 <p class="deal-description">${deal.description}</p>
