@@ -756,9 +756,14 @@
         </nav>
     </div>
 
+
     <!-- Core App & Navigation (Load First) -->
+    <!-- Age Verification (MUST LOAD FIRST) -->
+    <script src="age-verification.js?v=20250214001"></script>
+    
     <!-- Core Systems (Load First) -->
     <script src="unified-currency-system.js?v=20250101013"></script>
+    <script src="coin-system-unified.js?v=20250214001"></script>
     <script src="achievements-system.js?v=20250117001"></script>
     <script src="achievements-showcase.js?v=20250117001"></script>
     <script src="breadcrumb-manager.js?v=20250117001"></script>
@@ -778,6 +783,11 @@
     <script src="ai-coach-picks.js?v=20250101012"></script>
     <script src="subscription.js?v=20250101012"></script>
     
+    <!-- Shop & Daily Deals (NEWLY ADDED) -->
+    <script src="daily-deals-system.js?v=20250214001"></script>
+    <script src="paypal-shop-integration.js?v=20250214001"></script>
+    <script src="shop-system.js?v=20250101012"></script>
+    
     <!-- UI & Experience -->
     <script src="activity-feed.js?v=20250107004"></script>
     <script src="confetti.js?v=20250107001"></script>
@@ -791,5 +801,4 @@
             // Navigation and core modules auto-initialize
         });
     </script>
-</body>
-</html>
+    
