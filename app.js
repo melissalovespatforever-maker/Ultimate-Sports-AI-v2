@@ -260,7 +260,9 @@ class APIService {
     // ============================================
 
     async getUserProfile() {
-        return this.request('/api/users/me/profile');
+    // Returns current authenticated user profile
+    return this.request('/api/users/profile');
+}
     }
 
     async updateUserProfile(username, avatar) {
