@@ -1,39 +1,66 @@
 // ============================================
-// ULTIMATE SPORTS AI - CLEAN APP v4.1 FIXED
-// Production-ready frontend with working loader fix
+// ULTIMATE SPORTS AI - CLEAN APP
+// Production-ready frontend connecting to Railway backend
 // ============================================
 
-console.log('🚀 Ultimate Sports AI v4.1 - Loading...');
+console.log('🚀 Ultimate Sports AI v4.0 - Clean Build');
 
-// Remove loader immediately after 1.5 seconds guaranteed
-setTimeout(() => {
+// Add diagnostic function for debugging
+window.diagnoseConnection = async function() {
+    console.log('🔍 Running connection diagnostics...');
+    const endpoints = [
+        'https://ultimate-sports-ai-backend-production.up.railway.app',
+        'http://localhost:3001',
+        '/api'
+    ];
+    
+    for (const endpoint of endpoints) {
+        try {
+            console.log(`Testing: ${endpoint}/api/health`);
+            const response = await fetch(`${endpoint}/api/health`, { signal: AbortSignal.timeout(5000) });
+            if (response.ok) {
+                console.log(`✅ ${endpoint} - WORKING`);
+            } else {
+                console.warn(`⚠️ ${endpoint} - HTTP ${response.status}`);
+            }
+        } catch (error) {
+            console.warn(`❌ ${endpoint} - ${error.message}`);
+        }
+    }
+    console.log('Diagnostics complete!');
+};
+
+// CRITICAL: Force loader removal after 1.5 seconds max
+const forceRemoveLoader = () => {
     const loader = document.getElementById('app-loader');
     if (loader) {
-        loader.style.opacity = '0';
-        loader.style.transition = 'opacity 0.3s ease';
-        setTimeout(() => {
-            loader.remove();
-            console.log('✅ Loader removed');
-        }, 300);
+        console.log('✅ Force removing loader after timeout');
+        loader.style.display = 'none';
+        loader.remove();
     }
-}, 1500);
+};
+
+setTimeout(forceRemoveLoader, 1500);
 
 // ============================================
 // CONFIGURATION
 // ============================================
 
 const CONFIG = {
+    // Backend API URLs - Multiple fallback options
     API_ENDPOINTS: [
         'https://ultimate-sports-ai-backend-production.up.railway.app',
         'http://localhost:3001',
-        '/api'
+        '/api' // Same-origin fallback
     ],
     API_BASE_URL: 'https://ultimate-sports-ai-backend-production.up.railway.app',
+    // For local development: API_BASE_URL: 'http://localhost:3001',
+    
     WS_URL: 'wss://ultimate-sports-ai-backend-production.up.railway.app',
     WS_FALLBACK: 'ws://localhost:3001',
     PAYPAL_CLIENT_ID: 'YOUR_PAYPAL_CLIENT_ID',
-    VERSION: '4.1.0',
-    REQUEST_TIMEOUT: 15000
+    VERSION: '4.0.0',
+    REQUEST_TIMEOUT: 15000 // 15 second timeout
 };
 
 // ============================================
@@ -134,14 +161,17 @@ class APIService {
 
     async request(endpoint, options = {}) {
         try {
+            // Try working endpoint first if we have one
             if (this.workingEndpoint) {
                 const result = await this.tryEndpoint(endpoint, this.workingEndpoint, options);
                 if (result.success) {
                     return result.data;
                 }
+                // If it fails, clear it and try all endpoints
                 this.workingEndpoint = null;
             }
 
+            // Try all configured endpoints
             for (const baseUrl of CONFIG.API_ENDPOINTS) {
                 console.log(`🔄 Trying endpoint: ${baseUrl}${endpoint}`);
                 const result = await this.tryEndpoint(endpoint, baseUrl, options);
@@ -154,6 +184,7 @@ class APIService {
                 console.warn(`⚠️ Failed ${baseUrl}: ${result.error}`);
             }
 
+            // If all endpoints fail
             throw new Error('Unable to connect to backend - please check your internet connection and try again');
         } catch (error) {
             console.error('❌ API Error:', error.message);
@@ -161,6 +192,7 @@ class APIService {
         }
     }
 
+    // Auth endpoints
     async signup(email, password, username) {
         return this.request('/api/auth/register', {
             method: 'POST',
@@ -185,19 +217,25 @@ class APIService {
         });
     }
 
+    // OAuth endpoints
     getOAuthURL(provider) {
         return `${this.baseURL}/api/auth/${provider}`;
     }
 
+    // Live scores
     async getLiveScores() {
         return this.request('/api/scores/live');
     }
 
+    // AI Coaches
     async getAIPredictions(gameId) {
         return this.request(`/api/ai/predictions/${gameId}`);
     }
 
+    // User analytics - Client-side only (no backend call)
     async getUserAnalytics() {
+        // Return empty analytics object - no backend endpoint needed
+        // All analytics are tracked client-side via analytics-tracker.js
         return {
             picks: 0,
             wins: 0,
@@ -206,6 +244,7 @@ class APIService {
         };
     }
 
+    // Subscription
     async createSubscription(tier) {
         return this.request('/api/payments/subscribe', {
             method: 'POST',
@@ -219,11 +258,17 @@ class APIService {
         });
     }
 
+    // ============================================
+    // SECURE USER PROFILE & WALLET METHODS
+    // ============================================
+
     async getUserProfile() {
+        // Returns current authenticated user profile
         return this.request('/api/users/profile');
     }
 
     async getUserStats() {
+        // Returns current authenticated user stats
         return this.request('/api/users/stats');
     }
 
@@ -245,6 +290,10 @@ class APIService {
         return this.request(`/api/users/me/wallet/transactions?limit=${limit}&offset=${offset}`);
     }
 
+    // ============================================
+    // SECURE TOURNAMENT METHODS
+    // ============================================
+
     async getTournaments() {
         return this.request('/api/tournaments');
     }
@@ -258,6 +307,10 @@ class APIService {
     async getUserTournaments() {
         return this.request('/api/users/me/tournaments');
     }
+
+    // ============================================
+    // SECURE MINI-GAMES METHODS
+    // ============================================
 
     async startGame(gameType, wager) {
         return this.request('/api/games/start', {
@@ -277,6 +330,10 @@ class APIService {
         return this.request('/api/users/me/games/stats');
     }
 
+    // ============================================
+    // SECURE LEADERBOARD METHODS
+    // ============================================
+
     async getLeaderboardBalance(limit = 100) {
         return this.request(`/api/leaderboards/balance?limit=${limit}`);
     }
@@ -284,6 +341,10 @@ class APIService {
     async getLeaderboardTournaments(limit = 100) {
         return this.request(`/api/leaderboards/tournaments?limit=${limit}`);
     }
+
+    // ============================================
+    // HELPER METHODS
+    // ============================================
 
     async hasSufficientBalance(amount) {
         try {
@@ -325,16 +386,20 @@ class AuthManager {
             try {
                 console.log('🔄 Verifying auth token...');
                 const userResponse = await api.getCurrentUser();
+                console.log('📦 API Response structure:', Object.keys(userResponse));
+                
+                // API returns { user: {...} } - extract the user object
                 const user = userResponse.user || userResponse;
                 appState.setUser(user);
                 console.log('✅ User authenticated:', user.username || user.email);
             } catch (error) {
                 console.error('⚠️ Auth check failed:', error.message);
+                // Clear invalid token
                 localStorage.removeItem('auth_token');
                 console.log('ℹ️ Starting as guest user');
             }
         } else {
-            console.log('ℹ️ No auth token - starting as guest user');
+            console.log('ℹ️ No auth token - starting as guest user (full access to app)');
         }
     }
 
@@ -342,31 +407,46 @@ class AuthManager {
         try {
             console.log('🔐 Attempting signup:', { email, username: name });
             const response = await api.signup(email, password, name);
+            console.log('📦 Signup response structure:', Object.keys(response));
+            console.log('✅ Signup successful:', response);
             
+            // Backend returns { user: {...}, accessToken: "jwt..." }
             const token = response.accessToken;
             const user = response.user;
             
-            if (!token || !user) {
-                throw new Error('No authentication token or user data received');
+            if (!token) {
+                console.error('❌ No access token in signup response');
+                throw new Error('No authentication token received');
             }
             
+            if (!user) {
+                console.error('❌ No user data in signup response');
+                throw new Error('No user data received');
+            }
+            
+            // Store token and update state
             localStorage.setItem('auth_token', token);
             appState.setUser(user);
+            console.log('✅ Token stored and user authenticated');
+            
             showToast('Account created successfully! 🎉', 'success');
             return true;
         } catch (error) {
             console.error('❌ Signup failed:', error);
             let errorMsg = error.message;
             
+            // Parse specific error messages
             if (errorMsg.includes('already exists')) {
                 errorMsg = 'Email already registered. Try logging in or use a different email.';
             } else if (errorMsg.includes('password')) {
-                errorMsg = 'Password must be at least 8 characters.';
+                errorMsg = 'Password must be at least 8 characters with uppercase, lowercase, and numbers.';
             } else if (errorMsg.includes('Unable to connect')) {
-                errorMsg = 'Connection failed. Please check your internet.';
+                errorMsg = 'Connection failed. Please check your internet and try again.';
+            } else if (errorMsg.includes('timeout')) {
+                errorMsg = 'Request timed out. Please try again.';
             }
             
-            showToast(errorMsg || 'Signup failed.', 'error');
+            showToast(errorMsg || 'Signup failed. Please try again.', 'error');
             return false;
         }
     }
@@ -375,37 +455,61 @@ class AuthManager {
         try {
             console.log('🔐 Attempting login:', { email });
             const response = await api.login(email, password);
+            console.log('📦 Login response structure:', Object.keys(response));
             
+            // Check if 2FA is required
             if (response.requiresTwoFactor) {
-                console.log('🔐 2FA required');
+                console.log('🔐 2FA required for this account');
                 showToast('Please enter your 2FA code', 'info');
-                return false;
+                // Open 2FA verification modal
+                if (window.twoFactorManager) {
+                    window.twoFactorManager.openVerifyModal({
+                        userId: response.userId,
+                        email: response.email
+                    });
+                }
+                return false; // Don't complete login yet
             }
             
+            console.log('✅ Login successful:', response);
+            
+            // Backend returns { user: {...}, accessToken: "jwt..." }
             const token = response.accessToken;
             const user = response.user;
             
-            if (!token || !user) {
-                throw new Error('No authentication data received');
+            if (!token) {
+                console.error('❌ No access token in login response');
+                throw new Error('No authentication token received');
             }
             
+            if (!user) {
+                console.error('❌ No user data in login response');
+                throw new Error('No user data received');
+            }
+            
+            // Store token and update state
             localStorage.setItem('auth_token', token);
             appState.setUser(user);
+            console.log('✅ Token stored and user authenticated:', user.username || user.email);
+            
             showToast('Welcome back! 🎉', 'success');
             return true;
         } catch (error) {
             console.error('❌ Login failed:', error);
             let errorMsg = error.message;
             
-            if (errorMsg.includes('not found')) {
-                errorMsg = 'Email not found. Check or create a new account.';
+            // Parse specific error messages
+            if (errorMsg.includes('not found') || errorMsg.includes('does not exist')) {
+                errorMsg = 'Email not found. Check your email or create a new account.';
             } else if (errorMsg.includes('password') || errorMsg.includes('incorrect')) {
-                errorMsg = 'Invalid email or password.';
+                errorMsg = 'Invalid email or password. Please try again.';
             } else if (errorMsg.includes('Unable to connect')) {
-                errorMsg = 'Connection failed.';
+                errorMsg = 'Connection failed. Please check your internet and try again.';
+            } else if (errorMsg.includes('timeout')) {
+                errorMsg = 'Request timed out. Please try again.';
             }
             
-            showToast(errorMsg || 'Login failed.', 'error');
+            showToast(errorMsg || 'Login failed. Please try again.', 'error');
             return false;
         }
     }
@@ -430,7 +534,9 @@ class AuthManager {
 }
 
 const authManager = new AuthManager();
-console.log('✅ authManager initialized');
+
+// Make sure initApp is called
+console.log('✅ authManager initialized, waiting for DOMContentLoaded...');
 
 // ============================================
 // NAVIGATION
@@ -443,6 +549,7 @@ class Navigation {
     }
 
     init() {
+        // Drawer toggle
         const menuBtn = document.getElementById('menu-btn');
         const drawer = document.getElementById('drawer-nav');
         const overlay = document.getElementById('drawer-overlay');
@@ -457,11 +564,13 @@ class Navigation {
             overlay.classList.remove('active');
         });
 
+        // Bottom nav buttons
         document.querySelectorAll('.bottom-nav-item[data-page]').forEach(btn => {
             btn.addEventListener('click', () => {
                 const page = btn.dataset.page;
                 this.navigateTo(page);
                 
+                // Update active state
                 document.querySelectorAll('.bottom-nav-item').forEach(b => 
                     b.classList.remove('active')
                 );
@@ -469,174 +578,27 @@ class Navigation {
             });
         });
 
+        // Drawer menu buttons
         document.querySelectorAll('.menu-item[data-page]').forEach(btn => {
             btn.addEventListener('click', () => {
                 const page = btn.dataset.page;
                 this.navigateTo(page);
                 
+                // Update active state
                 document.querySelectorAll('.menu-item').forEach(b => 
                     b.classList.remove('active')
                 );
                 btn.classList.add('active');
                 
+                // Close drawer
                 drawer?.classList.remove('active');
                 overlay?.classList.remove('active');
             });
         });
 
+        // Quick action cards
         document.querySelectorAll('.quick-action-card[data-page]').forEach(card => {
             card.addEventListener('click', () => {
                 this.navigateTo(card.dataset.page);
             });
-        });
-
-        document.getElementById('logout-btn')?.addEventListener('click', () => {
-            if (appState.isAuthenticated) {
-                authManager.logout();
-            } else {
-                this.navigateTo('auth');
-            }
-            drawer?.classList.remove('active');
-            overlay?.classList.remove('active');
-        });
-
-        document.getElementById('upgrade-btn')?.addEventListener('click', () => {
-            this.navigateTo('subscription');
-            drawer?.classList.remove('active');
-            overlay?.classList.remove('active');
-        });
-
-        console.log('✅ Navigation initialized');
-    }
-
-    navigateTo(page) {
-        console.log(`📍 Navigate to: ${page}`);
-
-        document.querySelectorAll('.page').forEach(p => 
-            p.classList.remove('active')
-        );
-
-        const targetPage = document.getElementById(`${page}-page`);
-        if (targetPage) {
-            targetPage.classList.add('active');
-            this.currentPage = page;
-            
-            if (window.breadcrumbManager) {
-                window.breadcrumbManager.update(page);
-            }
-            
-            if (page === 'auth' && typeof window.reinitAuthForm === 'function') {
-                setTimeout(() => window.reinitAuthForm(), 100);
-            }
-            
-            if (page === 'profile' && typeof window.reinitProfile === 'function') {
-                setTimeout(() => window.reinitProfile(), 100);
-            }
-            window.scrollTo(0, 0);
-            this.loadPageData(page);
-        }
-    }
-
-    showAuthPage() {
-        document.querySelectorAll('.page').forEach(p => 
-            p.classList.remove('active')
-        );
-        document.getElementById('auth-page')?.classList.add('active');
-    }
-
-    async loadIframePage(pageName, htmlFile) {
-        const container = document.getElementById(`${pageName}-page`);
-        if (!container) return;
-
-        let iframe = container.querySelector('iframe');
-        if (!iframe) {
-            iframe = document.createElement('iframe');
-            iframe.src = htmlFile;
-            iframe.style.width = '100%';
-            iframe.style.height = 'calc(100vh - 120px)';
-            iframe.style.border = 'none';
-            iframe.style.display = 'block';
-            iframe.title = pageName;
-            container.appendChild(iframe);
-        }
-    }
-
-    async loadPageData(page) {
-        switch(page) {
-            case 'live-scores':
-                if (typeof liveScoresManager !== 'undefined') {
-                    await liveScoresManager.load();
-                }
-                break;
-            case 'my-bets':
-                await this.loadIframePage('my-bets', 'my-bets.html');
-                break;
-            case 'tournaments':
-                await this.loadIframePage('tournaments', 'tournaments.html');
-                break;
-            case 'ai-coaches':
-                if (typeof aiCoachesDeluxe !== 'undefined') {
-                    aiCoachesDeluxe.render('ai-coaches-container');
-                }
-                break;
-            case 'analytics':
-                break;
-            case 'profile':
-                break;
-            case 'subscription':
-                if (typeof subscriptionManager !== 'undefined') {
-                    await subscriptionManager.loadSubscriptionPage();
-                }
-                break;
-            case 'settings':
-                break;
-        }
-    }
-}
-
-const navigation = new Navigation();
-
-// ============================================
-// AUTH UI
-// ============================================
-
-class AuthUI {
-    constructor() {
-        this.init();
-    }
-
-    init() {
-        document.getElementById('continue-as-guest-btn')?.addEventListener('click', () => {
-            navigation.navigateTo('home');
-        });
-
-        const setupOAuthButton = (buttonId, provider) => {
-            document.getElementById(buttonId)?.addEventListener('click', () => {
-                window.location.href = api.getOAuthURL(provider);
-            });
-        };
-
-        setupOAuthButton('google-login-btn', 'google');
-        setupOAuthButton('google-signup-btn', 'google');
-        setupOAuthButton('apple-login-btn', 'apple');
-        setupOAuthButton('apple-signup-btn', 'apple');
-
-        console.log('✅ Auth UI initialized');
-    }
-}
-
-const authUI = new AuthUI();
-
-// ============================================
-// UI UPDATES
-// ============================================
-
-function updateUI() {
-    const user = appState.user;
-    const isAuthenticated = appState.isAuthenticated;
-    const userTier = user?.subscription_tier || user?.subscription || 'FREE';
-
-    const displayName = document.getElementById('user-display-name');
-    const tierBadge = document.getElementById('user-tier-badge');
-    const logoutBtn = document.getElementById('logout-btn');
-    const upgradeBtn = document.getElem
+       
