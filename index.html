@@ -43,3 +43,58 @@
     <link rel="stylesheet" href="two-factor-styles.css?v=20250107002">
     <link rel="stylesheet" href="breadcrumb-styles.css?v=20250117001">
     <link rel="stylesheet" href="achievements-showcase-styles.css?v=20250117001">
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="app-loader" class="app-loader">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <h2>Ultimate Sports AI</h2>
+            <p>Loading your experience...</p>
+        </div>
+    </div>
+
+    <!-- App Container -->
+    <div id="app">
+        <!-- Toast Container -->
+        <div id="toast-container"></div>
+        
+        <!-- Top App Bar -->
+        <header class="app-bar">
+            <button id="menu-btn" class="icon-button" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <div class="app-title">
+                <img src="https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN" alt="Ultimate Sports AI Logo" class="app-logo">
+                <span>Ultimate Sports AI</span>
+            </div>
+            
+            <div class="app-bar-actions">
+                <button class="icon-button" id="notifications-btn" aria-label="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-badge">3</span>
+                </button>
+                <button class="icon-button profile-btn" data-page="profile" aria-label="Profile">
+                    <i class="fas fa-user-circle"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Breadcrumb Navigation -->
+        <div id="breadcrumb-container" class="breadcrumb-container hidden"></div>
+
+        <!-- Notifications Dropdown -->
+        <div id="notifications-dropdown" class="notifications-dropdown" style="display: none;">
+            <div class="notifications-header">
+                <div>
+                    <h3 class="notifications-title">
+                        <i class="fas fa-bolt"></i> Live Activity
+                    </h3>
+                    <div class="live-indicator">
+                        <div class="live-dot"></div>
+                        LIVE
+                    </div>
+                </div>
+                <button class="activity-feed-refresh" id="notifications-refresh" title="Refresh">
+                    <i class="fas fa-sync-alt"></i>
