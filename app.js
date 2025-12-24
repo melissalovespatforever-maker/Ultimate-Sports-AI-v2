@@ -30,17 +30,21 @@ window.diagnoseConnection = async function() {
     console.log('Diagnostics complete!');
 };
 
-// CRITICAL: Force loader removal after 1.5 seconds max
-const forceRemoveLoader = () => {
+// Emergency loader removal - in case initialization fails
+setTimeout(() => {
     const loader = document.getElementById('app-loader');
     if (loader) {
-        console.log('✅ Force removing loader after timeout');
-        loader.style.display = 'none';
-        loader.remove();
+        console.warn('⚠️ Emergency loader removal triggered after 2 seconds');
+        loader.style.opacity = '0';
+        loader.style.transition = 'opacity 0.3s';
+        setTimeout(() => {
+            loader.style.display = 'none';
+            if (loader.parentElement) {
+                loader.remove();
+            }
+        }, 300);
     }
-};
-
-setTimeout(forceRemoveLoader, 1500);
+}, 2000); // Remove after 2 seconds max
 
 // ============================================
 // CONFIGURATION
@@ -597,8 +601,4 @@ class Navigation {
         });
 
         // Quick action cards
-        document.querySelectorAll('.quick-action-card[data-page]').forEach(card => {
-            card.addEventListener('click', () => {
-                this.navigateTo(card.dataset.page);
-            });
-       
+        doc
