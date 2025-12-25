@@ -2,6 +2,9 @@
 // ULTIMATE SPORTS AI - CORE APP ENGINE v4.0
 // FAST & WORKING - No external dependencies
 // ============================================
+// FILE: app.js
+// Replace your existing app.js with this
+// ============================================
 
 console.log('🚀 Ultimate Sports AI v4.0 - STARTING');
 
@@ -29,8 +32,21 @@ if (document.readyState === 'loading') {
     hideLoader();
 }
 
-// Force hide after 2 seconds no matter what
-setTimeout(hideLoader, 2000);
+// Force hide after 1.5 seconds no matter what
+setTimeout(hideLoader, 1500);
+
+// Additional safeguard - check every 100ms and force hide if stuck
+let hideAttempts = 0;
+const forceHideInterval = setInterval(() => {
+    const loader = document.getElementById('app-loader');
+    if (loader && loader.style.display !== 'none' && loader.style.opacity !== '0') {
+        hideLoader();
+        hideAttempts++;
+    }
+    if (hideAttempts > 2 || !loader) {
+        clearInterval(forceHideInterval);
+    }
+}, 100);
 
 // ============================================
 // PART 2: CONFIGURATION
@@ -573,3 +589,4 @@ if (document.readyState === 'loading') {
 }
 
 console.log('✅ App.js loaded successfully');
+    
