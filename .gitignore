@@ -7,6 +7,8 @@ yarn.lock
 .env
 .env.local
 .env.production
+.env.railway
+.env.example
 .DS_Store
 
 # Build
@@ -30,120 +32,21 @@ logs/
 *.log
 npm-debug.log*
 
-# OLD FILES - DELETE THESE (keeping only core files)
-# Delete all these old files before pushing
-activity-feed-*.js
-advanced-analytics-*.js
-age-gate.js
-ai-*.js
-analysis-rooms-*.js
-analytics-*.js
-annual-subscription-*.js
-arbitrage-*.js
-auth-service.js
-badges-leaderboard-*.js
-bankroll-tracker-*.js
-bet-*.js
-betting-pools-*.js
-buildabet-*.js
-challenge-*.js
-coach-*.js
-coin-history.js
-competitions-*.js
-complete-auth-integration.js
-daily-streak-*.js
-data-transformer.js
-demo-*.js
-direct-messages-*.js
-educational-disclaimer.js
-expert-follow-*.js
-injury-*.js
-leaderboard-*.js
-live-chat-*.js
-live-game-*.js
-live-match-*.js
-live-odds-*.js
-live-score-*.js
-live-scores-*.js
-live-updates-*.js
-lucky-wheel-*.js
-navigation.js
-notification-*.js
-odds-*.js
-page-auth-protection.js
-parlay-*.js
-payment-*.js
-paypal-*.js
-paywall-*.js
-pick-*.js
-player-props-*.js
-pool-chat-*.js
-push-notification-*.js
-real-time-odds-*.js
-receipt-*.js
-referral-*.js
-share-modal.js
-shop-*.js
-social-*.js
-sports-data-*.js
-subscription-confirmation-*.js
-subscription-email-*.js
-subscription-helper.js
-subscription-notification-*.js
-subscription-tier-*.js
-subscription-ui.js
-template-*.js
-trophy-showcase-*.js
-unified-*.js
-verify-*.js
-video-call-*.js
-websocket-*.js
-
-# OLD CSS FILES
-*-styles.css
-!styles.css
-
-# OLD HTML FILES
-*.html
-!index.html
-
-# Documentation (old)
-*.md
-!README.md
-!backend/README.md
-!backend/QUICK_START.md
-
-# Scripts
-*.sh
-!verify-imports.sh
-
-# Config
-_headers
-_redirects
-Procfile
-vercel.json
-railway.json
-netlify.toml
-sitemap.xml
-robots.txt
-.well-known/
+# Mobile/Capacitor (only if building native apps)
+android/
+ios/
+web/
 .capacitorignore
 .railwayignore
 
-# Manifest
-manifest.webmanifest
-browserconfig.xml
-app-ads.txt
+# Platform config (keep on local, don't push)
+.env.railway
+Procfile
 
-# Security
-security.txt
+# OS files
+Thumbs.db
 
-# Privacy
-privacy-policy.html
-terms-of-service.html
-oauth-callback-*.html
-reset-password.html
-verify-*.html
-
-# Capacitor
-capacitor.config.ts
+# Temp files
+*.tmp
+*.temp
+.DS_Store

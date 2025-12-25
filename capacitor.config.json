@@ -1,0 +1,41 @@
+{
+  "appId": "com.ultimatesportsai.app",
+  "appName": "Ultimate Sports AI",
+  "webDir": ".",
+  "server": {
+    "url": "https://ultimate-sports-ai.vercel.app",
+    "cleartext": false,
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 3000,
+      "launchAutoHide": true,
+      "backgroundColor": "#000000",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP",
+      "showSpinner": false,
+      "iosSpinnerStyle": "small",
+      "spinnerColor": "#999999"
+    },
+    "PushNotifications": {
+      "presentationOptions": ["badge", "sound", "alert"]
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon_config_sample",
+      "iconColor": "#488AFF",
+      "sound": "beep.wav"
+    }
+  },
+  "cordova": {},
+  "ios": {
+    "contentInset": "always"
+  },
+  "android": {
+    "allowMixedContent": true,
+    "buildOptions": {
+      "keystorePath": "release.keystore",
+      "keystoreAlias": "key0"
+    }
+  }
+}
