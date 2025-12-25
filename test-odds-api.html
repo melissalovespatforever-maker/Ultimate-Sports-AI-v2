@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odds API Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #f1f5f9;
+        }
+        .test-box {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+            border: 1px solid #334155;
+        }
+        button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 8px 0;
+        }
+        button:hover {
+            background: #059669;
+        }
+        pre {
+            background: #0f172a;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            border: 1px solid #334155;
+        }
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        .warning { color: #f59e0b; }
+        .info { color: #06b6d4; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Ultimate Sports AI - Backend API Test</h1>
+    
+    <div class="test-box">
+        <h2>1. Test Backend Health</h2>
+        <button onclick="testHealth()">Test /api/health</button>
+        <pre id="health-result">Click button to test...</pre>
+    </div>
+
+    <div class="test-box">
+        <h2>2. Test AI Coaches Endpoint (with Odds API)</h2>
+        <button onclick="testCoaches()">Test /api/ai-coaches/picks</button>
+        <pre id="coaches-result">Click button to test...</pre>
+    </div>
+
+    <div class="test-box">
+        <h2>3. Test Live Scores</h2>
+        <button onclick="testScores()">Test /api/scores/live</button>
+        <pre id="scores-result">Click button to test...</pre>
+    </div>
+
+    <div class="test-box">
+        <h2>4. Test Odds API Direct</h2>
+        <button onclick="testOdds()">Test /api/odds/live</button>
+        <pre id="odds-result">Click button to test...</pre>
+    </div>
+
+    <script>
+        const API_URL = 'https://ultimate-sports-ai-backend-production.up.railway.app';
+
+        async function testHealth() {
+            const result = document.getElementById('health-result');
+            result.textContent = '⏳ Testing...';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/health`);
+                const data = await response.json();
+                
+                result.innerHTML = `<span class="success">✅ SUCCESS</span>\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                result.innerHTML = `<span class="error">❌ FAILED</span>\n${error.message}`;
+            }
+        }
+
+        async function testCoaches() {
+            const result = document.getElementById('coaches-result');
+            result.textContent = '⏳ Testing... (may take 5-10 seconds)';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/ai-coaches/picks`);
+                const data = await response.json();
+                
+                if (data.success && data.coaches && data.coaches.length > 0) {
+                    const coach = data.coaches[0];
+                    const hasPicks = coach.recentPicks && coach.recentPicks.length > 0;
+                    
+                    result.innerHTML = `<span class="success">✅ SUCCESS</span>
+Found: ${data.coaches.length} coaches
+First coach: ${coach.name}
+Recent picks: ${hasPicks ? coach.recentPicks.length : 0}
+${hasPicks ? '\nFirst pick: ' + JSON.stringify(coach.recentPicks[0], null, 2) : '\n⚠️ No picks returned'}
+
+<span class="info">Full response:</span>
+${JSON.stringify(data, null, 2)}`;
+                } else {
+                    result.innerHTML = `<span class="warning">⚠️ PARTIAL SUCCESS</span>
+Backend responded but no coaches/picks found.
+
+Response: ${JSON.stringify(data, null, 2)}
+
+<span class="warning">💡 Tip: Check THE_ODDS_API_KEY in Railway</span>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="error">❌ FAILED</span>\n${error.message}\n\n<span class="warning">💡 Check if backend is deployed</span>`;
+            }
+        }
+
+        async function testScores() {
+            const result = document.getElementById('scores-result');
+            result.textContent = '⏳ Testing...';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/scores/live`);
+                const data = await response.json();
+                
+                if (data.games && data.games.length > 0) {
+                    result.innerHTML = `<span class="success">✅ SUCCESS</span>
+Found: ${data.games.length} live games
+
+First game: ${JSON.stringify(data.games[0], null, 2)}`;
+                } else {
+                    result.innerHTML = `<span class="warning">⚠️ NO GAMES</span>
+No live games right now (normal if off-season)
+
+Response: ${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="error">❌ FAILED</span>\n${error.message}`;
+            }
+        }
+
+        async function testOdds() {
+            const result = document.getElementById('odds-result');
+            result.textContent = '⏳ Testing...';
+            
+            try {
+                const response = await fetch(`${API_URL}/api/odds/live`);
+                const data = await response.json();
+                
+                if (data.games && data.games.length > 0) {
+                    result.innerHTML = `<span class="success">✅ SUCCESS</span>
+Found: ${data.games.length} games with odds
+
+First game: ${JSON.stringify(data.games[0], null, 2)}`;
+                } else {
+                    result.innerHTML = `<span class="warning">⚠️ NO ODDS</span>
+Response: ${JSON.stringify(data, null, 2)}
+
+<span class="warning">💡 Check THE_ODDS_API_KEY in Railway environment variables</span>`;
+                }
+            } catch (error) {
+                result.innerHTML = `<span class="error">❌ FAILED</span>\n${error.message}`;
+            }
+        }
+
+        // Auto-test on load
+        window.addEventListener('load', () => {
+            console.log('🚀 API Test Page Loaded');
+            console.log('Backend URL:', API_URL);
+        });
+    </script>
+</body>
