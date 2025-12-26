@@ -17,6 +17,25 @@ document.addEventListener('DOMContentLoaded', () => {
     loadUserProfile();
     startRealTimeUpdates();
     initializeGameButtons();
+    
+    // Listen for balance updates from parent window or global
+    window.addEventListener('balanceUpdated', (event) => {
+        console.log('💰 Balance updated in Sports Lounge:', event.detail.balance);
+        const coinElements = document.querySelectorAll('.profile-coins, .balance-amount');
+        coinElements.forEach(el => {
+            el.textContent = event.detail.balance.toLocaleString();
+        });
+    });
+    
+    // Listen for messages from parent window
+    window.addEventListener('message', (event) => {
+        if (event.data.type === 'balanceUpdate') {
+            const coinElements = document.querySelectorAll('.profile-coins, .balance-amount');
+            coinElements.forEach(el => {
+                el.textContent = event.data.balance.toLocaleString();
+            });
+        }
+    });
 });
 
 // ============================================
@@ -41,6 +60,23 @@ function initializeTabs() {
             const content = document.getElementById(tabName);
             if (content) {
                 content.classList.add('active');
+            }
+            
+            // If shop tab is opened, update balance display
+            if (tabName === 'shop') {
+                setTimeout(() => {
+                    if (window.ShopSystem) {
+                        window.ShopSystem.updateBalanceDisplay();
+                    }
+                    // Also sync with parent if in iframe
+                    if (window.parent && window.parent.currencyManager) {
+                        const balance = window.parent.currencyManager.getBalance();
+                        const coinElements = document.querySelectorAll('.profile-coins, .balance-amount');
+                        coinElements.forEach(el => {
+                            el.textContent = balance.toLocaleString();
+                        });
+                    }
+                }, 100);
             }
             
             console.log(`Switched to ${tabName} tab`);
@@ -206,7 +242,43 @@ function updateActivityTimes() {
 // CHAT SYSTEM
 // ============================================
 
-let chatMessages = [];
+let currentChannel = 'general';
+let chatHistory = {
+    'general': [],
+    'nfl': [],
+    'nba': [],
+    'live': [],
+    'strategy': []
+};
+
+// Mock data for initial population
+const MOCK_MESSAGES = {
+    'general': [
+        { user: 'SportsFan', avatar: '🏈', message: 'Anyone watching the game tonight?', time: '5m ago' },
+        { user: 'BetKing', avatar: '👑', message: 'Just hit a massive parlay! +5000 coins', time: '3m ago' },
+        { user: 'Rookie101', avatar: '🎲', message: 'How do I unlock the VIP shop?', time: '1m ago' }
+    ],
+    'nfl': [
+        { user: 'TouchdownTom', avatar: '🏆', message: 'Mahomes is unstoppable right now', time: '10m ago' },
+        { user: 'DefenseWins', avatar: '🛡️', message: 'Points allowed per game stats are updated?', time: '5m ago' },
+        { user: 'GridironGuru', avatar: '🏈', message: 'Taking the over on the KC game for sure', time: '2m ago' }
+    ],
+    'nba': [
+        { user: 'DunkMaster', avatar: '🏀', message: 'Lakers looking shaky without AD', time: '15m ago' },
+        { user: 'ThreePointGod', avatar: '👌', message: 'Curry with 30pts in the first half! Insane.', time: '8m ago' },
+        { user: 'CourtSide', avatar: '🎟️', message: 'Who ya got for MVP this year?', time: '4m ago' }
+    ],
+    'live': [
+        { user: 'LiveBet247', avatar: '⏱️', message: 'Odds just shifted huge on the Knicks game', time: '1m ago' },
+        { user: 'InPlayPro', avatar: '📈', message: 'Hammering the under right now', time: '30s ago' },
+        { user: 'ScoreWatcher', avatar: '👀', message: 'Tie game! Overtime incoming?', time: '10s ago' }
+    ],
+    'strategy': [
+        { user: 'MathWhiz', avatar: '🧮', message: 'Always check the EV before placing that prop bet', time: '20m ago' },
+        { user: 'SharpShooter', avatar: '🎯', message: 'Bankroll management is key guys. 1-2% per unit.', time: '12m ago' },
+        { user: 'TrendSpotter', avatar: '📉', message: 'Home underdogs covering 60% this month', time: '5m ago' }
+    ]
+};
 
 function initializeChat() {
     const input = document.getElementById('chat-input');
@@ -218,40 +290,119 @@ function initializeChat() {
             sendMessage();
         }
     });
+
+    // Handle Send Button (if not already handled inline)
+    const sendBtn = document.querySelector('.btn-send');
+    if(sendBtn) {
+        sendBtn.onclick = sendMessage;
+    }
     
-    // Load demo messages
-    loadDemoMessages();
+    // Initialize Categories
+    initializeChatCategories();
+
+    // Load initial channel
+    loadChannel('general');
+    
+    // Start simulation of other users
+    startChatSimulation();
 }
 
-function loadDemoMessages() {
+function initializeChatCategories() {
+    const buttons = document.querySelectorAll('.chat-category-btn');
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Update active state
+            buttons.forEach(b => {
+                b.classList.remove('active');
+                b.style.background = 'transparent';
+                b.style.color = 'var(--text-secondary)';
+            });
+            btn.classList.add('active');
+            btn.style.background = 'rgba(255,255,255,0.1)';
+            btn.style.color = 'white';
+            
+            // Switch channel
+            const channel = btn.getAttribute('data-channel');
+            loadChannel(channel);
+        });
+    });
+}
+
+function loadChannel(channel) {
+    currentChannel = channel;
     const messagesEl = document.getElementById('chat-messages');
     if (!messagesEl) return;
     
-    const demoMessages = [
-        { user: 'ParlayKing', avatar: '👑', message: 'Who wants to battle? I\'m on a 5-game win streak!', time: '2m ago' },
-        { user: 'SportsFan', avatar: '🏈', message: 'Anyone else taking Lakers tonight?', time: '3m ago' },
-        { user: 'TriviaGuru', avatar: '🧠', message: 'Just beat the daily trivia! 50/50 correct 🔥', time: '5m ago' },
-        { user: 'BetMaster', avatar: '💎', message: '@ParlayKing I\'ll take that challenge!', time: '7m ago' }
-    ];
+    // Clear current view
+    messagesEl.innerHTML = '';
     
-    demoMessages.forEach(msg => {
-        addChatMessage(msg.user, msg.avatar, msg.message, msg.time);
+    // Get stored local history for this channel (user's own messages + session history)
+    const storedHistory = JSON.parse(localStorage.getItem(`chat_history_${channel}`)) || [];
+    
+    // If no stored history, load mocks
+    // We combine mocks with stored history if desired, or just use mocks if empty
+    let displayMessages = [];
+    
+    if (chatHistory[channel].length === 0 && storedHistory.length === 0) {
+        // First load of session and no local storage -> use mocks
+        displayMessages = [...(MOCK_MESSAGES[channel] || [])];
+        chatHistory[channel] = displayMessages; // Cache in memory
+    } else if (chatHistory[channel].length > 0) {
+        // We have memory history (switched tabs)
+        displayMessages = chatHistory[channel];
+    } else {
+        // We have local storage but no memory (refresh)
+        // Combine mocks (older) with local storage (newer) if local storage is sparse?
+        // For simplicity, just load local storage if exists, else mocks
+        if (storedHistory.length > 0) {
+            displayMessages = storedHistory;
+        } else {
+            displayMessages = [...(MOCK_MESSAGES[channel] || [])];
+        }
+        chatHistory[channel] = displayMessages;
+    }
+
+    // Render messages
+    displayMessages.forEach(msg => {
+        addChatMessageToUI(msg.user, msg.avatar, msg.message, msg.time, msg.isMe);
     });
+    
+    console.log(`💬 Switched to #${channel}`);
 }
 
 function sendMessage() {
     const input = document.getElementById('chat-input');
     if (!input) return;
     
-    const message = input.value.trim();
-    if (!message) return;
+    const messageText = input.value.trim();
+    if (!messageText) return;
     
-    // Get user info (would come from auth system)
-    const userName = document.getElementById('user-name')?.textContent || 'Guest';
-    const userAvatar = '🎮';
+    // Get Real User Info
+    const userInfo = getRealUserInfo();
     
-    // Add message to chat
-    addChatMessage(userName, userAvatar, message, 'Just now');
+    // Create Message Object
+    const newMessage = {
+        user: userInfo.name,
+        avatar: userInfo.avatar,
+        message: messageText,
+        time: 'Just now',
+        isMe: true,
+        timestamp: Date.now()
+    };
+    
+    // Add to memory
+    if (!chatHistory[currentChannel]) chatHistory[currentChannel] = [];
+    chatHistory[currentChannel].push(newMessage);
+    
+    // Add to Local Storage (Persistence)
+    // Limit to last 50
+    const stored = JSON.parse(localStorage.getItem(`chat_history_${currentChannel}`)) || [];
+    stored.push(newMessage);
+    if (stored.length > 50) stored.shift();
+    localStorage.setItem(`chat_history_${currentChannel}`, JSON.stringify(stored));
+    
+    // Add to UI
+    addChatMessageToUI(newMessage.user, newMessage.avatar, newMessage.message, newMessage.time, true);
     
     // Clear input
     input.value = '';
@@ -261,26 +412,83 @@ function sendMessage() {
     if (messagesEl) {
         messagesEl.scrollTop = messagesEl.scrollHeight;
     }
+
+    // Simulate a reply occasionally
+    if (Math.random() > 0.7) {
+        setTimeout(() => simulateReply(currentChannel), 2000 + Math.random() * 3000);
+    }
 }
 
-function addChatMessage(user, avatar, message, time) {
+function getRealUserInfo() {
+    // 1. Try AppState (Global)
+    if (window.appState?.user) {
+        return {
+            name: window.appState.user.username || window.appState.user.name,
+            avatar: window.appState.user.avatar || '😎'
+        };
+    }
+    
+    // 2. Try LocalStorage Auth Token/Data
+    const storedUser = localStorage.getItem('user_data'); // common storage key
+    if (storedUser) {
+        try {
+            const parsed = JSON.parse(storedUser);
+            return {
+                name: parsed.username || parsed.name || 'Player1',
+                avatar: parsed.avatar || '😎'
+            };
+        } catch (e) {}
+    }
+
+    // 3. Try Fallback Storage Keys
+    const guestName = localStorage.getItem('username') || localStorage.getItem('guestUsername');
+    const guestAvatar = localStorage.getItem('avatar') || localStorage.getItem('guestAvatar');
+
+    return {
+        name: guestName || 'Guest User',
+        avatar: guestAvatar || '👤'
+    };
+}
+
+function addChatMessageToUI(user, avatar, message, time, isMe = false) {
     const messagesEl = document.getElementById('chat-messages');
     if (!messagesEl) return;
     
     const messageEl = document.createElement('div');
-    messageEl.className = 'chat-message';
-    messageEl.style.display = 'flex';
-    messageEl.style.gap = '12px';
-    messageEl.style.padding = '12px';
-    messageEl.style.background = 'var(--bg-secondary)';
-    messageEl.style.borderRadius = '12px';
-    messageEl.style.animation = 'slideInRight 0.3s ease';
+    messageEl.className = `chat-message ${isMe ? 'message-own' : ''}`;
+    
+    // Styling for own messages vs others
+    const bg = isMe ? 'var(--primary-color)' : 'var(--bg-secondary)';
+    const align = isMe ? 'flex-end' : 'flex-start';
+    const textColor = isMe ? '#000' : 'var(--text-primary)'; // Primary color is usually bright, so black text
+    // Assuming primary color is neon green/yellow, black text is good.
+    // If primary is dark, white text. Let's use a safe specific style.
+    
+    // Determine styles based on context
+    // We'll use inline styles to ensure it looks right without CSS changes if possible,
+    // but adding a class is better. I'll add the styles via JS or update CSS if needed.
+    // Let's use specific inline styles for the "Me" differentiation.
+    
+    const containerStyle = `
+        display: flex; 
+        gap: 12px; 
+        padding: 12px; 
+        background: ${isMe ? 'rgba(16, 185, 129, 0.2)' : 'var(--bg-secondary)'}; 
+        border-radius: 12px; 
+        margin-bottom: 8px;
+        border: ${isMe ? '1px solid var(--primary-color)' : 'none'};
+        animation: slideInRight 0.3s ease;
+    `;
+
+    messageEl.style.cssText = containerStyle;
     
     messageEl.innerHTML = `
         <div style="font-size: 24px; flex-shrink: 0;">${avatar}</div>
         <div style="flex: 1;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                <strong style="color: var(--text-primary); font-size: 14px;">${user}</strong>
+                <strong style="color: ${isMe ? 'var(--primary-color)' : 'var(--text-primary)'}; font-size: 14px;">
+                    ${escapeHtml(user)} ${isMe ? '(You)' : ''}
+                </strong>
                 <span style="color: var(--text-secondary); font-size: 12px;">${time}</span>
             </div>
             <div style="color: var(--text-primary); font-size: 14px;">${escapeHtml(message)}</div>
@@ -291,12 +499,57 @@ function addChatMessage(user, avatar, message, time) {
     
     // Scroll to bottom
     messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function simulateReply(channel) {
+    if (channel !== currentChannel) return; // Only show if still looking
     
-    // Keep only last 50 messages
-    const messages = messagesEl.querySelectorAll('.chat-message');
-    if (messages.length > 50) {
-        messages[0].remove();
-    }
+    const replies = [
+        "True that!",
+        "I wouldn't bet on it.",
+        "Wait, really?",
+        "Lol",
+        "Anyone want to 1v1?",
+        "What are the odds on that?",
+        "Nice win!",
+        "Oof, bad beat."
+    ];
+    
+    const randomUser = { name: 'SportsBot' + Math.floor(Math.random()*100), avatar: '🤖' };
+    const randomMsg = replies[Math.floor(Math.random() * replies.length)];
+    
+    addChatMessageToUI(randomUser.name, randomUser.avatar, randomMsg, 'Just now');
+    
+    // Add to history
+    if (!chatHistory[channel]) chatHistory[channel] = [];
+    chatHistory[channel].push({
+        user: randomUser.name,
+        avatar: randomUser.avatar,
+        message: randomMsg,
+        time: 'Just now'
+    });
+}
+
+function startChatSimulation() {
+    setInterval(() => {
+        // Randomly add messages to background channels so they have content when visited
+        const channels = ['general', 'nfl', 'nba', 'live', 'strategy'];
+        const randomChannel = channels[Math.floor(Math.random() * channels.length)];
+        
+        if (randomChannel !== currentChannel) {
+             // Add to background history
+             const fakeMsg = { 
+                 user: 'RandomUser' + Math.floor(Math.random()*50), 
+                 avatar: '👤', 
+                 message: 'Simulated background activity...', 
+                 time: '1m ago' 
+             };
+             if (!chatHistory[randomChannel]) chatHistory[randomChannel] = [];
+             chatHistory[randomChannel].push(fakeMsg);
+             // Keep size down
+             if (chatHistory[randomChannel].length > 20) chatHistory[randomChannel].shift();
+        }
+    }, 10000);
 }
 
 function escapeHtml(text) {
@@ -313,225 +566,14 @@ function loadUserProfile() {
     // Get user data from appState (single source of truth)
     const user = window.appState?.user || null;
     
-    // If no user from appState, check localStorage for guest data
-    let profileData = {
-        name: user?.name || user?.username || localStorage.getItem('guestUsername') || 'Guest User',
-        coins: parseInt(localStorage.getItem('sportsLoungeBalance')) || 1000,
-        wins: 0,
-        streak: 0,
-        avatar: user?.avatar || localStorage.getItem('guestAvatar') || '😊'
-    };
-
-    // Calculate real wins and streak from game stats
-    const slotsStats = JSON.parse(localStorage.getItem('slotsStats')) || { wins: 0 };
-    const wheelStats = JSON.parse(localStorage.getItem('wheelStats')) || { wins: 0 };
-    const coinflipStats = JSON.parse(localStorage.getItem('coinflipStats')) || { wins: 0 };
-    const penaltyStats = JSON.parse(localStorage.getItem('penaltyStats')) || { wins: 0 };
-    const triviaStats = JSON.parse(localStorage.getItem('triviaStats')) || { wins: 0 };
+    // Get coins from unified currency system
+    let coins = 1000; // Default
+    if (window.parent && window.parent.currencyManager) {
+        coins = window.parent.currencyManager.getBalance();
+    } else if (window.currencyManager) {
+        coins = window.currencyManager.getBalance();
+    } else {
+        coins = parseInt(localStorage.getItem('ultimateCoins')) || 1000;
+    }
     
-    profileData.wins = slotsStats.wins + wheelStats.wins + coinflipStats.wins + 
-                      penaltyStats.wins + triviaStats.wins;
-    
-    // Get streak from localStorage or calculate
-    profileData.streak = parseInt(localStorage.getItem('currentStreak')) || 0;
-    
-    // Update UI with real profile data
-    const nameEl = document.getElementById('user-name');
-    if (nameEl) {
-        nameEl.textContent = profileData.name;
-    }
-
-    // Update avatar display
-    const avatarEl = document.getElementById('user-avatar');
-    if (avatarEl) {
-        avatarEl.textContent = profileData.avatar;
-    }
-
-    // Update coins display
-    const coinsEl = document.querySelector('.profile-coins');
-    if (coinsEl) {
-        coinsEl.textContent = profileData.coins.toLocaleString();
-    }
-
-    // Update wins display
-    const winsEl = document.querySelector('.profile-wins');
-    if (winsEl) {
-        winsEl.textContent = profileData.wins;
-    }
-
-    // Update streak display
-    const streakEl = document.querySelector('.profile-streak');
-    if (streakEl) {
-        streakEl.textContent = profileData.streak;
-    }
-
-    console.log('✅ Sports Lounge profile loaded:', profileData.name, '| Coins:', profileData.coins, '| Wins:', profileData.wins);
-}
-
-// ============================================
-// REAL-TIME UPDATES
-// ============================================
-
-function startRealTimeUpdates() {
-    // This would connect to WebSocket
-    // For now, using intervals
-    
-    setInterval(() => {
-        updateLeaderboard();
-        updateChallenges();
-    }, 30000);
-}
-
-function updateLeaderboard() {
-    // Update leaderboard positions
-    // In production, this would fetch from backend
-    console.log('📊 Leaderboard updated');
-}
-
-function updateChallenges() {
-    // Update challenge progress
-    // In production, this would sync with backend
-    console.log('🎯 Challenges updated');
-}
-
-// ============================================
-// ANIMATIONS
-// ============================================
-
-// Add slide-in animation to CSS
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from {
-            opacity: 0;
-            transform: translateX(-20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateX(0);
-        }
-    }
-`;
-document.head.appendChild(style);
-
-// ============================================
-// GAME BUTTONS & INTERACTIONS
-// ============================================
-
-function initializeGameButtons() {
-    // Game cards - Check if they have actual games
-    document.querySelectorAll('.btn-game-play, .btn-game-launch').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const gameCard = this.closest('.game-card, .featured-game');
-            const gameName = gameCard ? gameCard.querySelector('h3, h2').textContent : 'This Game';
-            
-            // Map game names to URLs
-            const gameUrls = {
-                'Lucky Slots': 'minigame-slots.html',
-                'Prize Wheel': 'minigame-wheel.html',
-                'Coin Flip': 'minigame-coinflip.html',
-                'Penalty Shootout': 'minigame-penalty-shootout.html',
-                'Sports Trivia': 'minigame-trivia.html',
-                'Beat the Streak': 'minigame-beat-the-streak.html',
-                '⚔️ 1v1 Parlay Battle': 'minigame-parlay-battle.html'
-            };
-            
-            if (gameUrls[gameName]) {
-                window.location.href = gameUrls[gameName];
-            } else {
-                showComingSoon(gameName);
-            }
-        });
-    });
-
-    // Mini game buttons (if they exist in other sections)
-    document.querySelectorAll('.minigame-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const game = this.querySelector('span').textContent;
-            
-            const gameUrls = {
-                'Slots': 'minigame-slots.html',
-                'Wheel': 'minigame-wheel.html',
-                'Flip': 'minigame-coinflip.html'
-            };
-            
-            if (gameUrls[game]) {
-                window.location.href = gameUrls[game];
-            } else {
-                showComingSoon(`${game} Mini Game`);
-            }
-        });
-    });
-
-    // Leaderboard filters
-    document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            const filter = this.getAttribute('data-filter');
-            console.log(`Leaderboard filtered to: ${filter}`);
-            showNotification(`Showing ${filter} rankings`);
-        });
-    });
-
-    // Profile button
-    const profileBtn = document.querySelector('.btn-profile');
-    if (profileBtn) {
-        profileBtn.addEventListener('click', () => {
-            showComingSoon('Full Profile View');
-        });
-    }
-
-    // Tournament join button
-    document.querySelectorAll('.btn-tournament-join, .activity-action').forEach(btn => {
-        btn.addEventListener('click', () => {
-            showComingSoon('Tournament System');
-        });
-    });
-}
-
-function showComingSoon(feature) {
-    showNotification(`🚀 ${feature} is coming soon! This feature is currently in development.`, 'info');
-}
-
-// ============================================
-// UTILITY FUNCTIONS
-// ============================================
-
-function showNotification(message, type = 'info') {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-        position: fixed;
-        top: 24px;
-        right: 24px;
-        background: ${type === 'success' ? '#10b981' : '#6366f1'};
-        color: white;
-        padding: 16px 24px;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-        z-index: 10000;
-        animation: slideInRight 0.3s ease;
-        font-weight: 600;
-    `;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    
-    // Remove after 3 seconds
-    setTimeout(() => {
-        notification.style.animation = 'slideOutRight 0.3s ease';
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 3000);
-}
-
-// Export functions for use in other scripts
-window.SportsLounge = {
-    sendMessage,
-    showNotification,
-    showComingSoon
-};
-
-console.log('✅ Sports Lounge fully loaded');
+    // If no user from ap
