@@ -36,7 +36,8 @@ class NotificationPreferencesUI {
      */
     async loadPreferences() {
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+            
             if (!token) {
                 console.log('[Notification Preferences] No auth token');
                 return;
@@ -65,7 +66,8 @@ class NotificationPreferencesUI {
      */
     async savePreferences(updates) {
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+            
             if (!token) {
                 console.log('[Notification Preferences] No auth token');
                 return false;
