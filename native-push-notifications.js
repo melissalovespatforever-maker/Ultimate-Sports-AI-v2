@@ -151,7 +151,8 @@ class NativePushNotificationService {
     async sendTokenToBackend(token) {
         try {
             const API_URL = 'https://ultimate-sports-ai-backend.up.railway.app';
-            const authToken = localStorage.getItem('token');
+            const authToken = localStorage.getItem('auth_token') || localStorage.getItem('token');
+            
             
             if (!authToken) {
                 console.log('[Push Notifications] No auth token - skipping backend registration');
@@ -407,7 +408,8 @@ class NativePushNotificationService {
     async sendWebPushSubscription(subscription) {
         try {
             const API_URL = 'https://ultimate-sports-ai-backend.up.railway.app';
-            const authToken = localStorage.getItem('token');
+            const authToken = localStorage.getItem('auth_token') || localStorage.getItem('token');
+            
             
             if (!authToken) {
                 console.log('[Push Notifications] No auth token - skipping subscription registration');
@@ -477,7 +479,8 @@ const nativePushNotifications = new NativePushNotificationService();
 
 // Auto-initialize on app load (if user is logged in)
 window.addEventListener('DOMContentLoaded', async () => {
-    const authToken = localStorage.getItem('token');
+    const authToken = localStorage.getItem('auth_token') || localStorage.getItem('token');
+    
     
     if (authToken) {
         console.log('[Push Notifications] User logged in - initializing notifications');
