@@ -224,13 +224,23 @@ class SubscriptionManager {
         button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
         try {
+            // Check for auth token
+            const authToken = localStorage.getItem('auth_token') || localStorage.getItem('token');
+            if (!authToken) {
+                showToast('Please sign in to upgrade your subscription', 'error');
+                navigation.navigateTo('auth');
+                button.disabled = false;
+                button.innerHTML = originalText;
+                return;
+            }
+
             // ⚠️ IMPORTANT: This requires backend payment processing!
             // Step 1: Create payment session with backend
             const response = await fetch(`${api.baseURL}/api/subscriptions/create-checkout`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${authToken}`
                 },
                 body: JSON.stringify({
                     tier: tier,
@@ -240,6 +250,13 @@ class SubscriptionManager {
             });
 
             if (!response.ok) {
+                if (response.status === 401) {
+                    showToast('Session expired. Please sign in again', 'error');
+                    navigation.navigateTo('auth');
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                    return;
+                }
                 throw new Error('Failed to create checkout session');
             }
 
@@ -314,7 +331,7 @@ class SubscriptionManager {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${localStorage.getItem('auth_token') || localStorage.getItem('token')}`
                     },
                     body: JSON.stringify({
                         sessionId: sessionId,
@@ -363,7 +380,7 @@ class SubscriptionManager {
         try {
             const response = await fetch(`${api.baseURL}/api/users/${appState.user.id}/subscription`, {
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token') || localStorage.getItem('token')}`
                 }
             });
 
