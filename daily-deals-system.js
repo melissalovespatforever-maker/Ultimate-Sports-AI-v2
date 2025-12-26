@@ -179,7 +179,8 @@ const DailyDealsSystem = {
     // Sync stock from backend
     async syncStockFromBackend() {
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+            
             if (!token) return; // No auth, use localStorage
             
             const response = await fetch(`${window.API_BASE_URL}/api/shop/deals/stock`, {
@@ -293,7 +294,8 @@ const DailyDealsSystem = {
 
         // Try to purchase via backend API
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+            
             if (token) {
                 const response = await fetch(`${window.API_BASE_URL}/api/shop/deals/purchase`, {
                     method: 'POST',
