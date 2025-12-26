@@ -119,21 +119,33 @@ class LiveScoresManager {
         console.log(`🔄 Fetching ${sport} scores...`);
         
         try {
-            // Using ESPN's public scoreboard API
-            const url = `https://site.api.espn.com/v2/site/en/sports/${sport}/scoreboard`;
+            // Use backend proxy instead of direct ESPN API
+            const apiUrl = window.CONFIG?.API_BASE_URL || 'https://ultimate-sports-ai-backend-production.up.railway.app';
+            const url = `${apiUrl}/api/scores/${sport}`;
+            
+            console.log(`📡 Fetching from: ${url}`);
             
             const response = await fetch(url, {
                 headers: { 'Accept': 'application/json' },
                 signal: AbortSignal.timeout(10000)
             });
 
-            if (!response.ok) throw new Error(`API returned ${response.status}`);
+            if (!response.ok) {
+                console.warn(`Backend returned ${response.status}, trying demo data`);
+                throw new Error(`API returned ${response.status}`);
+            }
             
             const data = await response.json();
-            return this.parseESPNData(data, sport);
+            
+            if (data.success && data.games) {
+                console.log(`✅ Fetched ${data.games.length} games`);
+                return data.games;
+            } else {
+                throw new Error('Invalid response format');
+            }
             
         } catch (error) {
-            console.warn(`Failed to fetch from ESPN: ${error.message}, using demo data`);
+            console.warn(`Failed to fetch from backend: ${error.message}, using demo data`);
             return this.getDemoScores(sport);
         }
     }
@@ -516,17 +528,4 @@ class LiveScoresManager {
         const lastUpdated = document.querySelector('.last-updated');
         if (lastUpdated) {
             const now = new Date();
-            lastUpdated.textContent = `Last updated: ${now.toLocaleTimeString()}`;
-        }
-    }
-
-    destroy() {
-        clearInterval(this.refreshInterval);
-    }
-}
-
-// Initialize globally
-const liveScoresManager = new LiveScoresManager();
-
-console.log('✅ Live Scores Manager loaded');
-                              
+            lastUpdated.textContent = `Last updated: ${now.toLocaleTimeStrin
