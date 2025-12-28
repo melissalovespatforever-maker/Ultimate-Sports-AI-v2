@@ -762,6 +762,7 @@
         </nav>
     </div>
 
+
     <!-- Core App & Navigation (Load First) -->
     <!-- Age Verification (MUST LOAD FIRST) -->
     <script src="age-verification.js?v=20250214001"></script>
@@ -774,6 +775,9 @@
     <script src="breadcrumb-manager.js?v=20250117001"></script>
     <script src="app.js?v=20250101012"></script>
     
+    <!-- WebSocket Client (MUST LOAD BEFORE live-scores.js) -->
+    <script type="module" src="websocket-client.js?v=20250214002"></script>
+    
     <!-- User Authentication & Profile -->
     <script src="auth.js?v=20250101012"></script>
     <script src="password-reset.js?v=20250101012"></script>
@@ -782,7 +786,7 @@
     <!-- Core Modules -->
     <script src="tier-restrictions.js?v=20250107003"></script>
     <script src="upgrade-prompt.js?v=20250107003"></script>
-    <script src="live-scores.js?v=20250214001"></script>
+    <script src="live-scores.js?v=20250214002"></script>
     <script src="ai-coaches-deluxe.js?v=20250101012"></script>
     <script src="ai-coach-chat.js?v=20250101012"></script>
     <script src="ai-coach-picks.js?v=20250101012"></script>
@@ -797,11 +801,21 @@
     <script src="tournaments-simple.js?v=20250214001"></script>
     <script src="analytics-frontend.js?v=20250214001"></script>
     <script src="settings-frontend.js?v=20250214001"></script>
+    <script src="profile-inventory.js?v=20250214001"></script>
+    <script src="backend-diagnostics.js?v=20250214001"></script>
 
     <script>
         // App initialization complete
         document.addEventListener('DOMContentLoaded', () => {
             // Navigation and core modules auto-initialize
+            
+            // Debug: Test backend connectivity on load (console only)
+            console.log('🔍 Testing backend connectivity...');
+            console.log('📡 Backend URL:', window.CONFIG?.API_BASE_URL || 'https://ultimate-sports-ai-backend-production.up.railway.app');
+            console.log('💡 To run full diagnostics, type: await runBackendDiagnostics()');
+        });
+    </script>
+    
         });
     </script>
 </body>
