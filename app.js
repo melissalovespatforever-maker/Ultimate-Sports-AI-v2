@@ -1,7 +1,3 @@
-FILE #1: /app.js
-================
-COPY THIS ENTIRE FILE AND REPLACE YOUR /app.js
-
 // ============================================
 // ULTIMATE SPORTS AI - CORE APP ENGINE v4.0
 // FAST & WORKING - No external dependencies
