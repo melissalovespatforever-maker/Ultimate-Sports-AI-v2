@@ -285,9 +285,19 @@ class SportsWebSocketClient {
     }
 }
 
-// Export for Node.js
+// Make available globally for browser scripts
+if (typeof window !== 'undefined') {
+    window.SportsWebSocketClient = SportsWebSocketClient;
+    window.WebSocketClient = SportsWebSocketClient; // Alias
+}
+
+// Export for ES6 modules
+export { SportsWebSocketClient };
+export const WebSocketClient = SportsWebSocketClient;
+
+// Export for CommonJS (Node.js)
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = SportsWebSocketClient;
+    module.exports = { SportsWebSocketClient, WebSocketClient: SportsWebSocketClient };
 }
 
 console.log('✅ SportsWebSocket client loaded');
