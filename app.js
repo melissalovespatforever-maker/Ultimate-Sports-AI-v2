@@ -1,9 +1,10 @@
+FILE #1: /app.js
+================
+COPY THIS ENTIRE FILE AND REPLACE YOUR /app.js
+
 // ============================================
 // ULTIMATE SPORTS AI - CORE APP ENGINE v4.0
 // FAST & WORKING - No external dependencies
-// ============================================
-// FILE: app.js
-// Replace your existing app.js with this
 // ============================================
 
 console.log('🚀 Ultimate Sports AI v4.0 - STARTING');
@@ -58,6 +59,9 @@ const CONFIG = {
     VERSION: '4.0.0',
     REQUEST_TIMEOUT: 10000
 };
+
+// Make CONFIG globally available
+window.CONFIG = CONFIG;
 
 // ============================================
 // PART 3: STATE MANAGEMENT
@@ -249,344 +253,217 @@ class AuthManager {
 
     logout() {
         appState.clearUser();
-        showToast('Logged out', 'success');
-        navigation.navigateTo('home');
-    }
-
-    handleOAuthCallback() {
-        const params = new URLSearchParams(window.location.search);
-        const token = params.get('token');
-        
-        if (token) {
-            localStorage.setItem('auth_token', token);
-            window.history.replaceState({}, '', window.location.pathname);
-            this.checkToken();
-        }
+        navigation.navigateTo('auth');
     }
 }
 
 const authManager = new AuthManager();
 
 // ============================================
-// PART 6: NAVIGATION
+// PART 6: NAVIGATION SYSTEM
 // ============================================
 
-class Navigation {
+class NavigationManager {
     constructor() {
-        this.currentPage = 'home';
+        this.currentPage = null;
+        this.previousPage = null;
         this.init();
     }
 
     init() {
-        // Drawer toggle
-        document.getElementById('menu-btn')?.addEventListener('click', () => {
-            const drawer = document.getElementById('drawer-nav');
-            const overlay = document.getElementById('drawer-overlay');
-            drawer?.classList.toggle('active');
-            overlay?.classList.toggle('active');
-        });
+        // Check if app is already loaded
+        if (document.readyState !== 'loading') {
+            this.setupNavigation();
+        } else {
+            document.addEventListener('DOMContentLoaded', () => this.setupNavigation());
+        }
+    }
 
-        document.getElementById('drawer-overlay')?.addEventListener('click', () => {
-            document.getElementById('drawer-nav')?.classList.remove('active');
-            document.getElementById('drawer-overlay')?.classList.remove('active');
-        });
-
-        // Bottom nav
-        document.querySelectorAll('.bottom-nav-item[data-page]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.navigateTo(btn.dataset.page);
-                document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
+    setupNavigation() {
+        // Menu buttons (desktop)
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const page = item.dataset.page;
+                if (page) {
+                    this.navigateTo(page);
+                    this.closeDrawer();
+                }
             });
         });
 
-        // Drawer menu
-        document.querySelectorAll('.menu-item[data-page]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                this.navigateTo(btn.dataset.page);
-                document.querySelectorAll('.menu-item').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById('drawer-nav')?.classList.remove('active');
-                document.getElementById('drawer-overlay')?.classList.remove('active');
+        // Bottom nav buttons (mobile)
+        document.querySelectorAll('.bottom-nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const page = item.dataset.page;
+                if (page) this.navigateTo(page);
             });
         });
 
-        // Quick action cards
-        document.querySelectorAll('.quick-action-card[data-page]').forEach(card => {
-            card.addEventListener('click', () => this.navigateTo(card.dataset.page));
+        // Navigation button with authentication check
+        document.querySelectorAll('[data-page]').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const page = item.dataset.page;
+                if (page) {
+                    // For profile without auth, show auth page
+                    if (page === 'profile' && !appState.isAuthenticated) {
+                        this.navigateTo('auth');
+                        return;
+                    }
+                    this.navigateTo(page);
+                }
+            });
         });
 
-        // Logout button
-        document.getElementById('logout-btn')?.addEventListener('click', () => {
-            if (appState.isAuthenticated) {
-                authManager.logout();
-            } else {
-                this.navigateTo('auth');
-            }
-        });
-
-        // Upgrade button
-        document.getElementById('upgrade-btn')?.addEventListener('click', () => {
-            this.navigateTo('subscription');
-        });
-
-        // Profile button in header
-        document.querySelector('.profile-btn')?.addEventListener('click', () => {
-            this.navigateTo('profile');
-        });
-
-        console.log('✅ Navigation initialized');
+        // Default to home
+        if (!this.currentPage) {
+            this.navigateTo('home');
+        }
     }
 
     navigateTo(page) {
-        console.log(`📍 Navigate to: ${page}`);
-        
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        
+        // Hide all pages
+        document.querySelectorAll('.page').forEach(p => {
+            p.classList.remove('active');
+        });
+
+        // Show target page
         const targetPage = document.getElementById(`${page}-page`);
         if (targetPage) {
             targetPage.classList.add('active');
             this.currentPage = page;
-            window.scrollTo(0, 0);
-        } else {
-            console.warn(`Page not found: ${page}`);
+
+            // Update active nav items
+            document.querySelectorAll('.menu-item, .bottom-nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.dataset.page === page) {
+                    item.classList.add('active');
+                }
+            });
+
+            // Trigger page-specific loading if needed
+            this.triggerPageLoad(page);
         }
+    }
+
+    triggerPageLoad(page) {
+        // Trigger custom events for pages that need to load data
+        const event = new Event(`page-${page}-loaded`);
+        document.dispatchEvent(event);
+    }
+
+    closeDrawer() {
+        const overlay = document.getElementById('drawer-overlay');
+        const drawer = document.getElementById('drawer-nav');
+        if (overlay) overlay.style.display = 'none';
+        if (drawer) drawer.classList.remove('active');
     }
 }
 
-const navigation = new Navigation();
+const navigation = new NavigationManager();
 
 // ============================================
-// PART 7: AUTH UI
+// PART 7: DRAWER MANAGEMENT
 // ============================================
 
-class AuthUI {
+class DrawerManager {
     constructor() {
         this.init();
     }
 
     init() {
-        // Continue as Guest
-        document.getElementById('continue-as-guest-btn')?.addEventListener('click', () => {
-            navigation.navigateTo('home');
-        });
+        if (document.readyState !== 'loading') {
+            this.setupDrawer();
+        } else {
+            document.addEventListener('DOMContentLoaded', () => this.setupDrawer());
+        }
+    }
 
-        // OAuth buttons
-        ['google', 'apple'].forEach(provider => {
-            document.getElementById(`${provider}-login-btn`)?.addEventListener('click', () => {
-                window.location.href = api.getOAuthURL(provider);
+    setupDrawer() {
+        const menuBtn = document.getElementById('menu-btn');
+        const overlay = document.getElementById('drawer-overlay');
+        const drawer = document.getElementById('drawer-nav');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        if (menuBtn) {
+            menuBtn.addEventListener('click', () => {
+                if (drawer) drawer.classList.toggle('active');
+                if (overlay) overlay.style.display = drawer?.classList.contains('active') ? 'block' : 'none';
             });
-            document.getElementById(`${provider}-signup-btn`)?.addEventListener('click', () => {
-                window.location.href = api.getOAuthURL(provider);
+        }
+
+        if (overlay) {
+            overlay.addEventListener('click', () => {
+                if (drawer) drawer.classList.remove('active');
+                overlay.style.display = 'none';
+            });
+        }
+
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                authManager.logout();
+            });
+        }
+
+        // Profile button
+        document.querySelectorAll('.profile-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!appState.isAuthenticated) {
+                    navigation.navigateTo('auth');
+                } else {
+                    navigation.navigateTo('profile');
+                }
             });
         });
 
-        // Auth form toggle
-        document.getElementById('show-signup')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('login-form').style.display = 'none';
-            document.getElementById('signup-form').style.display = 'block';
+        // Upgrade button
+        document.getElementById('upgrade-btn')?.addEventListener('click', () => {
+            navigation.navigateTo('subscription');
         });
-
-        document.getElementById('show-login')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('signup-form').style.display = 'none';
-            document.getElementById('login-form').style.display = 'block';
-        });
-
-        // Login form
-        document.getElementById('login-form-element')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            if (await authManager.login(email, password)) {
-                navigation.navigateTo('home');
-            }
-        });
-
-        // Signup form
-        document.getElementById('signup-form-element')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            const username = document.getElementById('signup-username').value;
-            if (await authManager.signup(email, password, username)) {
-                navigation.navigateTo('home');
-            }
-        });
-
-        console.log('✅ Auth UI initialized');
     }
 }
 
-const authUI = new AuthUI();
+const drawerManager = new DrawerManager();
 
 // ============================================
-// PART 8: UI UPDATES
+// PART 8: NOTIFICATIONS
 // ============================================
 
-function updateUI() {
-    const user = appState.user;
-    
-    // Update display name
-    const displayName = document.getElementById('user-display-name');
-    if (displayName) displayName.textContent = user?.name || 'Guest User';
-    
-    // Update avatar
-    const avatar = document.getElementById('drawer-user-avatar');
-    if (avatar) avatar.textContent = user?.avatar || '😊';
-    
-    // Update tier badge
-    const tierBadge = document.getElementById('user-tier-badge');
-    if (tierBadge) {
-        const tier = user?.subscription_tier || 'free';
-        tierBadge.textContent = tier.toUpperCase() + ' TIER';
-        tierBadge.className = `user-tier tier-${tier.toLowerCase()}`;
+class NotificationManager {
+    constructor() {
+        this.notifications = [];
     }
-}
 
-appState.subscribe(updateUI);
+    show(message, type = 'info', duration = 3000) {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
 
-// ============================================
-// PART 9: TOAST NOTIFICATIONS
-// ============================================
-
-function showToast(message, type = 'info') {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.innerHTML = `<span>${message}</span>`;
-    toast.style.cssText = `
-        padding: 16px 24px;
-        margin: 12px;
-        border-radius: 8px;
-        background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-        color: white;
-        font-weight: 600;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        animation: slideIn 0.3s ease;
-    `;
-
-    container.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-window.showToast = showToast;
-
-// ============================================
-// PART 10: INITIALIZATION
-// ============================================
-
-function initApp() {
-    console.log('⚙️ Initializing app...');
-    
-    // Update UI
-    updateUI();
-    
-    // Check OAuth callback
-    authManager.handleOAuthCallback();
-    
-    // Check for first visit
-    const hasSeenPicker = localStorage.getItem('hasSeenUsernamePicker');
-    if (!hasSeenPicker && !appState.isAuthenticated) {
-        showGuestUsernamePicker();
-    }
-    
-    console.log('✅ App ready');
-}
-
-function showGuestUsernamePicker() {
-    const modal = document.createElement('div');
-    modal.id = 'guest-username-modal';
-    modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.85);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10000;
-        padding: 20px;
-    `;
-
-    modal.innerHTML = `
-        <div style="
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 40px 30px;
-            border-radius: 24px;
-            max-width: 450px;
-            width: 100%;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-        ">
-            <div style="font-size: 64px; margin-bottom: 20px;">👋</div>
-            <h2 style="font-size: 32px; font-weight: 800; color: white; margin-bottom: 12px;">Welcome!</h2>
-            <p style="font-size: 16px; color: rgba(255, 255, 255, 0.9); margin-bottom: 30px;">
-                What's your name?
-            </p>
-            <input 
-                type="text" 
-                id="guest-username-input"
-                placeholder="Enter your name"
-                style="
-                    width: 100%;
-                    padding: 16px 20px;
-                    font-size: 18px;
-                    border: 3px solid rgba(255, 255, 255, 0.3);
-                    border-radius: 12px;
-                    background: rgba(255, 255, 255, 0.95);
-                    margin-bottom: 24px;
-                    box-sizing: border-box;
-                "
-                maxlength="20"
-            >
-            <div style="display: flex; gap: 12px;">
-                <button onclick="
-                    const name = document.getElementById('guest-username-input').value || 'Guest';
-                    localStorage.setItem('guestUsername', name);
-                    localStorage.setItem('hasSeenUsernamePicker', 'true');
-                    appState.user.name = name;
-                    appState.notify();
-                    document.getElementById('guest-username-modal').remove();
-                    showToast('Welcome, ' + name + '! 🎉', 'success');
-                " style="
-                    flex: 1;
-                    padding: 16px 24px;
-                    font-size: 16px;
-                    font-weight: 700;
-                    border: none;
-                    border-radius: 12px;
-                    background: linear-gradient(135deg, #10b981, #059669);
-                    color: white;
-                    cursor: pointer;
-                ">
-                    Get Started 🚀
-                </button>
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+            <div class="toast-content">
+                <span>${message}</span>
             </div>
-        </div>
-    `;
+        `;
 
-    document.body.appendChild(modal);
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    }
 }
 
+window.showToast = (msg, type) => {
+    new NotificationManager().show(msg, type);
+};
+
 // ============================================
-// PART 11: START
+// PART 9: INITIALIZATION
 // ============================================
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
-}
-
-console.log('✅ App.js loaded successfully');
-    
+console.log('✅ Core app engine loaded');
