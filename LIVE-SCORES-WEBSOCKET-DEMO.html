@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Scores - Real-Time WebSocket Updates 🏈</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .status-connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-connected .status-dot {
+            background: #28a745;
+        }
+
+        .status-disconnected .status-dot {
+            background: #dc3545;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .sports-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
+        .game-card.updated::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(40, 167, 69, 0.1);
+            animation: flash 0.6s ease-out;
+        }
+
+        @keyframes flash {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .game-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-size: 0.85em;
+        }
+
+        .game-time {
+            font-weight: bold;
+        }
+
+        .game-status {
+            font-size: 0.8em;
+            opacity: 0.9;
+        }
+
+        .game-content {
+            padding: 20px;
+        }
+
+        .team {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .team:last-child {
+            border-bottom: none;
+        }
+
+        .team-info {
+            flex: 1;
+        }
+
+        .team-abbr {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .team-name {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .score {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        .vs {
+            text-align: center;
+            font-size: 0.9em;
+            color: #999;
+            padding: 10px;
+        }
+
+        .game-footer {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            font-size: 0.85em;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .update-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .stats {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .stats h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .stat-value {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(102, 126, 234, 0.3);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sports-tabs {
+                overflow-x: auto;
+            }
+
+            .game-card {
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                🏈 Live Scores
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-dot"></span>
+                    <span id="statusText">Connecting...</span>
+                </div>
+            </h1>
+            <p style="color: #666;">Real-time updates powered by ESPN API</p>
+        </div>
+
+        <div class="sports-tabs" id="sportsTabs"></div>
+
+        <div id="gamesContainer" class="games-grid">
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <div class="loading"></div>
+                </div>
+                <p>Loading live games...</p>
+            </div>
+        </div>
+
+        <div class="stats">
+            <h3>📊 Connection Statistics</h3>
+            <div class="stat-row">
+                <span class="stat-label">Status:</span>
+                <span class="stat-value" id="statStatus">Connecting...</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Server:</span>
+                <span class="stat-value" id="statServer">-</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Subscribed Sports:</span>
+                <span class="stat-value" id="statSports">-</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Last Update:</span>
+                <span class="stat-value" id="statLastUpdate">Never</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Total Games:</span>
+                <span class="stat-value" id="statGameCount">0</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class LiveScoresUI {
+            constructor() {
+                this.currentSport = 'nfl';
+                this.allGames = {};
+                this.lastUpdates = {};
+                this.socket = null;
+                this.isConnected = false;
+                
+                this.init();
+            }
+
+            init() {
+                this.createSportsTabs();
+                this.connectWebSocket();
+            }
+
+            createSportsTabs() {
+                const sports = ['nfl', 'nba', 'nhl', 'mlb', 'soccer'];
+                const container = document.getElementById('sportsTabs');
+                
+                sports.forEach(sport => {
+                    const tab = document.createElement('button');
+                    tab.className = `tab ${sport === 'nfl' ? 'active' : ''}`;
+                    tab.textContent = sport.toUpperCase();
+                    tab.onclick = () => this.switchSport(sport);
+                    container.appendChild(tab);
+                });
+            }
+
+            connectWebSocket() {
+                // Detect server URL
+                const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                const serverUrl = isDev ? 'http://localhost:3001' : window.location.origin;
+
+                console.log(`🔌 Connecting to ${serverUrl}`);
+
+                this.socket = io(serverUrl, {
+                    reconnection: true,
+                    reconnectionDelay: 3000,
+                    reconnectionDelayMax: 10000,
+                    reconnectionAttempts: 5
+                });
+
+                this.socket.on('connect', () => {
+                    console.log('✅ Connected to server');
+                    this.isConnected = true;
+                    this.updateConnectionStatus(true);
+                    this.subscribe('nfl'); // Subscribe to NFL initially
+                });
+
+                this.socket.on('disconnect', () => {
+                    console.log('❌ Disconnected from server');
+                    this.isConnected = false;
+                    this.updateConnectionStatus(false);
+                });
+
+                this.socket.on('score_update', (data) => {
+                    console.log('📊 Score update received:', data.sport);
+                    this.allGames[data.sport.toLowerCase()] = data.games;
+                    this.lastUpdates[data.sport.toLowerCase()] = new Date();
+                    
+                    if (data.sport.toLowerCase() === this.currentSport) {
+                        this.renderGames();
+                    }
+                    
+                    this.updateStats();
+                });
+
+                this.socket.on('sync_status', (data) => {
+                    console.log('📡 Sync status:', data.status);
+                    this.updateStats();
+                });
+
+                this.socket.on('scheduler_heartbeat', (data) => {
+                    console.log('💓 Heartbeat received');
+                    this.updateStats();
+                });
+
+                this.socket.on('error', (error) => {
+                    console.error('⚠️  Socket error:', error);
+                });
+            }
+
+            subscribe(sport) {
+                if (this.socket && this.isConnected) {
+                    this.socket.emit('subscribe', { sport });
+                }
+            }
+
+            switchSport(sport) {
+                this.currentSport = sport;
+                
+                // Update tabs
+                document.querySelectorAll('.tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                event.target.classList.add('active');
+
+                // Subscribe to new sport
+                this.subscribe(sport);
+                
+                // Re-render games
+                this.renderGames();
+            }
+
+            renderGames() {
+                const games = this.allGames[this.currentSport] || [];
+                const container = document.getElementById('gamesContainer');
+
+                if (games.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1/-1;">
+                            <div class="empty-state-icon">🏈</div>
+                            <p>No games available for ${this.currentSport.toUpperCase()}</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = games.map(game => `
+                    <div class="game-card updated">
+                        <div class="game-header">
+                            <div class="game-time">${new Date(game.game_time).toLocaleString()}</div>
+                            <div class="game-status">${game.status || 'SCHEDULED'}</div>
+                        </div>
+                        <div class="game-content">
+                            <div class="team">
+                                <div class="team-info">
+                                    <div class="team-abbr">${game.away_team_abbr}</div>
+                                    <div class="team-name">${game.away_team}</div>
+                                </div>
+                                <div class="score">${game.away_score !== null ? game.away_score : '-'}</div>
+                            </div>
+                            <div class="vs">VS</div>
+                            <div class="team">
+                                <div class="team-info">
+                                    <div class="team-abbr">${game.home_team_abbr}</div>
+                                    <div class="team-name">${game.home_team}</div>
+                                </div>
+                                <div class="score">${game.home_score !== null ? game.home_score : '-'}</div>
+                            </div>
+                        </div>
+                        <div class="game-footer">
+                            <span>${game.venue || 'TBD'}</span>
+                            ${game.status !== 'SCHEDULED' ? '<span class="update-badge">LIVE</span>' : ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            updateConnectionStatus(connected) {
+                const status = document.getElementById('connectionStatus');
+                const statusText = document.getElementById('statusText');
+                
+                if (connected) {
+                    status.className = 'connection-status status-connected';
+                    statusText.textContent = 'Connected';
+                } else {
+                    status.className = 'connection-status status-disconnected';
+                    statusText.textContent = 'Disconnected';
+                }
+
+                document.getElementById('statStatus').textContent = connected ? 'Connected' : 'Disconnected';
+            }
+
+            updateStats() {
+                document.getElementById('statServer').textContent = window.location.origin;
+                document.getElementById('statSports').textContent = this.currentSport.toUpperCase();
+                document.getElementById('statLastUpdate').textContent = this.lastUpdates[this.currentSport]?.toLocaleTimeString() || 'Never';
+                
+                const gameCount = (this.allGames[this.currentSport] || []).length;
+                document.getElementById('statGameCount').textContent = gameCount;
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new LiveScoresUI();
+        });
+    </script>
+</body>
+</html>
