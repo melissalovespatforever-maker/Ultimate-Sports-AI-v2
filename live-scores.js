@@ -1,7 +1,10 @@
 // ============================================
-// LIVE SCORES MODULE - REAL ESPN DATA
+// LIVE SCORES MODULE - WEBSOCKET REAL-TIME
 // Fetches actual sports data from ESPN API
+// REAL-TIME updates via WebSocket broadcaster
 // ============================================
+
+import { WebSocketClient } from './websocket-client.js';
 
 class LiveScoresManager {
     constructor() {
@@ -10,26 +13,165 @@ class LiveScoresManager {
         this.selectedSport = 'nfl';
         this.refreshInterval = null;
         this.cache = new Map();
-        this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
+        this.cacheTimeout = 5 * 60 * 1000;
+        this.wsClient = null;
+        this.isConnected = false;
     }
 
     async load() {
-        console.log('📊 Loading Live Scores...');
+        console.log('📊 Loading Live Scores (WebSocket Mode)...');
         const container = document.getElementById('live-scores-container');
         if (!container) return;
 
         this.renderUI(container);
         this.attachEventListeners();
+        this.initializeWebSocket();
         await this.fetchScores();
+    }
+
+    initializeWebSocket() {
+        try {
+            this.wsClient = new WebSocketClient(
+                `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`,
+                {
+                    reconnection: true,
+                    reconnectionDelay: 1000,
+                    reconnectionDelayMax: 5000,
+                    reconnectionAttempts: 5
+                }
+            );
+
+            this.wsClient.on('connect', () => {
+                console.log('✅ Connected to live scores WebSocket');
+                this.isConnected = true;
+                this.updateConnectionStatus('connected');
+                this.subscribeToAllSports();
+            });
+
+            this.wsClient.on('disconnect', () => {
+                console.log('❌ Disconnected from WebSocket');
+                this.isConnected = false;
+                this.updateConnectionStatus('disconnected');
+            });
+
+            this.wsClient.on('score_update', (data) => {
+                console.log('📡 Score update received:', data);
+                this.handleScoreUpdate(data);
+            });
+
+            this.wsClient.on('game_event', (data) => {
+                console.log('🎯 Game event:', data);
+                this.handleGameEvent(data);
+            });
+
+            this.wsClient.on('sync_status', (data) => {
+                console.log('🔄 Sync status:', data);
+                this.updateLastSyncTime(data.timestamp);
+            });
+
+            this.wsClient.on('notifications', (data) => {
+                console.log('📢 Notification:', data);
+                this.showNotification(data);
+            });
+
+        } catch (error) {
+            console.error('❌ WebSocket initialization error:', error);
+            this.startPolling();
+        }
+    }
+
+    subscribeToAllSports() {
+        const sports = ['nfl', 'nba', 'nhl', 'mlb', 'soccer'];
+        sports.forEach(sport => {
+            if (this.wsClient) {
+                this.wsClient.subscribe(sport);
+            }
+        });
+        console.log('✅ Subscribed to all sports');
+    }
+
+    handleScoreUpdate(data) {
+        const { sport, games } = data;
         
-        // Auto-refresh every 30 seconds
+        if (sport === this.selectedSport) {
+            this.scores = games || [];
+            this.renderScores();
+            this.animateScoreUpdate();
+        }
+    }
+
+    handleGameEvent(data) {
+        const { sport, game, event } = data;
+        
+        if (sport === this.selectedSport) {
+            const gameIndex = this.scores.findIndex(g => g.id === game.id);
+            if (gameIndex !== -1) {
+                this.scores[gameIndex] = { ...this.scores[gameIndex], ...game };
+                this.renderScores();
+                this.highlightUpdatedGame(gameIndex);
+            }
+        }
+    }
+
+    animateScoreUpdate() {
+        const scoresList = document.getElementById('scores-list');
+        if (scoresList) {
+            scoresList.classList.add('scores-updated');
+            setTimeout(() => {
+                scoresList.classList.remove('scores-updated');
+            }, 500);
+        }
+    }
+
+    highlightUpdatedGame(index) {
+        const gameElements = document.querySelectorAll('.game-card');
+        if (gameElements[index]) {
+            gameElements[index].classList.add('updated');
+            setTimeout(() => {
+                gameElements[index].classList.remove('updated');
+            }, 1500);
+        }
+    }
+
+    startPolling() {
+        console.log('⚠️  WebSocket unavailable, falling back to polling...');
         clearInterval(this.refreshInterval);
         this.refreshInterval = setInterval(() => this.fetchScores(), 30000);
+    }
+
+    async fetchScores() {
+        try {
+            this.isLoading = true;
+            const endpoint = `/api/scores/${this.selectedSport}`;
+            
+            const response = await fetch(endpoint);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            
+            const data = await response.json();
+            this.scores = data.events || [];
+            this.renderScores();
+            this.updateLastSyncTime(new Date());
+            
+        } catch (error) {
+            console.error('❌ Error fetching scores:', error);
+            this.showError('Failed to load scores. Retrying...');
+            
+            setTimeout(() => this.fetchScores(), 5000);
+        } finally {
+            this.isLoading = false;
+        }
     }
 
     renderUI(container) {
         container.innerHTML = `
             <div class="live-scores-wrapper">
+                <div class="scores-header">
+                    <div class="connection-status" id="connection-status">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Connecting...</span>
+                    </div>
+                </div>
+                
                 <div class="scores-filter-bar">
                     <button class="score-filter-btn active" data-sport="nfl">
                         <i class="fas fa-football-ball"></i> NFL
@@ -47,12 +189,14 @@ class LiveScoresManager {
                         <i class="fas fa-futbol"></i> SOCCER
                     </button>
                 </div>
+                
                 <div class="scores-refresh-bar">
                     <button id="scores-refresh-btn" class="btn-small">
                         <i class="fas fa-sync-alt"></i> Refresh Now
                     </button>
-                    <span class="last-updated">Last updated: Just now</span>
+                    <span class="last-updated">Last updated: Waiting...</span>
                 </div>
+                
                 <div id="scores-list" class="scores-list">
                     <div class="loading-spinner">
                         <i class="fas fa-spinner fa-spin"></i>
@@ -64,468 +208,137 @@ class LiveScoresManager {
     }
 
     attachEventListeners() {
-        // Sport filter buttons
         document.querySelectorAll('.score-filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.score-filter-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 this.selectedSport = btn.dataset.sport;
+                
+                if (this.wsClient && this.isConnected) {
+                    this.wsClient.emit('sport_change', { sport: this.selectedSport });
+                }
+                
                 this.fetchScores();
             });
         });
 
-        // Refresh button
         document.getElementById('scores-refresh-btn')?.addEventListener('click', () => {
             this.fetchScores();
         });
     }
 
-    async fetchScores() {
-        if (this.isLoading) return;
-        
-        this.isLoading = true;
-        const container = document.getElementById('scores-list');
-        
-        try {
-            let scores = [];
-            
-            // Use cached data if available
-            const cacheKey = `scores_${this.selectedSport}`;
-            const cached = this.cache.get(cacheKey);
-            const now = Date.now();
-            
-            if (cached && (now - cached.timestamp) < this.cacheTimeout) {
-                console.log('📦 Using cached scores');
-                scores = cached.data;
-            } else {
-                // Fetch fresh data
-                scores = await this.fetchFromESPN(this.selectedSport);
-                this.cache.set(cacheKey, { data: scores, timestamp: now });
-            }
-            
-            this.scores = scores;
-            this.renderScores(container, scores);
-            this.updateLastRefreshTime();
-            
-        } catch (error) {
-            console.error('❌ Error fetching scores:', error);
-            this.renderError(container, error.message);
-        } finally {
-            this.isLoading = false;
-        }
-    }
+    renderScores() {
+        const scoresList = document.getElementById('scores-list');
+        if (!scoresList) return;
 
-    async fetchFromESPN(sport) {
-        console.log(`🔄 Fetching ${sport} scores...`);
-        
-        try {
-            // Use backend proxy instead of direct ESPN API
-            const apiUrl = window.CONFIG?.API_BASE_URL || 'https://ultimate-sports-ai-backend-production.up.railway.app';
-            const url = `${apiUrl}/api/scores/${sport}`;
-            
-            console.log(`📡 Fetching from: ${url}`);
-            
-            const response = await fetch(url, {
-                headers: { 'Accept': 'application/json' },
-                signal: AbortSignal.timeout(10000)
-            });
-
-            if (!response.ok) {
-                console.warn(`Backend returned ${response.status}, trying demo data`);
-                throw new Error(`API returned ${response.status}`);
-            }
-            
-            const data = await response.json();
-            
-            if (data.success && data.games) {
-                console.log(`✅ Fetched ${data.games.length} games`);
-                return data.games;
-            } else {
-                throw new Error('Invalid response format');
-            }
-            
-        } catch (error) {
-            console.warn(`Failed to fetch from backend: ${error.message}, using demo data`);
-            return this.getDemoScores(sport);
-        }
-    }
-
-    parseESPNData(data, sport) {
-        const games = [];
-        
-        if (!data.events) {
-            return this.getDemoScores(sport);
-        }
-
-        for (const event of data.events) {
-            const game = {
-                id: event.id,
-                homeTeam: event.competitors?.[1]?.displayName || 'Home',
-                awayTeam: event.competitors?.[0]?.displayName || 'Away',
-                homeScore: parseInt(event.competitors?.[1]?.score || 0),
-                awayScore: parseInt(event.competitors?.[0]?.score || 0),
-                homeTeamAbbr: event.competitors?.[1]?.abbreviation || 'H',
-                awayTeamAbbr: event.competitors?.[0]?.abbreviation || 'A',
-                status: event.status?.type?.name || 'SCHEDULED',
-                time: event.status?.displayClock || '',
-                quarter: event.status?.period || 0,
-                startTime: event.date,
-                homeIcon: event.competitors?.[1]?.logo,
-                awayIcon: event.competitors?.[0]?.logo,
-                venue: event.venue?.fullName || 'TBD',
-                broadcast: event.links?.[0]?.text || '',
-                spread: this.parseSpread(event),
-                odds: this.parseOdds(event)
-            };
-            games.push(game);
-        }
-
-        return games.length > 0 ? games : this.getDemoScores(sport);
-    }
-
-    parseSpread(event) {
-        try {
-            const links = event.links || [];
-            const odds = links.find(l => l.text?.includes('Odds'));
-            return odds ? odds.text : 'N/A';
-        } catch (e) {
-            return 'N/A';
-        }
-    }
-
-    parseOdds(event) {
-        return {};
-    }
-
-    getDemoScores(sport) {
-        const demoData = {
-            nfl: [
-                {
-                    id: '1',
-                    homeTeam: 'Kansas City Chiefs',
-                    awayTeam: 'Buffalo Bills',
-                    homeScore: 24,
-                    awayScore: 19,
-                    homeTeamAbbr: 'KC',
-                    awayTeamAbbr: 'BUF',
-                    status: 'LIVE',
-                    time: '1:45',
-                    quarter: 3,
-                    startTime: new Date().toISOString(),
-                    venue: 'Arrowhead Stadium',
-                    homeIcon: '🏈',
-                    awayIcon: '🏈'
-                },
-                {
-                    id: '2',
-                    homeTeam: 'Dallas Cowboys',
-                    awayTeam: 'Philadelphia Eagles',
-                    homeScore: 17,
-                    awayScore: 20,
-                    homeTeamAbbr: 'DAL',
-                    awayTeamAbbr: 'PHI',
-                    status: 'FINAL',
-                    time: 'FINAL',
-                    quarter: 4,
-                    startTime: new Date().toISOString(),
-                    venue: 'AT&T Stadium',
-                    homeIcon: '🏈',
-                    awayIcon: '🏈'
-                },
-                {
-                    id: '3',
-                    homeTeam: 'San Francisco 49ers',
-                    awayTeam: 'Los Angeles Rams',
-                    homeScore: null,
-                    awayScore: null,
-                    homeTeamAbbr: 'SF',
-                    awayTeamAbbr: 'LAR',
-                    status: 'SCHEDULED',
-                    time: '8:20 PM ET',
-                    quarter: 0,
-                    startTime: new Date(Date.now() + 4 * 3600000).toISOString(),
-                    venue: 'Levi Stadium',
-                    homeIcon: '🏈',
-                    awayIcon: '🏈'
-                }
-            ],
-            nba: [
-                {
-                    id: '1',
-                    homeTeam: 'Los Angeles Lakers',
-                    awayTeam: 'Boston Celtics',
-                    homeScore: 108,
-                    awayScore: 105,
-                    homeTeamAbbr: 'LAL',
-                    awayTeamAbbr: 'BOS',
-                    status: 'LIVE',
-                    time: '5:32',
-                    quarter: 4,
-                    startTime: new Date().toISOString(),
-                    venue: 'Crypto.com Arena',
-                    homeIcon: '🏀',
-                    awayIcon: '🏀'
-                }
-            ],
-            nhl: [
-                {
-                    id: '1',
-                    homeTeam: 'Toronto Maple Leafs',
-                    awayTeam: 'Montreal Canadiens',
-                    homeScore: 4,
-                    awayScore: 2,
-                    homeTeamAbbr: 'TOR',
-                    awayTeamAbbr: 'MTL',
-                    status: 'LIVE',
-                    time: '15:23',
-                    quarter: 2,
-                    startTime: new Date().toISOString(),
-                    venue: 'Scotiabank Arena',
-                    homeIcon: '🏒',
-                    awayIcon: '🏒'
-                }
-            ],
-            mlb: [
-                {
-                    id: '1',
-                    homeTeam: 'New York Yankees',
-                    awayTeam: 'Boston Red Sox',
-                    homeScore: 5,
-                    awayScore: 3,
-                    homeTeamAbbr: 'NYY',
-                    awayTeamAbbr: 'BOS',
-                    status: 'LIVE',
-                    time: 'Top 6',
-                    quarter: 6,
-                    startTime: new Date().toISOString(),
-                    venue: 'Yankee Stadium',
-                    homeIcon: '⚾',
-                    awayIcon: '⚾'
-                }
-            ],
-            soccer: [
-                {
-                    id: '1',
-                    homeTeam: 'Manchester United',
-                    awayTeam: 'Liverpool',
-                    homeScore: 2,
-                    awayScore: 2,
-                    homeTeamAbbr: 'MUN',
-                    awayTeamAbbr: 'LIV',
-                    status: 'LIVE',
-                    time: '67:34',
-                    quarter: 2,
-                    startTime: new Date().toISOString(),
-                    venue: 'Old Trafford',
-                    homeIcon: '⚽',
-                    awayIcon: '⚽'
-                }
-            ]
-        };
-
-        return demoData[sport] || [];
-    }
-
-    renderScores(container, scores) {
-        if (!scores || scores.length === 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    <div style="font-size: 64px; margin-bottom: 16px;">😴</div>
-                    <h3>No Games Right Now</h3>
-                    <p>Check back later for more ${this.selectedSport.toUpperCase()} games</p>
-                </div>
-            `;
+        if (this.scores.length === 0) {
+            scoresList.innerHTML = '<p class="no-games">No games found</p>';
             return;
         }
 
-        let html = '';
-        
-        // Separate live, final, and upcoming games
-        const live = scores.filter(g => g.status === 'LIVE');
-        const final = scores.filter(g => g.status === 'FINAL');
-        const upcoming = scores.filter(g => g.status === 'SCHEDULED');
-
-        // LIVE GAMES
-        if (live.length > 0) {
-            html += '<div class="score-section"><h3 class="section-title"><i class="fas fa-pulse"></i> LIVE NOW</h3>';
-            live.forEach(game => html += this.renderGameCard(game, true));
-            html += '</div>';
-        }
-
-        // FINAL GAMES
-        if (final.length > 0) {
-            html += '<div class="score-section"><h3 class="section-title"><i class="fas fa-check-circle"></i> FINAL</h3>';
-            final.forEach(game => html += this.renderGameCard(game, false));
-            html += '</div>';
-        }
-
-        // UPCOMING GAMES
-        if (upcoming.length > 0) {
-            html += '<div class="score-section"><h3 class="section-title"><i class="fas fa-clock"></i> UPCOMING</h3>';
-            upcoming.forEach(game => html += this.renderGameCard(game, false));
-            html += '</div>';
-        }
-
-        container.innerHTML = html;
-
-        // Add click handlers for detailed view
-        document.querySelectorAll('.game-card').forEach(card => {
-            card.addEventListener('click', () => {
-                const gameId = card.dataset.gameId;
-                const game = scores.find(g => g.id === gameId);
-                if (game) this.showGameDetails(game);
-            });
-        });
+        scoresList.innerHTML = this.scores.map(game => this.renderGameCard(game)).join('');
     }
 
-    renderGameCard(game, isLive) {
-        const statusClass = game.status === 'LIVE' ? 'status-live' : game.status === 'FINAL' ? 'status-final' : 'status-upcoming';
-        const timeDisplay = game.status === 'SCHEDULED' ? game.time : 
-                           game.status === 'LIVE' ? `${game.quarter}Q ${game.time}` : 
-                           'FINAL';
-
-        const homeScoreHtml = game.homeScore !== null ? `<span class="score">${game.homeScore}</span>` : '<span class="score-tbd">-</span>';
-        const awayScoreHtml = game.awayScore !== null ? `<span class="score">${game.awayScore}</span>` : '<span class="score-tbd">-</span>';
+    renderGameCard(game) {
+        const homeTeam = game.competitions?.[0]?.home;
+        const awayTeam = game.competitions?.[0]?.away;
+        const status = game.status?.type?.description || 'TBD';
+        const time = new Date(game.date).toLocaleString();
 
         return `
-            <div class="game-card ${statusClass}" data-game-id="${game.id}">
-                <div class="game-status-badge ${game.status.toLowerCase()}">
-                    ${game.status === 'LIVE' ? '<span class="live-dot"></span>' : ''}
-                    ${timeDisplay}
+            <div class="game-card" data-game-id="${game.id}">
+                <div class="game-header">
+                    <span class="game-time">${time}</span>
+                    <span class="game-status">${status}</span>
                 </div>
-
-                <div class="game-score-container">
-                    <div class="team away-team">
-                        <div class="team-icon">${game.awayIcon}</div>
-                        <div class="team-info">
-                            <div class="team-name">${game.awayTeam}</div>
-                            <div class="team-abbr">${game.awayTeamAbbr}</div>
-                        </div>
-                        ${awayScoreHtml}
-                    </div>
-
-                    <div class="game-vs">VS</div>
-
-                    <div class="team home-team">
-                        <div class="team-icon">${game.homeIcon}</div>
-                        <div class="team-info">
-                            <div class="team-name">${game.homeTeam}</div>
-                            <div class="team-abbr">${game.homeTeamAbbr}</div>
-                        </div>
-                        ${homeScoreHtml}
-                    </div>
-                </div>
-
-                <div class="game-footer">
-                    <small>${game.venue}</small>
-                    ${game.spread ? `<small>Spread: ${game.spread}</small>` : ''}
-                </div>
-            </div>
-        `;
-    }
-
-    showGameDetails(game) {
-        const modal = document.createElement('div');
-        modal.className = 'game-details-modal';
-        modal.innerHTML = `
-            <div class="game-details-content">
-                <button class="close-btn" onclick="this.closest('.game-details-modal').remove()">×</button>
                 
-                <div class="game-details-header">
-                    <h2>${game.awayTeam} vs ${game.homeTeam}</h2>
-                    <p>${game.venue}</p>
-                </div>
-
-                <div class="game-details-score">
-                    <div class="team-detail">
-                        <div class="team-icon" style="font-size: 64px;">${game.awayIcon}</div>
-                        <h3>${game.awayTeam}</h3>
-                        <div class="score-large">${game.awayScore || '-'}</div>
+                <div class="game-matchup">
+                    <div class="team away-team">
+                        <img src="${awayTeam?.logo || ''}" alt="${awayTeam?.displayName}" class="team-logo">
+                        <div class="team-info">
+                            <p class="team-name">${awayTeam?.displayName || 'Away'}</p>
+                            <p class="team-score">${awayTeam?.score || '-'}</p>
+                        </div>
                     </div>
-
-                    <div class="vs-divider">
-                        <div>${game.status}</div>
-                        <div>${game.status === 'SCHEDULED' ? game.time : `${game.quarter}Q ${game.time}`}</div>
-                    </div>
-
-                    <div class="team-detail">
-                        <div class="team-icon" style="font-size: 64px;">${game.homeIcon}</div>
-                        <h3>${game.homeTeam}</h3>
-                        <div class="score-large">${game.homeScore || '-'}</div>
+                    
+                    <div class="vs-badge">VS</div>
+                    
+                    <div class="team home-team">
+                        <div class="team-info">
+                            <p class="team-name">${homeTeam?.displayName || 'Home'}</p>
+                            <p class="team-score">${homeTeam?.score || '-'}</p>
+                        </div>
+                        <img src="${homeTeam?.logo || ''}" alt="${homeTeam?.displayName}" class="team-logo">
                     </div>
                 </div>
-
-                <div class="game-details-info">
-                    <div class="info-row">
-                        <span>Status:</span>
-                        <strong>${game.status}</strong>
-                    </div>
-                    <div class="info-row">
-                        <span>Venue:</span>
-                        <strong>${game.venue}</strong>
-                    </div>
-                    ${game.spread ? `
-                    <div class="info-row">
-                        <span>Spread:</span>
-                        <strong>${game.spread}</strong>
-                    </div>
-                    ` : ''}
+                
+                <div class="game-details">
+                    ${game.competitions?.[0]?.venue ? `<p class="venue">${game.competitions[0].venue.fullName}</p>` : ''}
+                    ${game.competitions?.[0]?.broadcasts ? `<p class="broadcast">${game.competitions[0].broadcasts[0].names[0]}</p>` : ''}
                 </div>
-
-                <div class="game-details-actions">
-                    <button class="btn btn-primary" onclick="navigation.navigateTo('auth')">
-                        <i class="fas fa-star"></i> Add to Picks
-                    </button>
-                    <button class="btn btn-secondary" onclick="this.closest('.game-details-modal').remove()">
-                        Close
-                    </button>
-                </div>
-            </div>
-        `;
-
-        modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9000;
-            padding: 20px;
-        `;
-
-        modal.querySelector('.game-details-content').style.cssText = `
-            background: linear-gradient(135deg, #1f2937, #111827);
-            border-radius: 16px;
-            padding: 30px;
-            max-width: 500px;
-            width: 100%;
-            color: white;
-            max-height: 90vh;
-            overflow-y: auto;
-        `;
-
-        document.body.appendChild(modal);
-    }
-
-    renderError(container, errorMsg) {
-        container.innerHTML = `
-            <div class="error-state">
-                <div style="font-size: 48px; margin-bottom: 16px;">⚠️</div>
-                <h3>Unable to Load Games</h3>
-                <p>${errorMsg}</p>
-                <button class="btn btn-primary" onclick="liveScoresManager.fetchScores()">
-                    <i class="fas fa-retry"></i> Try Again
-                </button>
             </div>
         `;
     }
 
-    updateLastRefreshTime() {
-        const lastUpdated = document.querySelector('.last-updated');
-        if (lastUpdated) {
-            const now = new Date();
-            lastUpdated.textContent = `Last updated: ${now.toLocaleTimeStrin
+    updateConnectionStatus(status) {
+        const statusElement = document.getElementById('connection-status');
+        if (!statusElement) return;
+
+        const dotElement = statusElement.querySelector('.status-dot');
+        const textElement = statusElement.querySelector('.status-text');
+
+        if (status === 'connected') {
+            dotElement.className = 'status-dot connected';
+            textElement.textContent = '🟢 Connected - Real-time updates active';
+            statusElement.classList.remove('disconnected');
+        } else if (status === 'disconnected') {
+            dotElement.className = 'status-dot disconnected';
+            textElement.textContent = '🔴 Disconnected - Using polling (30s)';
+            statusElement.classList.add('disconnected');
+        } else if (status === 'connecting') {
+            dotElement.className = 'status-dot connecting';
+            textElement.textContent = '🟡 Connecting...';
+        }
+    }
+
+    updateLastSyncTime(timestamp) {
+        const lastUpdatedElement = document.querySelector('.last-updated');
+        if (!lastUpdatedElement) return;
+
+        const time = new Date(timestamp);
+        const formattedTime = time.toLocaleTimeString();
+        lastUpdatedElement.textContent = `Last updated: ${formattedTime}`;
+    }
+
+    showError(message) {
+        const scoresList = document.getElementById('scores-list');
+        if (scoresList) {
+            scoresList.innerHTML = `<p class="error-message">${message}</p>`;
+        }
+    }
+
+    showNotification(data) {
+        console.log('📢 Showing notification:', data);
+    }
+
+    destroy() {
+        clearInterval(this.refreshInterval);
+        if (this.wsClient) {
+            this.wsClient.disconnect();
+        }
+    }
+}
+
+export { LiveScoresManager };
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        const manager = new LiveScoresManager();
+        manager.load();
+        window.liveScoresManager = manager;
+    });
+} else {
+    const manager = new LiveScoresManager();
+    manager.load();
+    window.liveScoresManager = manager;
+                    }
