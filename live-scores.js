@@ -4,7 +4,8 @@
 // REAL-TIME updates via WebSocket broadcaster
 // ============================================
 
-import { WebSocketClient } from './websocket-client.js';
+// WebSocket client will be loaded from websocket-client.js
+// Access it via window.SportsWebSocketClient or window.WebSocketClient
 
 class LiveScoresManager {
     constructor() {
@@ -13,7 +14,7 @@ class LiveScoresManager {
         this.selectedSport = 'nfl';
         this.refreshInterval = null;
         this.cache = new Map();
-        this.cacheTimeout = 5 * 60 * 1000;
+        this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
         this.wsClient = null;
         this.isConnected = false;
     }
@@ -25,26 +26,48 @@ class LiveScoresManager {
 
         this.renderUI(container);
         this.attachEventListeners();
+        
+        // Initialize WebSocket connection
         this.initializeWebSocket();
+        
+        // Fetch initial scores
         await this.fetchScores();
     }
 
+    // ============================================
+    // WEBSOCKET INITIALIZATION
+    // ============================================
+
     initializeWebSocket() {
         try {
-            this.wsClient = new WebSocketClient(
-                `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}`,
-                {
-                    reconnection: true,
-                    reconnectionDelay: 1000,
-                    reconnectionDelayMax: 5000,
-                    reconnectionAttempts: 5
-                }
-            );
+            // Get WebSocketClient from global scope
+            const WebSocketClient = window.SportsWebSocketClient || window.WebSocketClient;
+            
+            if (!WebSocketClient) {
+                console.warn('⚠️ WebSocket client not available, using polling');
+                this.startPolling();
+                return;
+            }
+            
+            // Initialize WebSocket client
+            // Use backend WebSocket URL, not current page URL
+            const wsUrl = window.CONFIG?.WS_URL || 'wss://ultimate-sports-ai-backend-production.up.railway.app';
+            console.log('🔌 Connecting to WebSocket:', wsUrl);
+            
+            this.wsClient = new WebSocketClient(wsUrl, {
+                reconnection: true,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 5000,
+                reconnectionAttempts: 5
+            });
 
+            // Listen for connection events
             this.wsClient.on('connect', () => {
                 console.log('✅ Connected to live scores WebSocket');
                 this.isConnected = true;
                 this.updateConnectionStatus('connected');
+                
+                // Subscribe to all sports
                 this.subscribeToAllSports();
             });
 
@@ -54,21 +77,25 @@ class LiveScoresManager {
                 this.updateConnectionStatus('disconnected');
             });
 
+            // Listen for score updates from broadcaster
             this.wsClient.on('score_update', (data) => {
                 console.log('📡 Score update received:', data);
                 this.handleScoreUpdate(data);
             });
 
+            // Listen for game events
             this.wsClient.on('game_event', (data) => {
                 console.log('🎯 Game event:', data);
                 this.handleGameEvent(data);
             });
 
+            // Listen for sync status
             this.wsClient.on('sync_status', (data) => {
                 console.log('🔄 Sync status:', data);
                 this.updateLastSyncTime(data.timestamp);
             });
 
+            // Listen for notifications
             this.wsClient.on('notifications', (data) => {
                 console.log('📢 Notification:', data);
                 this.showNotification(data);
@@ -76,6 +103,7 @@ class LiveScoresManager {
 
         } catch (error) {
             console.error('❌ WebSocket initialization error:', error);
+            // Fall back to polling if WebSocket fails
             this.startPolling();
         }
     }
@@ -90,12 +118,19 @@ class LiveScoresManager {
         console.log('✅ Subscribed to all sports');
     }
 
+    // ============================================
+    // SCORE UPDATE HANDLERS
+    // ============================================
+
     handleScoreUpdate(data) {
         const { sport, games } = data;
         
+        // Only show updates for currently selected sport
         if (sport === this.selectedSport) {
             this.scores = games || [];
             this.renderScores();
+            
+            // Animate the update
             this.animateScoreUpdate();
         }
     }
@@ -104,10 +139,13 @@ class LiveScoresManager {
         const { sport, game, event } = data;
         
         if (sport === this.selectedSport) {
+            // Find and update the game
             const gameIndex = this.scores.findIndex(g => g.id === game.id);
             if (gameIndex !== -1) {
                 this.scores[gameIndex] = { ...this.scores[gameIndex], ...game };
                 this.renderScores();
+                
+                // Show visual notification
                 this.highlightUpdatedGame(gameIndex);
             }
         }
@@ -133,16 +171,27 @@ class LiveScoresManager {
         }
     }
 
+    // ============================================
+    // POLLING FALLBACK (if WebSocket fails)
+    // ============================================
+
     startPolling() {
         console.log('⚠️  WebSocket unavailable, falling back to polling...');
         clearInterval(this.refreshInterval);
         this.refreshInterval = setInterval(() => this.fetchScores(), 30000);
     }
 
+    // ============================================
+    // HTTP API FALLBACK
+    // ============================================
+
     async fetchScores() {
         try {
             this.isLoading = true;
-            const endpoint = `/api/scores/${this.selectedSport}`;
+            const apiUrl = window.CONFIG?.API_BASE_URL || 'https://ultimate-sports-ai-backend-production.up.railway.app';
+            const endpoint = `${apiUrl}/api/scores/${this.selectedSport}`;
+            
+            console.log('📡 Fetching scores from:', endpoint);
             
             const response = await fetch(endpoint);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -156,11 +205,16 @@ class LiveScoresManager {
             console.error('❌ Error fetching scores:', error);
             this.showError('Failed to load scores. Retrying...');
             
+            // Retry in 5 seconds
             setTimeout(() => this.fetchScores(), 5000);
         } finally {
             this.isLoading = false;
         }
     }
+
+    // ============================================
+    // UI RENDERING
+    // ============================================
 
     renderUI(container) {
         container.innerHTML = `
@@ -208,12 +262,14 @@ class LiveScoresManager {
     }
 
     attachEventListeners() {
+        // Sport filter buttons
         document.querySelectorAll('.score-filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 document.querySelectorAll('.score-filter-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 this.selectedSport = btn.dataset.sport;
                 
+                // Resubscribe WebSocket to new sport
                 if (this.wsClient && this.isConnected) {
                     this.wsClient.emit('sport_change', { sport: this.selectedSport });
                 }
@@ -222,6 +278,7 @@ class LiveScoresManager {
             });
         });
 
+        // Refresh button
         document.getElementById('scores-refresh-btn')?.addEventListener('click', () => {
             this.fetchScores();
         });
@@ -280,6 +337,10 @@ class LiveScoresManager {
         `;
     }
 
+    // ============================================
+    // STATUS UPDATES
+    // ============================================
+
     updateConnectionStatus(status) {
         const statusElement = document.getElementById('connection-status');
         if (!statusElement) return;
@@ -319,7 +380,12 @@ class LiveScoresManager {
 
     showNotification(data) {
         console.log('📢 Showing notification:', data);
+        // Implement notification UI if needed
     }
+
+    // ============================================
+    // CLEANUP
+    // ============================================
 
     destroy() {
         clearInterval(this.refreshInterval);
@@ -329,16 +395,20 @@ class LiveScoresManager {
     }
 }
 
+// Export the manager
 export { LiveScoresManager };
 
+// Auto-initialize if DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         const manager = new LiveScoresManager();
         manager.load();
+        
+        // Store in window for debugging
         window.liveScoresManager = manager;
     });
 } else {
     const manager = new LiveScoresManager();
     manager.load();
     window.liveScoresManager = manager;
-                    }
+                }
