@@ -304,15 +304,6 @@ const ASSETS = {
         elite: 'https://rosebud.ai/assets/ultimate-football-sim-pack-elite.png.webp?ZNl7',
         legend: 'https://rosebud.ai/assets/ultimate-football-sim-pack-legend.png.webp?oFdd',
         revealBg: 'https://rosebud.ai/assets/Pack open image display.png?zFQN'
-    },
-    items: {
-        ascensionStone: {
-            id: 'ascension_stone',
-            name: 'Ascension Stone',
-            desc: 'Unlocks Level 20+ progression for any player. Permanent +10 OVR boost!',
-            price: 50000,
-            url: 'https://rosebud.ai/assets/Ultimate sports championship diamond ring.png?1Esq'
-        }
     }
 };
 
@@ -1713,31 +1704,6 @@ const App = {
         
         if (!shopGrid) return;
         
-        // Item Section First
-        let html = '<div class="shop-category"><h3>Premium Items</h3></div>';
-        const stone = ASSETS.items.ascensionStone;
-        const canAffordStone = s.coins >= stone.price;
-        const ownedStones = s.playerCollection?.evolutionStones || 0;
-
-        html += `
-            <div class="shop-item">
-                <div class="shop-img-container" style="background: rgba(255,215,0,0.1); padding: 20px;">
-                    <img src="${stone.url}" style="width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 10px var(--primary));">
-                </div>
-                <div class="shop-details">
-                    <div class="shop-type">REWARD</div>
-                    <div class="shop-title">${stone.name}</div>
-                    <div class="shop-desc">${stone.desc}</div>
-                    <div class="shop-bonus" style="color: var(--primary);">Owned: ${ownedStones}</div>
-                    <button class="btn-buy ${!canAffordStone ? 'disabled' : ''}" 
-                            onclick="App.buyAscensionStone()" 
-                            ${!canAffordStone ? 'disabled' : ''}>
-                        ${canAffordStone ? `Buy ${stone.price.toLocaleString()} 🪙` : `Need ${stone.price.toLocaleString()} 🪙`}
-                    </button>
-                </div>
-            </div>
-        `;
-
         // Group legends by type
         const groupedLegends = {
             'QB': [],
@@ -1804,20 +1770,6 @@ const App = {
         });
         
         shopGrid.innerHTML = html;
-    },
-
-    buyAscensionStone() {
-        const stone = ASSETS.items.ascensionStone;
-        if (MinigameSync.deductCoins(stone.price, `Purchased ${stone.name}`, { type: 'item_purchase', itemId: stone.id })) {
-            if (!store.state.playerCollection.evolutionStones) store.state.playerCollection.evolutionStones = 0;
-            store.state.playerCollection.evolutionStones++;
-            store.save();
-            showToast(`Acquired ${stone.name}!`, 'success');
-            this.renderShopView();
-            this.updateHeader();
-        } else {
-            showToast('Insufficient coins!', 'error');
-        }
     },
 
     buyLegend(legendId) {
@@ -1895,9 +1847,6 @@ const App = {
                         <button class="btn-buy" style="font-size: 0.7rem; padding: 4px;" onclick="event.stopPropagation(); App.openTrainingModal('${player.id}')">
                             <i class="fas fa-dumbbell"></i> Train
                         </button>
-                        <button class="btn-buy" style="font-size: 0.7rem; padding: 4px; background: var(--primary); color: #000;" onclick="event.stopPropagation(); App.sharePlayer('${player.id}')">
-                            <i class="fas fa-share-alt"></i> Share
-                        </button>
                         <button class="btn-buy" style="font-size: 0.7rem; padding: 4px; background: var(--danger); color: white;" onclick="event.stopPropagation(); App.burnPlayer('${player.id}')">
                             <i class="fas fa-fire"></i> Retire
                         </button>
@@ -1914,7 +1863,6 @@ const App = {
         const modal = document.getElementById('training-modal');
         const content = document.getElementById('training-modal-content');
         const trainingXP = store.state.playerCollection.trainingXP || 0;
-        const stones = store.state.playerCollection.evolutionStones || 0;
 
         content.innerHTML = `
             <div style="display: flex; gap: 2rem; align-items: flex-start; flex-wrap: wrap; justify-content: center;">
@@ -1923,24 +1871,11 @@ const App = {
                 </div>
                 <div style="flex: 1; min-width: 300px;">
                     <h3 style="color: var(--primary); margin-bottom: 1rem;">Training Facility</h3>
-                    
-                    ${player.isAscended ? `
-                        <div class="stat-badge" style="background: rgba(185, 242, 255, 0.1); border-color: #b9f2ff; margin-bottom: 1rem;">
-                            <i class="fas fa-crown"></i> ASCENDED WARRIOR (LVL 20+ UNLOCKED)
-                        </div>
-                    ` : ''}
-
                     <p style="margin-bottom: 1.5rem; color: var(--text-muted);">Spend Training XP to increase player attributes. Each level increases all stats by +2.</p>
                     
-                    <div style="display: flex; gap: 10px; margin-bottom: 2rem;">
-                        <div class="stat-badge">
-                            <img src="https://rosebud.ai/assets/XP booster coin.png?BrOk" style="width: 20px;">
-                            <span>${trainingXP.toLocaleString()} TXP</span>
-                        </div>
-                        <div class="stat-badge">
-                            <img src="https://rosebud.ai/assets/Ultimate sports championship diamond ring.png?1Esq" style="width: 20px;">
-                            <span>${stones} Stones</span>
-                        </div>
+                    <div class="stat-badge" style="margin-bottom: 2rem; width: fit-content;">
+                        <img src="https://rosebud.ai/assets/XP booster coin.png?BrOk" style="width: 24px;">
+                        <span>Available TXP: ${trainingXP.toLocaleString()}</span>
                     </div>
 
                     <div style="display: grid; gap: 1rem;">
@@ -1953,17 +1888,6 @@ const App = {
                         <button class="btn-buy" onclick="App.trainPlayer('${player.id}', 2500)" ${trainingXP < 2500 ? 'disabled' : ''}>
                             Elite Camp (+2500 XP) - 2500 TXP
                         </button>
-
-                        ${player.instance.level >= 20 && !player.isAscended ? `
-                            <div style="margin-top: 1rem; padding: 1rem; border: 2px solid var(--primary); border-radius: 12px; background: rgba(255,215,0,0.05);">
-                                <h4 style="color: var(--primary); margin-bottom: 0.5rem;">Level Cap Reached!</h4>
-                                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Use an Ascension Stone to unlock Level 20+ and gain a permanent +10 OVR boost.</p>
-                                <button class="btn-buy" style="background: linear-gradient(to right, #fbbf24, #ef4444); color: white;" 
-                                        onclick="App.ascendPlayer('${player.id}')" ${stones < 1 ? 'disabled' : ''}>
-                                    ASCEND PLAYER
-                                </button>
-                            </div>
-                        ` : ''}
                     </div>
                 </div>
             </div>
@@ -1992,59 +1916,6 @@ const App = {
         } else {
             showToast(result.error, 'error');
         }
-    },
-
-    sharePlayer(playerId) {
-        const player = playerManager.getPlayer(playerId);
-        if (!player) return;
-
-        const shareManager = window.socialShareManager;
-        if (!shareManager) {
-            console.error('SocialShareManager not initialized');
-            return;
-        }
-
-        shareManager.openShare({
-            type: 'player',
-            text: `Check out my ${player.tier} ${player.name} in Ultimate Sports AI! OVR: ${player.boostedOverall}`,
-            details: {
-                name: player.name,
-                overall: player.boostedOverall,
-                tier: player.tier,
-                level: player.instance ? player.instance.level : 1,
-                position: player.position,
-                isEvolved: player.isEvolved
-            }
-        });
-    },
-
-    shareRoster() {
-        const s = store.state;
-        const activeRoster = s.playerCollection.activeRoster;
-        const players = Object.entries(activeRoster)
-            .map(([pos, id]) => {
-                const p = playerManager.getPlayer(id);
-                return p ? { name: p.name, position: pos, overall: p.boostedOverall, tier: p.tier } : null;
-            })
-            .filter(Boolean);
-
-        const shareManager = window.socialShareManager;
-        if (!shareManager) {
-            console.error('SocialShareManager not initialized');
-            return;
-        }
-
-        shareManager.openShare({
-            type: 'roster',
-            text: `My team ${s.userTeam.name} is dominating in Ultimate Sports AI! 🏆`,
-            details: {
-                teamName: s.userTeam.name,
-                logoUrl: s.userTeam.logo.url,
-                offense: s.userTeam.stats.offense,
-                defense: s.userTeam.stats.defense,
-                players: players
-            }
-        });
     },
 
     burnPlayer(playerId) {
