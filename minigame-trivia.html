@@ -8,6 +8,9 @@
     <!-- Tier Restrictions -->
     <script src="tier-restrictions.js"></script>
     
+    <!-- Minigame Sync -->
+    <script src="minigame-sync.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -584,11 +587,6 @@
             <h1>🧠 Sports Trivia</h1>
         </div>
 
-        <div class="balance-display">
-            <span class="balance-label">Your Balance</span>
-            <span class="balance-amount" id="balance">1000 🪙</span>
-        </div>
-
         <!-- Games Remaining Counter -->
         <div id="games-remaining" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px; margin: 0 0 20px 0; text-align: center; font-size: 14px; color: #10b981;">
             <span style="margin-right: 8px;">🎮</span><span id="games-count">Loading...</span>
@@ -715,10 +713,9 @@
     </div>
 
     <script type="module">
-        // Balance Management
-        const BALANCE_KEY = 'sportsLounge_balance';
-        let currentBalance = parseInt(localStorage.getItem(BALANCE_KEY)) || 1000;
-
+        // Initialize MinigameSync
+        const gameSync = MinigameSync.init('Sports Trivia');
+        
         // Game State
         let selectedMode = null;
         let selectedDifficulty = 'easy';
@@ -816,36 +813,36 @@
             ],
             medium: [
                 { category: 'Basketball', question: 'Who holds the NBA record for most career points?', answers: ['LeBron James', 'Michael Jordan', 'Kobe Bryant', 'Kareem Abdul-Jabbar'], correct: 0 },
-                { category: 'Football', question: 'Which team has won the most Super Bowl championships?', answers: ['New England Patriots', 'Dallas Cowboys', 'Pittsburgh Steelers', 'San Francisco 49ers'], correct: 2 },
-                { category: 'Soccer', question: 'Which country has won the most FIFA World Cups?', answers: ['Brazil', 'Germany', 'Argentina', 'Italy'], correct: 0 },
-                { category: 'Baseball', question: 'What team did Babe Ruth play most of his career with?', answers: ['New York Yankees', 'Boston Red Sox', 'Chicago Cubs', 'St. Louis Cardinals'], correct: 0 },
+                { category: 'Football', question: 'Which team has won the most Super Bowl championships?', answers: ['New England Patriots', 'Pittsburgh Steelers', 'Dallas Cowboys', 'San Francisco 49ers'], correct: 1 },
+                { category: 'Soccer', question: 'Which country won the 2022 FIFA World Cup in Qatar?', answers: ['Argentina', 'France', 'Brazil', 'Germany'], correct: 0 },
+                { category: 'Baseball', question: 'Which team won the 2023 World Series?', answers: ['Texas Rangers', 'Arizona Diamondbacks', 'Houston Astros', 'Philadelphia Phillies'], correct: 0 },
                 { category: 'Tennis', question: 'How many Grand Slam tournaments are there each year?', answers: ['4', '3', '5', '6'], correct: 0 },
-                { category: 'Olympics', question: 'Which city hosted the 2016 Summer Olympics?', answers: ['Rio de Janeiro', 'London', 'Tokyo', 'Beijing'], correct: 0 },
-                { category: 'Hockey', question: 'How many periods are in a regulation NHL game?', answers: ['3', '2', '4', '5'], correct: 0 },
-                { category: 'Golf', question: 'Which golfer is known as "The Golden Bear"?', answers: ['Jack Nicklaus', 'Tiger Woods', 'Arnold Palmer', 'Gary Player'], correct: 0 },
+                { category: 'Olympics', question: 'Which city hosted the 2024 Summer Olympics?', answers: ['Paris', 'Los Angeles', 'Tokyo', 'Rio de Janeiro'], correct: 0 },
+                { category: 'Hockey', question: 'Which team won the 2024 Stanley Cup?', answers: ['Florida Panthers', 'Edmonton Oilers', 'Vegas Golden Knights', 'Colorado Avalanche'], correct: 0 },
+                { category: 'Basketball', question: 'Who won the 2024 NBA Championship?', answers: ['Boston Celtics', 'Dallas Mavericks', 'Denver Nuggets', 'Miami Heat'], correct: 0 },
                 { category: 'Basketball', question: 'How long is a shot clock in the NBA?', answers: ['24 seconds', '30 seconds', '20 seconds', '15 seconds'], correct: 0 },
-                { category: 'Football', question: 'What is the diameter of a football field from goal line to goal line?', answers: ['100 yards', '110 yards', '90 yards', '120 yards'], correct: 0 },
+                { category: 'Football', question: 'Who won Super Bowl LVIII (58) in February 2024?', answers: ['Kansas City Chiefs', 'San Francisco 49ers', 'Philadelphia Eagles', 'Buffalo Bills'], correct: 0 },
                 { category: 'Boxing', question: 'What weight class is over 200 pounds in boxing?', answers: ['Heavyweight', 'Super heavyweight', 'Cruiserweight', 'Light heavyweight'], correct: 0 },
                 { category: 'Soccer', question: 'How long is a standard soccer match?', answers: ['90 minutes', '80 minutes', '100 minutes', '120 minutes'], correct: 0 },
-                { category: 'Baseball', question: 'What is the maximum number of players on a baseball roster?', answers: ['26', '25', '30', '40'], correct: 0 },
-                { category: 'Tennis', question: 'What is the minimum number of games to win a set?', answers: ['6', '5', '7', '8'], correct: 0 },
-                { category: 'Olympics', question: 'What do the Olympic rings represent?', answers: ['Five continents', 'Five sports', 'Five countries', 'Five values'], correct: 0 }
+                { category: 'Baseball', question: 'Who won the 2024 MLB Home Run Derby?', answers: ['Teoscar Hernández', 'Bobby Witt Jr.', 'Adolis García', 'Pete Alonso'], correct: 0 },
+                { category: 'Tennis', question: 'Who won the 2024 Wimbledon Men\'s Singles?', answers: ['Carlos Alcaraz', 'Novak Djokovic', 'Jannik Sinner', 'Daniil Medvedev'], correct: 0 },
+                { category: 'Football', question: 'Which quarterback was selected first overall in the 2024 NFL Draft?', answers: ['Caleb Williams', 'Jayden Daniels', 'Drake Maye', 'J.J. McCarthy'], correct: 0 }
             ],
             hard: [
                 { category: 'Basketball', question: 'Who was the first player to score 100 points in an NBA game?', answers: ['Wilt Chamberlain', 'Michael Jordan', 'Kobe Bryant', 'Elgin Baylor'], correct: 0 },
                 { category: 'Football', question: 'Which player has thrown the most touchdown passes in NFL history?', answers: ['Tom Brady', 'Peyton Manning', 'Drew Brees', 'Brett Favre'], correct: 0 },
-                { category: 'Soccer', question: 'Who scored the "Hand of God" goal in the 1986 World Cup?', answers: ['Diego Maradona', 'Pelé', 'Lionel Messi', 'Johan Cruyff'], correct: 0 },
-                { category: 'Baseball', question: 'Who holds the record for most stolen bases in a single season?', answers: ['Rickey Henderson', 'Lou Brock', 'Vince Coleman', 'Tim Raines'], correct: 0 },
+                { category: 'Soccer', question: 'Who won the 2024 Copa América tournament?', answers: ['Argentina', 'Colombia', 'Brazil', 'Uruguay'], correct: 0 },
+                { category: 'Baseball', question: 'Who hit the most home runs in the 2024 MLB season?', answers: ['Aaron Judge', 'Shohei Ohtani', 'Kyle Schwarber', 'Matt Olson'], correct: 0 },
                 { category: 'Tennis', question: 'Who has won the most Grand Slam singles titles in men\'s tennis?', answers: ['Novak Djokovic', 'Roger Federer', 'Rafael Nadal', 'Pete Sampras'], correct: 0 },
-                { category: 'Olympics', question: 'Which country has hosted the most Olympic Games?', answers: ['USA', 'France', 'UK', 'Greece'], correct: 0 },
-                { category: 'Hockey', question: 'Who holds the NHL record for most career goals?', answers: ['Wayne Gretzky', 'Gordie Howe', 'Jaromir Jagr', 'Brett Hull'], correct: 0 },
-                { category: 'Golf', question: 'Who was the youngest golfer to win the Masters Tournament?', answers: ['Tiger Woods', 'Jack Nicklaus', 'Jordan Spieth', 'Rory McIlroy'], correct: 0 },
+                { category: 'Basketball', question: 'Who won the 2024 NBA Finals MVP?', answers: ['Jaylen Brown', 'Jayson Tatum', 'Luka Dončić', 'Kyrie Irving'], correct: 0 },
+                { category: 'Hockey', question: 'Who won the 2024 Conn Smythe Trophy (Playoff MVP)?', answers: ['Connor McDavid', 'Sergei Bobrovsky', 'Matthew Tkachuk', 'Aleksander Barkov'], correct: 0 },
+                { category: 'Golf', question: 'Who won the 2024 Masters Tournament?', answers: ['Scottie Scheffler', 'Rory McIlroy', 'Brooks Koepka', 'Jon Rahm'], correct: 0 },
                 { category: 'Boxing', question: 'Which boxer was known as "The Greatest"?', answers: ['Muhammad Ali', 'Mike Tyson', 'Sugar Ray Leonard', 'Floyd Mayweather'], correct: 0 },
-                { category: 'Basketball', question: 'Which team won the first NBA championship in 1947?', answers: ['Philadelphia Warriors', 'Boston Celtics', 'Minneapolis Lakers', 'New York Knicks'], correct: 0 },
-                { category: 'Football', question: 'Who is the only player to win the Super Bowl MVP from a losing team?', answers: ['Chuck Howley', 'Terry Bradshaw', 'Joe Namath', 'Jim Brown'], correct: 0 },
+                { category: 'Basketball', question: 'Who won the 2024 NBA MVP award?', answers: ['Nikola Jokić', 'Luka Dončić', 'Giannis Antetokounmpo', 'Shai Gilgeous-Alexander'], correct: 0 },
+                { category: 'Football', question: 'Which quarterback won the 2023 NFL MVP?', answers: ['Lamar Jackson', 'Josh Allen', 'Patrick Mahomes', 'Dak Prescott'], correct: 0 },
                 { category: 'Soccer', question: 'Which club has won the most UEFA Champions League titles?', answers: ['Real Madrid', 'Barcelona', 'AC Milan', 'Bayern Munich'], correct: 0 },
-                { category: 'Baseball', question: 'Who pitched the only perfect game in World Series history?', answers: ['Don Larsen', 'Sandy Koufax', 'Bob Gibson', 'Randy Johnson'], correct: 0 },
-                { category: 'Tennis', question: 'What is the fastest recorded tennis serve?', answers: ['163.7 mph', '157.2 mph', '169.3 mph', '155.0 mph'], correct: 0 },
+                { category: 'Baseball', question: 'Who won the 2023 AL MVP award?', answers: ['Shohei Ohtani', 'Aaron Judge', 'Corey Seager', 'Marcus Semien'], correct: 0 },
+                { category: 'Tennis', question: 'Who won the 2024 Australian Open Men\'s Singles?', answers: ['Jannik Sinner', 'Daniil Medvedev', 'Carlos Alcaraz', 'Novak Djokovic'], correct: 0 },
                 { category: 'Olympics', question: 'Which athlete has won the most Olympic gold medals?', answers: ['Michael Phelps', 'Usain Bolt', 'Carl Lewis', 'Mark Spitz'], correct: 0 }
             ]
         };
@@ -879,8 +876,12 @@
             const mode = option.dataset.mode;
             const cost = parseInt(option.dataset.cost);
 
-            if (currentBalance < cost) {
-                alert('Not enough coins!');
+            if (gameSync.getBalance() < cost) {
+                window.parent.postMessage({ 
+                    action: 'notify', 
+                    message: `Not enough coins! You need ${cost} 🪙 for this mode.`, 
+                    type: 'error' 
+                }, '*');
                 return;
             }
 
@@ -915,9 +916,26 @@
                 }
             }
             
-            // Deduct entry cost
-            currentBalance -= config.cost;
-            updateBalance();
+            // Deduct entry cost using MinigameSync
+            const deducted = gameSync.deductCoins(config.cost, `${selectedMode} mode entry`, {
+                mode: selectedMode,
+                difficulty: selectedDifficulty,
+                questions: config.questions
+            });
+            
+            if (!deducted) {
+                window.parent.postMessage({ 
+                    action: 'notify', 
+                    message: 'Not enough coins to start game!', 
+                    type: 'error' 
+                }, '*');
+                return;
+            }
+
+            // Track for daily quests
+            gameSync.reportQuestProgress('games_played', 1);
+            
+            updateBalanceDisplay();
 
             // Reset game state
             currentQuestionIndex = 0;
@@ -1075,10 +1093,22 @@
         }
 
         function useFiftyFifty() {
-            if (currentBalance < 50 || fiftyFiftyUsed) return;
+            if (fiftyFiftyUsed) return;
 
-            currentBalance -= 50;
-            updateBalance();
+            const deducted = gameSync.deductCoins(50, '50/50 lifeline', {
+                question: currentQuestionIndex + 1
+            });
+            
+            if (!deducted) {
+                window.parent.postMessage({ 
+                    action: 'notify', 
+                    message: 'Not enough coins for 50/50!', 
+                    type: 'error' 
+                }, '*');
+                return;
+            }
+            
+            updateBalanceDisplay();
             fiftyFiftyUsed = true;
             document.getElementById('fiftyFiftyBtn').disabled = true;
 
@@ -1096,14 +1126,20 @@
         }
 
         function skipQuestion() {
-            if (currentBalance < 30) {
-                alert('Not enough coins to skip!');
+            const deducted = gameSync.deductCoins(30, 'Skip question', {
+                question: currentQuestionIndex + 1
+            });
+            
+            if (!deducted) {
+                window.parent.postMessage({ 
+                    action: 'notify', 
+                    message: 'Not enough coins to skip!', 
+                    type: 'error' 
+                }, '*');
                 return;
             }
 
-            currentBalance -= 30;
-            updateBalance();
-
+            updateBalanceDisplay();
             clearInterval(timerInterval);
             streak = 0;
             currentQuestionIndex++;
@@ -1118,9 +1154,25 @@
             const streakBonus = bestStreak * 20;
             const totalEarnings = score + streakBonus;
 
-            // Update balance
-            currentBalance += totalEarnings;
-            updateBalance();
+            // Award coins using MinigameSync
+            const accuracy = Math.round((correctCount / currentQuestions.length) * 100);
+            gameSync.addCoins(totalEarnings, `${selectedMode} mode completion`, {
+                mode: selectedMode,
+                difficulty: selectedDifficulty,
+                correctAnswers: correctCount,
+                totalQuestions: currentQuestions.length,
+                accuracy: accuracy,
+                bestStreak: bestStreak,
+                timeBonus: totalTimeBonus,
+                streakBonus: streakBonus
+            });
+
+            // Track for daily quests
+            if (totalEarnings > 0) {
+                gameSync.reportQuestProgress('coins_won', totalEarnings);
+            }
+            
+            updateBalanceDisplay();
 
             // Update stats
             stats.gamesPlayed++;
@@ -1139,7 +1191,6 @@
             }
 
             // Show results
-            const accuracy = Math.round((correctCount / currentQuestions.length) * 100);
             document.getElementById('gameArea').classList.remove('active');
             document.getElementById('resultsScreen').classList.add('active');
 
@@ -1174,13 +1225,8 @@
             document.getElementById('startGameBtn').disabled = true;
         }
 
-        function updateBalance() {
-            localStorage.setItem(BALANCE_KEY, currentBalance);
-            updateBalanceDisplay();
-        }
-
         function updateBalanceDisplay() {
-            document.getElementById('balance').textContent = `${currentBalance} 🪙`;
+            // Balance is maintained in the header only
         }
 
         function saveStats() {

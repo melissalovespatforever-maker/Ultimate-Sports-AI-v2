@@ -1,0 +1,8 @@
+# Netlify Redirects for SPA
+# All routes go to index.html for client-side routing
+
+# API proxy (optional - if you want to proxy backend requests)
+# /api/*  https://your-railway-app.up.railway.app/api/:splat  200
+
+# SPA fallback - must be last
+/*  /index.html  200

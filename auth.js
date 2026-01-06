@@ -230,17 +230,22 @@ class AuthFormHandler {
 
     async handleLoginSubmit(e) {
         e.preventDefault();
+        console.log('🔐 Login form submitted');
 
         const email = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-password').value;
 
+        console.log('📊 Login attempt:', { email, passwordLength: password.length });
+
         // Validate
         if (!FormValidator.validateEmail(email)) {
+            console.warn('⚠️ Invalid email format');
             showToast('Please enter a valid email', 'error');
             return;
         }
 
         if (!FormValidator.validatePassword(password)) {
+            console.warn('⚠️ Password too short');
             showToast('Password must be at least 8 characters', 'error');
             return;
         }
@@ -253,10 +258,17 @@ class AuthFormHandler {
         this.setFormSubmitting(false, 'login-form-element');
 
         if (success) {
+            console.log('✅ Login successful, navigating to home...');
             // Wait a moment for state update, then navigate
             setTimeout(() => {
-                navigation.navigateTo('home');
+                if (window.appNavigation) {
+                    window.appNavigation.navigateTo('home');
+                } else {
+                    console.error('❌ Navigation system not ready');
+                }
             }, 500);
+        } else {
+            console.warn('❌ Login failed');
         }
     }
 
@@ -304,7 +316,11 @@ class AuthFormHandler {
             
             // Wait a moment for state update, then navigate
             setTimeout(() => {
-                navigation.navigateTo('home');
+                if (window.appNavigation) {
+                    window.appNavigation.navigateTo('home');
+                } else {
+                    console.error('❌ Navigation system not ready');
+                }
             }, 500);
         }
     }

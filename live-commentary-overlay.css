@@ -1,0 +1,658 @@
+/**
+ * Live Match Commentary Overlay
+ * AI-powered real-time match analysis and insights
+ */
+
+.commentary-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 10000;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.commentary-overlay.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+}
+
+.commentary-container {
+    background: var(--bg-card);
+    border-radius: 24px;
+    width: 95%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.commentary-overlay.active .commentary-container {
+    transform: scale(1);
+}
+
+/* Header */
+.commentary-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.commentary-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="rgba(255,255,255,0.05)"/></svg>');
+    background-size: 60px;
+    opacity: 0.1;
+}
+
+.commentary-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    font-size: 18px;
+    transition: all 0.2s ease;
+    z-index: 1;
+}
+
+.commentary-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.commentary-game-info {
+    position: relative;
+    z-index: 1;
+}
+
+.commentary-teams {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.commentary-team {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: white;
+}
+
+.commentary-team-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    object-fit: cover;
+}
+
+.commentary-team-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.commentary-team-name {
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.commentary-team-record {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+.commentary-vs {
+    font-size: 14px;
+    font-weight: 600;
+    color: white;
+    opacity: 0.8;
+}
+
+.commentary-score {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+.commentary-score-value {
+    font-size: 48px;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.commentary-score-separator {
+    font-size: 24px;
+    color: white;
+    opacity: 0.5;
+}
+
+.commentary-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    font-size: 14px;
+}
+
+.commentary-live-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(239, 68, 68, 0.2);
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+.commentary-live-dot {
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+}
+
+/* Content Area */
+.commentary-content {
+    display: flex;
+    height: 500px;
+    overflow: hidden;
+}
+
+/* Sidebar */
+.commentary-sidebar {
+    width: 280px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.commentary-tabs {
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    gap: 4px;
+}
+
+.commentary-tab {
+    background: transparent;
+    border: none;
+    padding: 12px 16px;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.commentary-tab:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.commentary-tab.active {
+    background: var(--primary);
+    color: white;
+}
+
+.commentary-tab i {
+    width: 20px;
+    text-align: center;
+}
+
+/* Main Panel */
+.commentary-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.commentary-panel {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.commentary-panel.active {
+    display: flex;
+}
+
+/* AI Commentary Feed */
+.commentary-feed {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.commentary-item {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 16px;
+    border-left: 4px solid var(--primary);
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.commentary-item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.commentary-timestamp {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.commentary-ai-badge {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.commentary-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+.commentary-insight {
+    margin-top: 8px;
+    padding: 10px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: start;
+    gap: 8px;
+}
+
+.commentary-insight i {
+    color: var(--primary);
+    margin-top: 2px;
+}
+
+/* Key Stats Panel */
+.stats-grid {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    overflow-y: auto;
+}
+
+.stat-card {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+}
+
+.stat-card-title {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stat-comparison {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    width: 60px;
+    text-align: center;
+}
+
+.stat-bar-container {
+    flex: 1;
+    height: 8px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+}
+
+.stat-bar {
+    height: 100%;
+    transition: width 0.5s ease;
+}
+
+.stat-bar.home {
+    background: var(--primary);
+}
+
+.stat-bar.away {
+    background: var(--accent);
+}
+
+/* Momentum Panel */
+.momentum-chart {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.momentum-meter {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.momentum-meter-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+.momentum-bar {
+    height: 40px;
+    background: var(--bg-tertiary);
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.momentum-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent) 0%, var(--primary) 100%);
+    transition: width 0.8s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.momentum-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.momentum-event {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.momentum-event-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.momentum-event-icon.positive {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.momentum-event-icon.negative {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.momentum-event-text {
+    flex: 1;
+    font-size: 13px;
+}
+
+/* AI Predictions Panel */
+.predictions-container {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+}
+
+.prediction-card {
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+}
+
+.prediction-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.prediction-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.prediction-confidence {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.prediction-outcome {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: var(--primary);
+}
+
+.prediction-reasoning {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.prediction-reason {
+    font-size: 13px;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: start;
+    gap: 8px;
+}
+
+.prediction-reason i {
+    color: var(--primary);
+    margin-top: 2px;
+}
+
+/* Loading State */
+.commentary-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 16px;
+    color: var(--text-secondary);
+}
+
+.commentary-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--border-color);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Game Card Enhancement */
+.game-card {
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.game-card::after {
+    content: '🎙️ View AI Commentary';
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: all 0.2s ease;
+    pointer-events: none;
+}
+
+.game-card:hover::after {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.game-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .commentary-container {
+        width: 100%;
+        max-width: 100%;
+        height: 100%;
+        max-height: 100%;
+        border-radius: 0;
+    }
+
+    .commentary-content {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .commentary-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .commentary-tabs {
+        flex-direction: row;
+        overflow-x: auto;
+    }
+
+    .commentary-tab {
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+    .commentary-feed {
+        max-height: 400px;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .commentary-team-name {
+        font-size: 14px;
+    }
+
+    .commentary-score-value {
+        font-size: 36px;
+    }
+
+    .game-card::after {
+        display: none;
+    }
+}

@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP Prize Wheel | Ultimate Sports AI</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    
+    <script src="tier-restrictions.js"></script>
+    <script src="minigame-sync.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #e2e8f0;
+        }
+
+        .game-container {
+            max-width: 700px;
+            width: 100%;
+        }
+
+        .vip-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #0f172a;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+        }
+
+        .back-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-4px);
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(251, 191, 36, 0.2);
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .game-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .game-subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .spin-cost {
+            background: rgba(251, 191, 36, 0.1);
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            border-radius: 12px;
+            padding: 12px 24px;
+            display: inline-block;
+            margin-top: 8px;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .balance-display {
+            background: rgba(251, 191, 36, 0.1);
+            border: 2px solid rgba(251, 191, 36, 0.3);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .balance-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .balance-amount {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #fbbf24;
+            margin-top: 4px;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto 32px;
+        }
+
+        #wheel-canvas {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 50%;
+            box-shadow: 0 10px 40px rgba(251, 191, 36, 0.3);
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid #fbbf24;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+            z-index: 10;
+        }
+
+        .spin-button {
+            width: 100%;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #0f172a;
+            border: none;
+            padding: 20px;
+            border-radius: 16px;
+            font-size: 20px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 24px rgba(251, 191, 36, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .spin-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px rgba(251, 191, 36, 0.5);
+        }
+
+        .spin-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result-message {
+            text-align: center;
+            padding: 24px;
+            border-radius: 16px;
+            margin-top: 24px;
+            font-weight: 700;
+            font-size: 20px;
+            opacity: 0;
+            transition: all 0.3s;
+            transform: scale(0.9);
+        }
+
+        .result-message.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .result-message.win {
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid #10b981;
+            color: #10b981;
+        }
+
+        .prizes-info {
+            background: rgba(251, 191, 36, 0.05);
+            border: 1px solid rgba(251, 191, 36, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 24px;
+        }
+
+        .prizes-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fbbf24;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .prize-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .prize-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .prize-item .prize-label {
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .prize-item .prize-odds {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .non-vip-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .upgrade-modal {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border: 2px solid rgba(251, 191, 36, 0.5);
+            border-radius: 24px;
+            padding: 48px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .upgrade-icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+        }
+
+        .upgrade-title {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+
+        .upgrade-message {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        .upgrade-benefits {
+            background: rgba(251, 191, 36, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            text-align: left;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .benefit-item i {
+            color: #fbbf24;
+            font-size: 18px;
+        }
+
+        .upgrade-button {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #0f172a;
+            border: none;
+            padding: 16px 48px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-right: 12px;
+            transition: all 0.3s;
+        }
+
+        .upgrade-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(251, 191, 36, 0.4);
+        }
+
+        .back-link {
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            padding: 16px 24px;
+            display: inline-block;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        @media (max-width: 640px) {
+            .game-card {
+                padding: 24px;
+            }
+            
+            .game-title {
+                font-size: 2rem;
+            }
+            
+            .upgrade-modal {
+                padding: 32px 24px;
+                margin: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <button class="back-button" onclick="window.location.href='sports-lounge.html'">
+            <i class="fas fa-arrow-left"></i>
+            Back to Sports Lounge
+        </button>
+
+        <div class="game-card">
+            <div class="game-header">
+                <div class="vip-badge">
+                    <i class="fas fa-crown"></i>
+                    VIP EXCLUSIVE
+                </div>
+                <h1 class="game-title">🎡 Prize Wheel</h1>
+                <p class="game-subtitle">Spin for premium rewards!</p>
+                <div class="spin-cost">
+                    <i class="fas fa-coins"></i> 2,500 Coins per Spin
+                </div>
+            </div>
+
+            <div class="balance-display">
+                <div class="balance-label">Your Balance</div>
+                <div class="balance-amount" id="balance">0</div>
+            </div>
+
+            <div class="wheel-container">
+                <div class="wheel-pointer"></div>
+                <canvas id="wheel-canvas" width="500" height="500"></canvas>
+            </div>
+
+            <button class="spin-button" id="spin-btn" onclick="spin()">
+                <i class="fas fa-rotate"></i>
+                SPIN THE WHEEL
+            </button>
+
+            <div class="result-message" id="result-msg"></div>
+
+            <div class="prizes-info">
+                <div class="prizes-title">
+                    <i class="fas fa-trophy"></i>
+                    Prize Distribution
+                </div>
+                <div class="prize-list">
+                    <div class="prize-item">
+                        <div class="prize-label">💎 25,000</div>
+                        <div class="prize-odds">1% (Jackpot)</div>
+                    </div>
+                    <div class="prize-item">
+                        <div class="prize-label">🏆 10,000</div>
+                        <div class="prize-odds">3% (Grand)</div>
+                    </div>
+                    <div class="prize-item">
+                        <div class="prize-label">⭐ 5,000</div>
+                        <div class="prize-odds">6% (Major)</div>
+                    </div>
+                    <div class="prize-item">
+                        <div class="prize-label">💰 2,500</div>
+                        <div class="prize-odds">15% (Break Even)</div>
+                    </div>
+                    <div class="prize-item">
+                        <div class="prize-label">🎯 1,000</div>
+                        <div class="prize-odds">25% (Common)</div>
+                    </div>
+                    <div class="prize-item">
+                        <div class="prize-label">🍀 500</div>
+                        <div class="prize-odds">50% (Base)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize MinigameSync
+        const gameSync = MinigameSync.init('VIP Prize Wheel');
+        const restrictions = window.tierRestrictions;
+
+        // Configuration
+        const spinCost = 2500;
+        
+        // Wheel segments with accurate probability distribution
+        // Total: 100 segments for precise percentage control
+        const segments = [];
+        
+        // Build weighted wheel (100 total segments)
+        // Jackpot: 1% = 1 segment
+        segments.push({ label: '💎 25K', value: 25000, color: '#a855f7', weight: 1 });
+        
+        // Grand: 3% = 3 segments  
+        for (let i = 0; i < 3; i++) {
+            segments.push({ label: '🏆 10K', value: 10000, color: '#fbbf24', weight: 1 });
+        }
+        
+        // Major: 6% = 6 segments
+        for (let i = 0; i < 6; i++) {
+            segments.push({ label: '⭐ 5K', value: 5000, color: '#3b82f6', weight: 1 });
+        }
+        
+        // Break Even: 15% = 15 segments
+        for (let i = 0; i < 15; i++) {
+            segments.push({ label: '💰 2.5K', value: 2500, color: '#10b981', weight: 1 });
+        }
+        
+        // Common: 25% = 25 segments
+        for (let i = 0; i < 25; i++) {
+            segments.push({ label: '🎯 1K', value: 1000, color: '#f59e0b', weight: 1 });
+        }
+        
+        // Base: 50% = 50 segments
+        for (let i = 0; i < 50; i++) {
+            segments.push({ label: '🍀 500', value: 500, color: '#ec4899', weight: 1 });
+        }
+
+        // Elements
+        const canvas = document.getElementById('wheel-canvas');
+        const ctx = canvas.getContext('2d');
+        const spinButton = document.getElementById('spin-btn');
+        const resultMessage = document.getElementById('result-msg');
+        const balanceDisplay = document.getElementById('balance');
+
+        let currentRotation = 0;
+        let isSpinning = false;
+
+        // Check VIP status on load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkVIPAccess();
+            updateBalance();
+            drawWheel();
+        });
+
+        function checkVIPAccess() {
+            if (!restrictions) {
+                console.warn('Tier restrictions not loaded');
+                return;
+            }
+
+            if (!restrictions.isVIP()) {
+                showNonVIPOverlay();
+            }
+        }
+
+        function showNonVIPOverlay() {
+            const overlay = document.createElement('div');
+            overlay.className = 'non-vip-overlay';
+            overlay.innerHTML = `
+                <div class="upgrade-modal">
+                    <div class="upgrade-icon">👑</div>
+                    <h2 class="upgrade-title">VIP Exclusive Feature</h2>
+                    <p class="upgrade-message">
+                        The Prize Wheel is reserved for our VIP members who enjoy premium rewards and exclusive features.
+                    </p>
+                    <div class="upgrade-benefits">
+                        <div class="benefit-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Spin for up to 25,000 coins</span>
+                        </div>
+                        <div class="benefit-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Positive expected value (110% RTP)</span>
+                        </div>
+                        <div class="benefit-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Daily bonus spins</span>
+                        </div>
+                        <div class="benefit-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Access to all VIP features</span>
+                        </div>
+                    </div>
+                    <button class="upgrade-button" onclick="window.location.href='index.html#settings'">
+                        <i class="fas fa-crown"></i> Upgrade to VIP
+                    </button>
+                    <a href="sports-lounge.html" class="back-link">
+                        <i class="fas fa-arrow-left"></i> Back to Lounge
+                    </a>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+        }
+
+        function updateBalance() {
+            const balance = gameSync.getBalance();
+            balanceDisplay.textContent = balance.toLocaleString();
+        }
+
+        function drawWheel() {
+            const segmentAngle = (2 * Math.PI) / segments.length;
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = Math.min(centerX, centerY) - 10;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            segments.forEach((segment, i) => {
+                const startAngle = i * segmentAngle + currentRotation;
+                const endAngle = startAngle + segmentAngle;
+
+                // Draw segment
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = segment.color;
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw text
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + segmentAngle / 2);
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 11px Inter';
+                ctx.fillText(segment.label, radius * 0.7, 5);
+                ctx.restore();
+            });
+
+            // Center circle
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
+            ctx.fillStyle = '#1e293b';
+            ctx.fill();
+            ctx.strokeStyle = '#fbbf24';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        }
+
+        function getWinningSegment(rotation) {
+            const normalizedRotation = rotation % (2 * Math.PI);
+            const segmentAngle = (2 * Math.PI) / segments.length;
+            const topAngle = (2 * Math.PI - normalizedRotation) % (2 * Math.PI);
+            const segmentIndex = Math.floor(topAngle / segmentAngle);
+            return segments[segmentIndex];
+        }
+
+        function animateSpin(targetRotation, duration) {
+            const startRotation = currentRotation;
+            const startTime = Date.now();
+
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Ease out cubic
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                
+                currentRotation = startRotation + (targetRotation - startRotation) * easeProgress;
+                drawWheel();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    currentRotation = targetRotation % (2 * Math.PI);
+                    drawWheel();
+                }
+            }
+
+            animate();
+        }
+
+        async function spin() {
+            if (isSpinning) return;
+            
+            // Check VIP status
+            if (restrictions && !restrictions.isVIP()) {
+                showNonVIPOverlay();
+                return;
+            }
+
+            // Check balance
+            const balance = gameSync.getBalance();
+            if (balance < spinCost) {
+                resultMessage.textContent = `❌ Insufficient balance! You need ${spinCost.toLocaleString()} coins.`;
+                resultMessage.className = 'result-message show';
+                resultMessage.style.background = 'rgba(239, 68, 68, 0.2)';
+                resultMessage.style.border = '2px solid #ef4444';
+                resultMessage.style.color = '#ef4444';
+                return;
+            }
+
+            isSpinning = true;
+            spinButton.disabled = true;
+            resultMessage.classList.remove('show');
+
+            // Deduct cost
+            gameSync.deductCoins(spinCost, 'Prize Wheel Spin', { type: 'game_bet' });
+            updateBalance();
+
+            // Calculate spin
+            const spins = 5 + Math.random() * 3; // 5-8 rotations
+            const targetSegmentIndex = Math.floor(Math.random() * segments.length);
+            const segmentAngle = (2 * Math.PI) / segments.length;
+            const targetAngle = targetSegmentIndex * segmentAngle + segmentAngle / 2;
+            const targetRotation = currentRotation + spins * 2 * Math.PI + (2 * Math.PI - targetAngle);
+
+            // Animate
+            animateSpin(targetRotation, 5000);
+
+            // Wait for animation
+            await new Promise(resolve => setTimeout(resolve, 5000));
+
+            // Get result
+            const winningSegment = getWinningSegment(targetRotation);
+            
+            // Award prize
+            gameSync.addCoins(winningSegment.value, `Prize Wheel: ${winningSegment.label}`, {
+                type: 'prize_wheel_win',
+                prize: winningSegment.value,
+                spinCost: spinCost,
+                netProfit: winningSegment.value - spinCost
+            });
+            
+            updateBalance();
+
+            // Show result
+            const profit = winningSegment.value - spinCost;
+            const profitText = profit > 0 ? `+${profit.toLocaleString()}` : profit.toLocaleString();
+            resultMessage.textContent = `🎉 You won ${winningSegment.value.toLocaleString()} coins! (${profitText})`;
+            resultMessage.className = 'result-message win show';
+
+            isSpinning = false;
+            spinButton.disabled = false;
+        }
+    </script>
+</body>
+</html>

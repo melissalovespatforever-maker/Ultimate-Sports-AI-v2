@@ -12,6 +12,3 @@ cmds = ["node backend/scripts/run-migration.js"]
 
 [start]
 cmd = "cd backend && npm start"
-
-[env]
-PORT = "8080"

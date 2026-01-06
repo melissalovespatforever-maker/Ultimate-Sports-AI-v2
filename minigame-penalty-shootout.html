@@ -7,6 +7,7 @@
     
     <!-- Tier Restrictions -->
     <script src="tier-restrictions.js"></script>
+    <script src="minigame-sync.js"></script>
     
     <style>
         * {
@@ -438,11 +439,6 @@
             <h1>⚽ Penalty Shootout</h1>
         </div>
 
-        <div class="balance-display">
-            <span class="balance-label">Your Balance</span>
-            <span class="balance-amount" id="balance">1000 🪙</span>
-        </div>
-
         <!-- Games Remaining Counter -->
         <div id="games-remaining" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px; margin: 0 0 20px 0; text-align: center; font-size: 14px; color: #10b981;">
             <span style="margin-right: 8px;">🎮</span><span id="games-count">Loading...</span>
@@ -527,12 +523,15 @@
         </button>
     </div>
 
-    <script type="module">
-        // Balance Management
-        const BALANCE_KEY = 'sportsLounge_balance';
-        let currentBalance = parseInt(localStorage.getItem(BALANCE_KEY)) || 1000;
+    <script>
+        // ============================================
+        // TRANSACTION QUEUE INTEGRATION
+        // ============================================
+        const gameSync = MinigameSync.init('Penalty Shootout');
+        console.log('🎮 Penalty Shootout initialized with transaction queue support');
 
         // Game State
+        let currentBalance = gameSync.getBalance();
         let selectedBet = 0;
         let currentRound = 0;
         let totalRounds = 5;
@@ -606,6 +605,13 @@
             setupEventListeners();
             setupCanvas();
         }
+        
+        // Listen for balance updates
+        window.addEventListener('transactionQueueProcessed', (e) => {
+            console.log('📊 Queue synced, updating balance');
+            currentBalance = gameSync.getBalance();
+            updateBalanceDisplay();
+        });
 
         function setupEventListeners() {
             // Bet selection
@@ -674,9 +680,10 @@
         }
 
         function selectBet(option) {
+            currentBalance = gameSync.getBalance();
             const bet = parseInt(option.dataset.bet);
             
-            if (currentBalance < bet) {
+            if (!gameSync.canAfford(bet)) {
                 showMessage('Not enough coins!', 'save');
                 setTimeout(() => clearMessage(), 2000);
                 return;
@@ -692,7 +699,13 @@
         }
 
         function startGame() {
-            if (selectedBet === 0 || currentBalance < selectedBet) return;
+            if (selectedBet === 0) return;
+            
+            // Check balance again
+            if (!gameSync.canAfford(selectedBet)) {
+                showMessage('Not enough coins!', 'save');
+                return;
+            }
 
             // Check tier restrictions
             if (restrictions) {
@@ -703,9 +716,13 @@
                 }
             }
 
-            // Deduct bet
-            currentBalance -= selectedBet;
-            updateBalance();
+            // Deduct bet via transaction queue
+            if (!gameSync.recordBet(selectedBet)) {
+                return;
+            }
+            
+            currentBalance = gameSync.getBalance();
+            updateBalanceDisplay();
 
             // Reset game state
             currentRound = 1;
@@ -880,17 +897,33 @@
             const won = playerGoals > keeperSaves;
             
             stats.gamesPlayed++;
+            
             if (won) {
                 stats.gamesWon++;
                 const winnings = Math.floor(selectedBet * 2.5); // 2.5x payout for winning
-                currentBalance += winnings;
+                
+                gameSync.recordWin(winnings, {
+                    betAmount: selectedBet,
+                    playerGoals: playerGoals,
+                    keeperSaves: keeperSaves,
+                    result: 'win'
+                });
+                
                 showMessage(`🏆 You Won! +${winnings} coins!`, 'goal');
                 createConfetti();
             } else {
+                gameSync.recordLoss(selectedBet, {
+                    betAmount: selectedBet,
+                    playerGoals: playerGoals,
+                    keeperSaves: keeperSaves,
+                    result: 'loss'
+                });
+                
                 showMessage('😔 Better luck next time!', 'save');
             }
 
-            updateBalance();
+            currentBalance = gameSync.getBalance();
+            updateBalanceDisplay();
             saveStats();
             updateStatsDisplay();
 
@@ -931,11 +964,6 @@
             const resultMessage = document.getElementById('resultMessage');
             resultMessage.className = 'result-message';
             resultMessage.innerHTML = '';
-        }
-
-        function updateBalance() {
-            localStorage.setItem(BALANCE_KEY, currentBalance);
-            updateBalanceDisplay();
         }
 
         function updateBalanceDisplay() {

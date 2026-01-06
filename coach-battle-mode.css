@@ -1,0 +1,241 @@
+/* Coach Battle Mode Styles */
+.coach-battle-container {
+    padding: 20px 0;
+    animation: fadeIn 0.4s ease;
+}
+
+.battle-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.battle-header h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #FFD700, #FDB931);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+
+.battle-header p {
+    color: #94a3b8;
+}
+
+/* Selection Area */
+.battle-selection-area {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 40px;
+    min-height: 180px;
+}
+
+.battle-slot {
+    width: 160px;
+    height: 160px;
+    border: 2px dashed #334155;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(30, 41, 59, 0.5);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.battle-slot.active {
+    border-style: solid;
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
+}
+
+.battle-slot.empty:hover {
+    border-color: #64748b;
+    background: rgba(30, 41, 59, 0.8);
+}
+
+.battle-slot img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 10px;
+    border: 3px solid #3b82f6;
+}
+
+.battle-slot span {
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    color: white;
+}
+
+.battle-slot .remove-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.battle-vs {
+    font-size: 32px;
+    font-weight: 900;
+    font-style: italic;
+    color: #ef4444;
+    text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+    animation: pulse 2s infinite;
+}
+
+.battle-controls {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+/* Comparison Arena */
+.battle-arena {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 20px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 30px;
+    margin-top: 20px;
+}
+
+.stat-row {
+    display: contents;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-label-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 15px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-val {
+    display: flex;
+    align-items: center;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-val.left {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.stat-val.right {
+    justify-content: flex-start;
+    text-align: left;
+}
+
+.stat-val.winner {
+    color: #10b981;
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+.stat-val.loser {
+    color: #64748b;
+    opacity: 0.7;
+}
+
+.battle-verdict {
+    grid-column: 1 / -1;
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(16, 185, 129, 0.1));
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.verdict-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #94a3b8;
+    margin-bottom: 10px;
+}
+
+.verdict-winner {
+    font-size: 24px;
+    font-weight: 800;
+    color: #fff;
+}
+
+.verdict-winner i {
+    color: #FFD700;
+    margin-right: 8px;
+}
+
+/* Selection Grid Override */
+.coach-card-pro.battle-mode {
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+
+.coach-card-pro.battle-mode:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    border-color: #3b82f6;
+}
+
+.coach-card-pro.battle-selected {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    transform: scale(0.98);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@media (max-width: 768px) {
+    .battle-selection-area {
+        gap: 15px;
+    }
+    
+    .battle-slot {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .battle-slot img {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .battle-arena {
+        padding: 15px;
+        gap: 10px;
+    }
+    
+    .stat-val {
+        font-size: 14px;
+    }
+}

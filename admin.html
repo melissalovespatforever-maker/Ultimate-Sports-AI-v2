@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | Ultimate Sports AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Ultimate Admin | Command Center</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,103 +11,169 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=20250114001">
+    <link rel="stylesheet" href="styles.css?v=20250120001">
+    <link rel="stylesheet" href="styles-premium.css?v=20250120001">
+    
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --admin-sidebar-width: 260px;
+            --admin-header-height: 70px;
+            --admin-bg: #0f172a;
+            --admin-card-bg: #1e293b;
+            --admin-border: #334155;
+            --admin-text-muted: #94a3b8;
+            --admin-primary: #3b82f6;
+            --admin-success: #10b981;
+            --admin-danger: #ef4444;
+            --admin-warning: #f59e0b;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #e2e8f0;
-            min-height: 100vh;
-            padding: 20px;
+            background-color: var(--admin-bg);
+            color: white;
+            margin: 0;
+            overflow: hidden; /* App-like feel */
+        }
+        
+        /* Layout Grid */
+        .admin-layout {
+            display: grid;
+            grid-template-columns: var(--admin-sidebar-width) 1fr;
+            grid-template-rows: var(--admin-header-height) 1fr;
+            height: 100vh;
         }
 
-        .admin-container {
-            max-width: 1600px;
-            margin: 0 auto;
+        /* Sidebar */
+        .sidebar {
+            grid-row: 1 / -1;
+            background: var(--admin-card-bg);
+            border-right: 1px solid var(--admin-border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
         }
 
-        .admin-header {
+        .brand {
+            font-size: 20px;
+            font-weight: 800;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 40px;
+            padding-left: 12px;
+        }
+
+        .brand i { color: var(--admin-primary); }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: var(--admin-text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--admin-primary);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .nav-item i { width: 20px; text-align: center; }
+
+        /* Header */
+        .top-bar {
+            grid-column: 2;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            padding: 0 32px;
+            border-bottom: 1px solid var(--admin-border);
             background: rgba(15, 23, 42, 0.8);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid rgba(148, 163, 184, 0.1);
+            backdrop-filter: blur(12px);
         }
 
-        .admin-title h1 {
-            font-size: 28px;
-            margin-bottom: 5px;
-            color: #10b981;
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
         }
 
-        .admin-stats {
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .admin-badge {
+            background: linear-gradient(135deg, var(--admin-primary), #2563eb);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Main Content */
+        .main-content {
+            grid-column: 2;
+            overflow-y: auto;
+            padding: 32px;
+        }
+
+        /* Dashboard Cards */
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
         }
 
         .stat-card {
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
+            background: var(--admin-card-bg);
+            border: 1px solid var(--admin-border);
+            border-radius: 16px;
+            padding: 24px;
         }
 
-        .stat-card h3 {
-            font-size: 12px;
-            text-transform: uppercase;
-            color: #94a3b8;
-            margin-bottom: 10px;
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            margin: 8px 0;
+            background: linear-gradient(to right, white, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .stat-card .value {
-            font-size: 28px;
-            font-weight: 700;
-            color: #10b981;
-        }
+        .stat-label { color: var(--admin-text-muted); font-size: 14px; }
+        .stat-icon { float: right; color: var(--admin-text-muted); opacity: 0.5; }
 
-        .stat-card .change {
-            font-size: 12px;
-            color: #64748b;
-            margin-top: 5px;
-        }
-
-        .admin-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .admin-section {
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            border-radius: 12px;
-            padding: 20px;
+        /* Tables */
+        .table-container {
+            background: var(--admin-card-bg);
+            border: 1px solid var(--admin-border);
+            border-radius: 16px;
             overflow: hidden;
-        }
-
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-        }
-
-        .section-header h2 {
-            font-size: 18px;
-            color: #f1f5f9;
         }
 
         .admin-table {
@@ -115,636 +181,296 @@
             border-collapse: collapse;
         }
 
-        .admin-table th {
-            background: rgba(16, 185, 129, 0.1);
-            padding: 12px;
+        .admin-table th, .admin-table td {
+            padding: 16px 24px;
             text-align: left;
-            font-weight: 600;
-            color: #10b981;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            border-bottom: 1px solid var(--admin-border);
         }
 
-        .admin-table td {
-            padding: 12px;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        .admin-table th {
+            background: rgba(15, 23, 42, 0.5);
+            color: var(--admin-text-muted);
+            font-weight: 600;
             font-size: 13px;
-        }
-
-        .admin-table tr:hover {
-            background: rgba(16, 185, 129, 0.05);
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .badge-pro {
-            background: rgba(59, 130, 246, 0.2);
-            color: #60a5fa;
-        }
+        .admin-table tr:last-child td { border-bottom: none; }
+        .admin-table tr:hover { background: rgba(255, 255, 255, 0.02); }
 
-        .badge-vip {
-            background: rgba(168, 85, 247, 0.2);
-            color: #d8b4fe;
-        }
-
-        .badge-free {
-            background: rgba(100, 116, 139, 0.2);
-            color: #cbd5e1;
-        }
-
-        .list-item {
-            padding: 12px;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .list-item:last-child {
-            border-bottom: none;
-        }
-
-        .item-name {
-            flex: 1;
-            font-weight: 500;
-        }
-
-        .item-value {
-            text-align: right;
-            color: #10b981;
+        /* Badges & Actions */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
             font-weight: 600;
         }
+        .status-success { background: rgba(16, 185, 129, 0.2); color: var(--admin-success); }
+        .status-danger { background: rgba(239, 68, 68, 0.2); color: var(--admin-danger); }
+        .status-warning { background: rgba(245, 158, 11, 0.2); color: var(--admin-warning); }
 
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(148, 163, 184, 0.1);
-            border-radius: 4px;
-            overflow: hidden;
-            margin: 8px 0;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #10b981, #06b6d4);
-            border-radius: 4px;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #94a3b8;
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 30px;
-            height: 30px;
-            border: 3px solid rgba(148, 163, 184, 0.1);
-            border-top-color: #10b981;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .btn-logout {
-            background: rgba(239, 68, 68, 0.2);
-            color: #fca5a5;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            padding: 8px 16px;
-            border-radius: 6px;
+        .action-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--admin-border);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 13px;
-            transition: all 0.3s;
+            transition: all 0.2s;
+        }
+        .action-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: white; }
+        .action-btn.primary { background: var(--admin-primary); border-color: var(--admin-primary); }
+        .action-btn.primary:hover { filter: brightness(1.1); }
+        
+        /* Views */
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .btn-logout:hover {
-            background: rgba(239, 68, 68, 0.3);
+        /* Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+            z-index: 1000; display: none; align-items: center; justify-content: center;
         }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-        }
-
-        .tab-btn {
-            padding: 10px 15px;
-            background: transparent;
-            border: none;
-            color: #94a3b8;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s;
-        }
-
-        .tab-btn.active {
-            color: #10b981;
-            border-bottom-color: #10b981;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
         .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
+            background: var(--admin-card-bg); border: 1px solid var(--admin-border);
+            border-radius: 20px; padding: 32px; width: 100%; max-width: 500px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: #0f172a;
-            border-radius: 12px;
-            padding: 30px;
-            max-width: 500px;
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 1px solid rgba(148, 163, 184, 0.1);
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 24px; }
+        .modal-title { font-size: 20px; font-weight: 700; }
+        .close-modal { background: none; border: none; color: var(--admin-text-muted); cursor: pointer; font-size: 20px; }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-label { display: block; margin-bottom: 8px; color: var(--admin-text-muted); font-size: 14px; }
+        .form-input {
+            width: 100%; background: #0f172a; border: 1px solid var(--admin-border);
+            padding: 12px; border-radius: 8px; color: white;
         }
     </style>
 </head>
 <body>
-    <div class="admin-container">
-        <!-- Header -->
-        <div class="admin-header">
-            <div class="admin-title">
-                <h1><i class="fas fa-shield-alt"></i> Admin Dashboard</h1>
-                <p>Ultimate Sports AI Platform Management</p>
-            </div>
-            <button class="btn-logout" onclick="AdminDashboard.logout()">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
+
+<div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="brand">
+            <i class="fas fa-shield-halved"></i>
+            <span>ULTIMATE ADMIN</span>
         </div>
-
-        <!-- Stats -->
-        <div class="admin-stats" id="admin-stats">
-            <div class="stat-card">
-                <h3>Total Users</h3>
-                <div class="value" id="stat-users">-</div>
-                <div class="change">Loading...</div>
+        
+        <nav class="nav-links">
+            <div class="nav-item active" onclick="admin.showView('dashboard')">
+                <i class="fas fa-chart-line"></i> Dashboard
             </div>
-            <div class="stat-card">
-                <h3>Active Coaches</h3>
-                <div class="value" id="stat-coaches">-</div>
-                <div class="change">11 Available</div>
+            <div class="nav-item" onclick="admin.showView('users')">
+                <i class="fas fa-users"></i> User Management
             </div>
-            <div class="stat-card">
-                <h3>Total Bets</h3>
-                <div class="value" id="stat-bets">-</div>
-                <div class="change">Today's Volume</div>
+            <div class="nav-item" onclick="admin.showView('transactions')">
+                <i class="fas fa-money-bill-wave"></i> Transactions
             </div>
-            <div class="stat-card">
-                <h3>Revenue</h3>
-                <div class="value" id="stat-revenue">-</div>
-                <div class="change">This Month</div>
+            <div class="nav-item" onclick="admin.showView('minigames')">
+                <i class="fas fa-gamepad"></i> Minigames & RTP
             </div>
-        </div>
-
-        <!-- Tabs -->
-        <div class="tabs">
-            <button class="tab-btn active" onclick="AdminDashboard.switchTab('overview')">
-                <i class="fas fa-chart-line"></i> Overview
-            </button>
-            <button class="tab-btn" onclick="AdminDashboard.switchTab('users')">
-                <i class="fas fa-users"></i> Users
-            </button>
-            <button class="tab-btn" onclick="AdminDashboard.switchTab('coaches')">
-                <i class="fas fa-user-tie"></i> Coaches
-            </button>
-            <button class="tab-btn" onclick="AdminDashboard.switchTab('bets')">
-                <i class="fas fa-coins"></i> Bets
-            </button>
-        </div>
-
-        <!-- Overview Tab -->
-        <div id="overview" class="tab-content active">
-            <div class="admin-grid">
-                <!-- Recent Users -->
-                <div class="admin-section">
-                    <div class="section-header">
-                        <i class="fas fa-user-check"></i>
-                        <h2>Recent Users</h2>
-                    </div>
-                    <div id="recent-users"></div>
-                </div>
-
-                <!-- Recent Bets -->
-                <div class="admin-section">
-                    <div class="section-header">
-                        <i class="fas fa-history"></i>
-                        <h2>Recent Bets</h2>
-                    </div>
-                    <div id="recent-bets"></div>
-                </div>
+            <div class="nav-item" onclick="admin.showView('shop')">
+                <i class="fas fa-shopping-cart"></i> Shop Inventory
             </div>
+            <div class="nav-item" onclick="admin.showView('coaches')">
+                <i class="fas fa-robot"></i> AI Coaches
+            </div>
+        </nav>
 
-            <div class="admin-grid">
-                <!-- Subscription Distribution -->
-                <div class="admin-section">
-                    <div class="section-header">
-                        <i class="fas fa-pie-chart"></i>
-                        <h2>Subscriptions</h2>
-                    </div>
-                    <div id="subscriptions-data"></div>
-                </div>
-
-                <!-- Top Coaches -->
-                <div class="admin-section">
-                    <div class="section-header">
-                        <i class="fas fa-star"></i>
-                        <h2>Top Coaches by Picks</h2>
-                    </div>
-                    <div id="top-coaches"></div>
-                </div>
+        <div style="margin-top: auto;">
+            <div class="nav-item" onclick="window.location.href='/'">
+                <i class="fas fa-sign-out-alt"></i> Exit to App
             </div>
         </div>
+    </aside>
 
-        <!-- Users Tab -->
-        <div id="users" class="tab-content">
-            <div class="admin-section">
-                <div class="section-header">
-                    <i class="fas fa-list"></i>
-                    <h2>User Management</h2>
+    <!-- Header -->
+    <header class="top-bar">
+        <div class="page-title" id="page-title">Dashboard</div>
+        <div class="user-menu">
+            <span class="admin-badge">SUPER ADMIN</span>
+            <div style="width: 40px; height: 40px; background: var(--admin-border); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content Area -->
+    <main class="main-content">
+        
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard" class="view-section active">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="fas fa-users stat-icon"></i>
+                    <div class="stat-label">Total Users</div>
+                    <div class="stat-value" id="dash-users">--</div>
                 </div>
+                <div class="stat-card">
+                    <i class="fas fa-signal stat-icon"></i>
+                    <div class="stat-label">Active Today</div>
+                    <div class="stat-value" id="dash-active">--</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-dollar-sign stat-icon"></i>
+                    <div class="stat-label">Total Revenue</div>
+                    <div class="stat-value" id="dash-revenue">--</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-coins stat-icon"></i>
+                    <div class="stat-label">Economy (Coins)</div>
+                    <div class="stat-value" id="dash-economy">--</div>
+                </div>
+            </div>
+
+            <h3 style="margin-bottom: 20px;">Recent Activity</h3>
+            <div class="table-container">
                 <table class="admin-table">
                     <thead>
                         <tr>
-                            <th>User ID</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Subscription</th>
-                            <th>Joined</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="users-table"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Coaches Tab -->
-        <div id="coaches" class="tab-content">
-            <div class="admin-section">
-                <div class="section-header">
-                    <i class="fas fa-person-hiking"></i>
-                    <h2>AI Coaches Performance</h2>
-                </div>
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Coach Name</th>
-                            <th>Tier</th>
-                            <th>Accuracy</th>
-                            <th>Total Picks</th>
-                            <th>Wins</th>
-                            <th>Losses</th>
-                            <th>ROI</th>
-                        </tr>
-                    </thead>
-                    <tbody id="coaches-table"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Bets Tab -->
-        <div id="bets" class="tab-content">
-            <div class="admin-section">
-                <div class="section-header">
-                    <i class="fas fa-chart-bar"></i>
-                    <h2>Bet Analytics</h2>
-                </div>
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Bet ID</th>
                             <th>User</th>
-                            <th>Amount</th>
-                            <th>Type</th>
-                            <th>Status</th>
-                            <th>ROI</th>
-                            <th>Placed</th>
+                            <th>Action</th>
+                            <th>Details</th>
+                            <th>Time</th>
                         </tr>
                     </thead>
-                    <tbody id="bets-table"></tbody>
+                    <tbody id="dash-activity-table">
+                        <!-- Populated via JS -->
+                    </tbody>
                 </table>
             </div>
+        </div>
+
+        <!-- USERS VIEW -->
+        <div id="view-users" class="view-section">
+            <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+                <input type="text" id="user-search" class="form-input" placeholder="Search by username or email..." style="max-width: 300px;">
+                <button class="action-btn primary" onclick="admin.fetchUsers()">Search</button>
+            </div>
+            <div class="table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Balance</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <!-- Populated via JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TRANSACTIONS VIEW -->
+        <div id="view-transactions" class="view-section">
+            <div class="table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Coins</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- MINIGAMES VIEW -->
+        <div id="view-minigames" class="view-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Total Plays</div>
+                    <div class="stat-value" id="game-plays">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Coins Paid Out</div>
+                    <div class="stat-value" id="game-payout">0</div>
+                </div>
+            </div>
+            
+            <h3 style="margin-bottom: 16px;">Game Performance & RTP</h3>
+            <div class="table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Game Name</th>
+                            <th>Plays (Est)</th>
+                            <th>Win Rate</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="minigames-table-body">
+                        <!-- Will be populated with static list + dynamic stats -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SHOP VIEW -->
+        <div id="view-shop" class="view-section">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 24px;">
+                <button class="action-btn primary" onclick="admin.openShopModal()">
+                    <i class="fas fa-plus"></i> Add Item
+                </button>
+            </div>
+            <div class="table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Category</th>
+                            <th>Stock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="shop-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- COMMON MODAL -->
+<div id="admin-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title" id="modal-title">Edit Item</h3>
+            <button class="close-modal" onclick="admin.closeModal()">&times;</button>
+        </div>
+        <div id="modal-content">
+            <!-- Dynamic Form Content -->
+        </div>
+        <div style="display: flex; gap: 12px; margin-top: 24px;">
+            <button class="action-btn" onclick="admin.closeModal()" style="flex: 1;">Cancel</button>
+            <button class="action-btn primary" id="modal-submit" style="flex: 1;">Save Changes</button>
         </div>
     </div>
+</div>
 
-    <script>
-        const AdminDashboard = {
-            data: {
-                users: [],
-                coaches: [],
-                bets: [],
-                stats: {}
-            },
-
-            async init() {
-                try {
-                    // Check auth
-                    const token = localStorage.getItem('token');
-                    if (!token) {
-                        window.location.href = 'index.html';
-                        return;
-                    }
-
-                    console.log('🔐 Loading admin dashboard...');
-                    
-                    // Load all data
-                    await this.loadStats();
-                    await this.loadUsers();
-                    await this.loadCoaches();
-                    await this.loadBets();
-                    
-                    // Render
-                    this.renderOverview();
-                    this.renderUsers();
-                    this.renderCoaches();
-                    this.renderBets();
-                    
-                    console.log('✅ Admin dashboard loaded');
-                } catch (error) {
-                    console.error('Error loading admin dashboard:', error);
-                    this.showLoading();
-                }
-            },
-
-            async loadStats() {
-                try {
-                    const token = localStorage.getItem('token');
-                    const response = await fetch(`${window.API_BASE_URL}/api/admin/stats`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    
-                    if (response.ok) {
-                        this.data.stats = await response.json();
-                    }
-                } catch (error) {
-                    console.warn('Could not load stats:', error);
-                    // Use mock data
-                    this.data.stats = {
-                        totalUsers: 1247,
-                        activeCoaches: 11,
-                        totalBets: 5432,
-                        revenue: 12456.78
-                    };
-                }
-                
-                this.updateStats();
-            },
-
-            async loadUsers() {
-                try {
-                    const token = localStorage.getItem('token');
-                    const response = await fetch(`${window.API_BASE_URL}/api/admin/users?limit=20`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    
-                    if (response.ok) {
-                        this.data.users = await response.json();
-                    }
-                } catch (error) {
-                    console.warn('Could not load users:', error);
-                    // Use mock data
-                    this.data.users = this.mockUsers();
-                }
-            },
-
-            async loadCoaches() {
-                try {
-                    const response = await fetch(`${window.API_BASE_URL}/api/ai-coaches`);
-                    if (response.ok) {
-                        this.data.coaches = await response.json();
-                    }
-                } catch (error) {
-                    console.warn('Could not load coaches:', error);
-                    this.data.coaches = this.mockCoaches();
-                }
-            },
-
-            async loadBets() {
-                try {
-                    const token = localStorage.getItem('token');
-                    const response = await fetch(`${window.API_BASE_URL}/api/admin/bets?limit=20`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    
-                    if (response.ok) {
-                        this.data.bets = await response.json();
-                    }
-                } catch (error) {
-                    console.warn('Could not load bets:', error);
-                    this.data.bets = this.mockBets();
-                }
-            },
-
-            updateStats() {
-                const stats = this.data.stats;
-                document.getElementById('stat-users').textContent = (stats.totalUsers || 1247).toLocaleString();
-                document.getElementById('stat-coaches').textContent = (stats.activeCoaches || 11).toLocaleString();
-                document.getElementById('stat-bets').textContent = (stats.totalBets || 5432).toLocaleString();
-                document.getElementById('stat-revenue').textContent = '$' + ((stats.revenue || 12456.78).toFixed(2));
-            },
-
-            renderOverview() {
-                // Recent Users
-                const recentUsersHtml = (this.data.users || this.mockUsers())
-                    .slice(0, 5)
-                    .map(u => `
-                        <div class="list-item">
-                            <div class="item-name">
-                                <strong>${u.name || u.email}</strong>
-                                <div style="font-size: 12px; color: #94a3b8;">${u.email}</div>
-                            </div>
-                            <span class="badge ${u.subscription === 'vip' ? 'badge-vip' : u.subscription === 'pro' ? 'badge-pro' : 'badge-free'}">
-                                ${u.subscription || 'free'}
-                            </span>
-                        </div>
-                    `).join('');
-                document.getElementById('recent-users').innerHTML = recentUsersHtml;
-
-                // Recent Bets
-                const recentBetsHtml = (this.data.bets || this.mockBets())
-                    .slice(0, 5)
-                    .map(b => `
-                        <div class="list-item">
-                            <div class="item-name">
-                                <strong>Bet #${b.id}</strong>
-                                <div style="font-size: 12px; color: #94a3b8;">${b.type || 'parlay'}</div>
-                            </div>
-                            <div class="item-value" style="color: ${b.status === 'won' ? '#10b981' : b.status === 'lost' ? '#ef4444' : '#94a3b8'}">
-                                ${b.status === 'won' ? '+' : b.status === 'lost' ? '-' : ''}$${(b.amount || 100).toFixed(2)}
-                            </div>
-                        </div>
-                    `).join('');
-                document.getElementById('recent-bets').innerHTML = recentBetsHtml;
-
-                // Subscriptions
-                const coaches = this.data.coaches || this.mockCoaches();
-                const subs = `
-                    <div class="list-item">
-                        <div class="item-name">Free Users</div>
-                        <div class="item-value">245</div>
-                    </div>
-                    <div class="list-item">
-                        <div class="item-name">PRO Subscribers</div>
-                        <div class="item-value">542</div>
-                    </div>
-                    <div class="list-item">
-                        <div class="item-name">VIP Subscribers</div>
-                        <div class="item-value">178</div>
-                    </div>
-                `;
-                document.getElementById('subscriptions-data').innerHTML = subs;
-
-                // Top Coaches
-                const topCoachesHtml = (coaches || [])
-                    .sort((a, b) => (b.stats?.total_picks || 0) - (a.stats?.total_picks || 0))
-                    .slice(0, 5)
-                    .map(c => `
-                        <div class="list-item">
-                            <div class="item-name">
-                                <strong>${c.name}</strong>
-                                <div style="font-size: 12px; color: #94a3b8;">${c.stats?.accuracy || 70}% accuracy</div>
-                            </div>
-                            <div class="item-value">${c.stats?.total_picks || 0} picks</div>
-                        </div>
-                    `).join('');
-                document.getElementById('top-coaches').innerHTML = topCoachesHtml;
-            },
-
-            renderUsers() {
-                const usersHtml = (this.data.users || this.mockUsers())
-                    .map(u => `
-                        <tr>
-                            <td>#${u.id || Math.random().toString(36).substr(2, 9)}</td>
-                            <td>${u.name || 'N/A'}</td>
-                            <td>${u.email}</td>
-                            <td><span class="badge ${u.subscription === 'vip' ? 'badge-vip' : u.subscription === 'pro' ? 'badge-pro' : 'badge-free'}">${u.subscription || 'free'}</span></td>
-                            <td>${u.created_at ? new Date(u.created_at).toLocaleDateString() : 'N/A'}</td>
-                            <td><i class="fas fa-circle" style="color: #10b981; font-size: 8px;"></i> Active</td>
-                        </tr>
-                    `).join('');
-                document.getElementById('users-table').innerHTML = usersHtml;
-            },
-
-            renderCoaches() {
-                const coachesHtml = (this.data.coaches || this.mockCoaches())
-                    .map(c => `
-                        <tr>
-                            <td><strong>${c.name}</strong></td>
-                            <td><span class="badge ${c.tier === 'VIP' ? 'badge-vip' : 'badge-pro'}">${c.tier}</span></td>
-                            <td>${c.stats?.accuracy || 70}%</td>
-                            <td>${c.stats?.total_picks || 0}</td>
-                            <td>${(c.stats?.total_picks || 0) * 0.7 | 0}</td>
-                            <td>${(c.stats?.total_picks || 0) * 0.3 | 0}</td>
-                            <td style="color: #10b981;">+${(Math.random() * 50).toFixed(1)}%</td>
-                        </tr>
-                    `).join('');
-                document.getElementById('coaches-table').innerHTML = coachesHtml;
-            },
-
-            renderBets() {
-                const betsHtml = (this.data.bets || this.mockBets())
-                    .map(b => `
-                        <tr>
-                            <td>#${b.id || Math.random().toString(36).substr(2, 5)}</td>
-                            <td>${b.user || 'User'}</td>
-                            <td>$${(b.amount || 100).toFixed(2)}</td>
-                            <td>${b.type || 'Parlay'}</td>
-                            <td><span class="badge" style="background: ${b.status === 'won' ? 'rgba(16, 185, 129, 0.2)' : b.status === 'lost' ? 'rgba(239, 68, 68, 0.2)' : 'rgba(148, 163, 184, 0.2)'}; color: ${b.status === 'won' ? '#86efac' : b.status === 'lost' ? '#fca5a5' : '#cbd5e1'}">${b.status || 'pending'}</span></td>
-                            <td style="color: ${b.status === 'won' ? '#10b981' : '#ef4444'};">${b.status === 'won' ? '+' : '-'}${(Math.random() * 30).toFixed(1)}%</td>
-                            <td>${new Date().toLocaleDateString()}</td>
-                        </tr>
-                    `).join('');
-                document.getElementById('bets-table').innerHTML = betsHtml;
-            },
-
-            switchTab(tab) {
-                // Update buttons
-                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-                event.target.classList.add('active');
-
-                // Update content
-                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-                document.getElementById(tab).classList.add('active');
-            },
-
-            logout() {
-                localStorage.removeItem('token');
-                window.location.href = 'index.html';
-            },
-
-            showLoading() {
-                document.getElementById('overview').innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>Loading data...</p></div>';
-            },
-
-            mockUsers() {
-                return [
-                    { id: 1, name: 'John Smith', email: 'john@example.com', subscription: 'vip', created_at: new Date(Date.now() - 7*24*60*60*1000) },
-                    { id: 2, name: 'Sarah Johnson', email: 'sarah@example.com', subscription: 'pro', created_at: new Date(Date.now() - 5*24*60*60*1000) },
-                    { id: 3, name: 'Mike Davis', email: 'mike@example.com', subscription: 'free', created_at: new Date(Date.now() - 3*24*60*60*1000) },
-                    { id: 4, name: 'Emily Wilson', email: 'emily@example.com', subscription: 'pro', created_at: new Date(Date.now() - 1*24*60*60*1000) },
-                    { id: 5, name: 'Robert Brown', email: 'robert@example.com', subscription: 'vip', created_at: new Date() }
-                ];
-            },
-
-            mockCoaches() {
-                return [
-                    { id: 1, name: 'The Analyst', tier: 'PRO', stats: { accuracy: 74.2, total_picks: 547 } },
-                    { id: 2, name: 'Sharp Shooter', tier: 'VIP', stats: { accuracy: 71.8, total_picks: 423 } },
-                    { id: 3, name: 'Data Dragon', tier: 'PRO', stats: { accuracy: 69.4, total_picks: 612 } },
-                    { id: 4, name: 'Ice Breaker', tier: 'VIP', stats: { accuracy: 72.1, total_picks: 389 } },
-                    { id: 5, name: 'El Futbolista', tier: 'VIP', stats: { accuracy: 68.9, total_picks: 502 } },
-                    { id: 6, name: 'The Gridiron Guru', tier: 'PRO', stats: { accuracy: 75.3, total_picks: 456 } },
-                    { id: 7, name: 'Ace of Aces', tier: 'PRO', stats: { accuracy: 70.2, total_picks: 534 } },
-                    { id: 8, name: 'The Brawl Boss', tier: 'VIP', stats: { accuracy: 73.5, total_picks: 378 } },
-                    { id: 9, name: 'The Green Master', tier: 'PRO', stats: { accuracy: 71.7, total_picks: 467 } },
-                    { id: 10, name: 'March Madness', tier: 'PRO', stats: { accuracy: 74.9, total_picks: 523 } },
-                    { id: 11, name: 'Pixel Prophet', tier: 'VIP', stats: { accuracy: 72.3, total_picks: 441 } }
-                ];
-            },
-
-            mockBets() {
-                return [
-                    { id: 'B001', user: 'User #1245', amount: 250, type: 'Parlay', status: 'won' },
-                    { id: 'B002', user: 'User #1244', amount: 150, type: 'Single', status: 'lost' },
-                    { id: 'B003', user: 'User #1243', amount: 500, type: 'Parlay', status: 'pending' },
-                    { id: 'B004', user: 'User #1242', amount: 100, type: 'Single', status: 'won' },
-                    { id: 'B005', user: 'User #1241', amount: 300, type: 'Parlay', status: 'lost' }
-                ];
-            }
-        };
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => AdminDashboard.init());
-    </script>
+<script src="js/admin-dashboard.js"></script>
 </body>
 </html>

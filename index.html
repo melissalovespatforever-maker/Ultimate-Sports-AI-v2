@@ -1,48 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
-<head> 
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    
+    <!-- GLOBAL LOGO SANITIZER (Must be available before any UI renders) -->
+    <script>
+        window.resolveSportsLogo = function(id, sport, url) {
+            const fallback = 'https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
+            
+            try {
+                // 1. DATA NORMALIZATION & EMERGENCY INTERCEPTION
+                let urlStr = typeof url === 'string' ? url : (url && (url.href || url.url)) || '';
+                const sportStr = String(sport || '').toUpperCase();
+                
+                // Extremely robust ID string conversion
+                let idStr = '';
+                if (typeof id === 'string') idStr = id.trim().toUpperCase();
+                else if (typeof id === 'number') idStr = String(id);
+                else if (id && id.id) idStr = String(id.id).trim().toUpperCase();
+                
+                // CRITICAL INTERCEPTION - Catch known broken ESPN URLs immediately before any other logic
+                const urlLower = urlStr.toLowerCase();
+                if (urlLower.includes('mci.png')) return 'https://a.espncdn.com/i/teamlogos/soccer/500/84.png';
+                if (urlLower.includes('ars.png')) return 'https://a.espncdn.com/i/teamlogos/soccer/500/359.png';
+                
+                // If urlStr is empty and we have no valid ID, return fallback immediately
+                if (!urlStr && !idStr) return fallback;
+
+                // EMERGENCY BLOCKLIST: Never return these specific broken strings
+                const blocklist = ['ars.png', 'mci.png', 'ars', 'mci'];
+                if (blocklist.some(b => urlLower.endsWith(b) || idStr.toLowerCase() === b)) {
+                     if (idStr.includes('ARS') || urlLower.includes('ars')) return 'https://a.espncdn.com/i/teamlogos/soccer/500/359.png';
+                     if (idStr.includes('MCI') || urlLower.includes('mci')) return 'https://a.espncdn.com/i/teamlogos/soccer/500/84.png';
+                }
+
+                // EMERGENCY KILL-SWITCH FOR KNOWN BROKEN ESPN ABBREVIATIONS
+                const isMCI = idStr === '84' || idStr === 'MCI' || idStr === 'MAN CITY' || idStr.includes('MANCHESTER CITY') || /mci\.png/i.test(urlStr);
+                const isARS = idStr === '359' || idStr === 'ARS' || idStr === 'ARSENAL' || /ars\.png/i.test(urlStr);
+
+                if (isMCI) return 'https://a.espncdn.com/i/teamlogos/soccer/500/84.png';
+                if (isARS) return 'https://a.espncdn.com/i/teamlogos/soccer/500/359.png';
+
+                // 2. SOCCER SPECIFIC LOGIC (ESPN soccer logos MUST be numeric IDs)
+                if (sportStr === 'SOCCER' || sportStr === 'EPL' || urlLower.includes('/soccer/') || urlLower.includes('eng.1')) {
+                    const soccerMap = {
+                        'LIV': '364', 'MUN': '360', 'CHE': '363', 'TOT': '367', 'NEW': '361', 'AVL': '362', 
+                        'WHA': '371', 'EVE': '368', 'LEI': '375', 'BHA': '331', 'CRY': '384', 'WOL': '380', 
+                        'BRE': '337', 'FUL': '370', 'NFO': '393', 'BOU': '349', 'LUT': '346', 'SHU': '398',
+                        'BUR': '374', 'IPS': '378', 'SOU': '376', 'WHT': '371', 'WHU': '371', 'LFC': '364', 'MU': '360',
+                        'MCI': '84', 'MC': '84', 'ARS': '359', 'AR': '359'
+                    };
+
+                    if (soccerMap[idStr]) return `https://a.espncdn.com/i/teamlogos/soccer/500/${soccerMap[idStr]}.png`;
+                    
+                    // Check if URL contains an abbreviation that needs mapping
+                    const match = urlStr.match(/\/soccer\/500\/([a-z]+)\.png/i);
+                    if (match && match[1]) {
+                        const abbr = match[1].toUpperCase();
+                        if (soccerMap[abbr]) return `https://a.espncdn.com/i/teamlogos/soccer/500/${soccerMap[abbr]}.png`;
+                    }
+
+                    // If it's a numeric ID in the URL, keep it
+                    if (/\/\d+\.png/.test(urlStr)) return urlStr;
+                    
+                    // If the ID itself is numeric, use it
+                    if (/^\d+$/.test(idStr)) return `https://a.espncdn.com/i/teamlogos/soccer/500/${idStr}.png`;
+                    
+                    // Fallback for soccer: if not numeric, it's probably broken
+                    if (!/\/\d+\.png/.test(urlStr) && urlStr.includes('espncdn.com')) return fallback;
+                }
+
+                // 3. GENERAL FALLBACK FOR OTHER SPORTS
+                if (urlStr.length > 20 && urlStr.startsWith('http')) {
+                    return urlStr;
+                }
+
+                if (!sportStr || !idStr) return fallback;
+
+                const league = sportStr.toLowerCase() || 'nfl';
+                const team = idStr.toLowerCase() || 'unknown';
+                
+                // Final safety: if we're about to return a known bad pattern, force fallback
+                if (team === 'ars' || team === 'mci') {
+                    return team === 'ars' ? 'https://a.espncdn.com/i/teamlogos/soccer/500/359.png' : 'https://a.espncdn.com/i/teamlogos/soccer/500/84.png';
+                }
+                
+                return `https://a.espncdn.com/i/teamlogos/${league}/500/${team}.png`;
+            } catch (e) {
+                console.warn('Logo resolution error:', e);
+                return fallback;
+            }
+        };
+
+        // GLOBAL ERROR HEALER (Capture phase to stop bubbling)
+        window.addEventListener('error', (event) => {
+            if (event.target && event.target.tagName === 'IMG') {
+                const img = event.target;
+                const src = img.src || '';
+                
+                // Silently swallow empty source errors - they aren't critical
+                if (!src || src === window.location.href || src.includes('data:image/gif;base64')) {
+                    event.stopImmediatePropagation();
+                    event.preventDefault();
+                    return;
+                }
+
+                // Immediate rescue for MCI/ARS
+                const mciUrl = 'https://a.espncdn.com/i/teamlogos/soccer/500/84.png';
+                const arsUrl = 'https://a.espncdn.com/i/teamlogos/soccer/500/359.png';
+                
+                const isBrokenMCI = /mci\.png|(\/|_)mci(\/|_|\.)/i.test(src) || img.alt === 'MCI' || img.alt === 'Man City';
+                const isBrokenARS = /ars\.png|(\/|_)ars(\/|_|\.)/i.test(src) || img.alt === 'ARS' || img.alt === 'Arsenal';
+                
+                if (isBrokenMCI) {
+                    img.src = mciUrl;
+                    event.stopImmediatePropagation();
+                    event.preventDefault();
+                    return;
+                }
+                if (isBrokenARS) {
+                    img.src = arsUrl;
+                    event.stopImmediatePropagation();
+                    event.preventDefault();
+                    return;
+                }
+                
+                // Generic ESPN failure rescue
+                if (src.includes('espncdn.com')) {
+                    img.src = 'https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
+                    event.stopImmediatePropagation();
+                    event.preventDefault();
+                }
+            }
+        }, true);
+
+        // PROACTIVE SWEEPER (Heal broken logos before they even fail if possible)
+        setInterval(() => {
+            document.querySelectorAll('img[src*="mci.png"], img[src*="ars.png"], img[alt="MCI"], img[alt="ARS"]').forEach(img => {
+                const src = img.src || '';
+                if (/mci\.png/i.test(src)) img.src = 'https://a.espncdn.com/i/teamlogos/soccer/500/84.png';
+                if (/ars\.png/i.test(src)) img.src = 'https://a.espncdn.com/i/teamlogos/soccer/500/359.png';
+            });
+        }, 500);
+
+        // GLOBAL MESSAGE LISTENER (For Inter-Iframe Communication)
+        window.addEventListener('message', (event) => {
+            const data = event.data;
+            if (!data || !data.action) return;
+
+            switch(data.action) {
+                case 'jackpot_celebration':
+                    console.log('🎰 MEGA JACKPOT DETECTED!', data);
+                    if (window.confetti) {
+                        window.confetti({
+                            particleCount: 400,
+                            spread: 120,
+                            origin: { y: 0.3 },
+                            colors: ['#fbbf24', '#f59e0b', '#10b981', '#ffffff', '#6366f1']
+                        });
+                    }
+                    if (window.globalState && typeof window.globalState.showNotification === 'function') {
+                        window.globalState.showNotification(
+                            `🔥 MEGA JACKPOT! You won ${data.payout.toLocaleString()} coins in ${data.game}!`,
+                            'success'
+                        );
+                    }
+                    break;
+                
+                case 'notify':
+                    if (window.globalState && typeof window.globalState.showNotification === 'function') {
+                        window.globalState.showNotification(data.message, data.type || 'info');
+                    }
+                    break;
+                
+                case 'navigate':
+                    if (window.appNavigation && typeof window.appNavigation.navigateTo === 'function') {
+                        window.appNavigation.navigateTo(data.page);
+                    }
+                    break;
+            }
+        });
+    </script>
+
     <title>Ultimate Sports AI - Master Sports Analytics</title>
-    
-    <!-- Primary Meta Tags -->
-    <meta name="title" content="Ultimate Sports AI - Sports Analytics Platform">
-    <meta name="description" content="AI-powered sports analytics with live scores, expert coaching, and real-time predictions. Join the ultimate sports intelligence platform.">
-    <meta name="theme-color" content="#10b981">
-    
-    <!-- Prevent aggressive caching -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    
-    <!-- Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN">
-    <link rel="apple-touch-icon" href="https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN">
-    
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
-    
+
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
     <!-- Main Styles -->
     <link rel="stylesheet" href="styles.css?v=20250107002">
     <link rel="stylesheet" href="styles-premium.css?v=20250115001">
     <link rel="stylesheet" href="home-premium-layout.css?v=20250115001">
     <link rel="stylesheet" href="activity-feed-styles.css?v=20250107004">
     <link rel="stylesheet" href="ai-coach-card-styles.css?v=20250107002">
-    <link rel="stylesheet" href="ai-coaches-deluxe-styles.css?v=20250107002">
     <link rel="stylesheet" href="ai-coach-chat-styles.css?v=20250107002">
-    <link rel="stylesheet" href="ai-coach-picks-styles.css?v=20250107002">
+    <link rel="stylesheet" href="ai-coaches-espn-pro.css?v=20250215001">
     <link rel="stylesheet" href="settings-styles.css?v=20250107002">
     <link rel="stylesheet" href="live-scores-styles.css?v=20250107002">
     <link rel="stylesheet" href="my-bets-styles.css?v=20250107002">
     <link rel="stylesheet" href="profile-styles.css?v=20250107002">
+    <link rel="stylesheet" href="transaction-history-modal.css">
     <link rel="stylesheet" href="two-factor-styles.css?v=20250107002">
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Sports AI">
+    <link rel="apple-touch-icon" href="https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN">
     <link rel="stylesheet" href="breadcrumb-styles.css?v=20250117001">
     <link rel="stylesheet" href="achievements-showcase-styles.css?v=20250117001">
+    <link rel="stylesheet" href="daily-rewards-styles.css?v=20250215001">
+    <link rel="stylesheet" href="daily-quest-styles.css?v=20250215001">
+    <link rel="stylesheet" href="referral-system.css?v=20250215001">
+    <link rel="stylesheet" href="tutorial-system.css?v=20250215001">
+    <link rel="stylesheet" href="coach-battle-mode.css?v=20250215001">
+    <link rel="stylesheet" href="shoutbox.css?v=20250215001">
+    <link rel="stylesheet" href="trending-widget.css?v=20250215001">
+    <link rel="stylesheet" href="global-search.css?v=20250215001">
+    <link rel="stylesheet" href="player-profile-modal.css?v=20250215001">
+    <link rel="stylesheet" href="live-commentary-overlay.css?v=20250215001">
+    <link rel="stylesheet" href="public-sentiment-heatmap.css?v=20250215001">
+    <link rel="stylesheet" href="betting-odds-tracker.css?v=20250215002">
+    <link rel="stylesheet" href="global-odds-comparison.css?v=20250215003">
+    <link rel="stylesheet" href="social-share-manager.css?v=20250215001">
+    <link rel="stylesheet" href="smart-parlay-generator.css?v=20250215001">
+    <link rel="stylesheet" href="value-bet-scanner.css?v=20250215001">
+    <link rel="stylesheet" href="legend-trade-market.css?v=20250215001">
 </head>
 <body>
     <!-- Loading Overlay -->
@@ -71,10 +254,26 @@
             </div>
             
             <div class="app-bar-actions">
+                <!-- User Balance Display -->
+                <div class="header-balance" id="header-user-balance" title="Ultimate Coins">
+                    <i class="fas fa-coins"></i>
+                    <span class="balance-amount">10,000</span>
+                    <span id="save-indicator" style="display: none; font-size: 10px; color: #10b981; margin-left: 6px;">✓ Saved</span>
+                </div>
+
+                <button class="icon-button" id="daily-quests-btn" title="Daily Quests" onclick="window.dailyQuests.renderToModal()">
+                    <i class="fas fa-tasks"></i>
+                </button>
+                
                 <button class="icon-button" id="notifications-btn" aria-label="Notifications">
                     <i class="fas fa-bell"></i>
                     <span class="notification-badge">3</span>
                 </button>
+                
+                <div id="header-tier-container" class="header-tier-container">
+                    <!-- Badges injected by global-state-manager.js -->
+                </div>
+
                 <button class="icon-button profile-btn" data-page="profile" aria-label="Profile">
                     <i class="fas fa-user-circle"></i>
                 </button>
@@ -121,6 +320,12 @@
                 <button class="filter-btn" data-filter="big_win">
                     <i class="fas fa-gem"></i> Mega
                 </button>
+                <button class="filter-btn" data-filter="sharp_alert">
+                    <i class="fas fa-bolt"></i> Sharp
+                </button>
+                <button class="filter-btn" data-filter="whale_bet">
+                    <i class="fas fa-whale"></i> Whales
+                </button>
             </div>
             
             <div class="notifications-list" id="activity-feed-list">
@@ -139,8 +344,8 @@
                         😊
                     </div>
                     <div class="user-info">
-                        <h3 id="user-display-name">Guest User</h3>
-                        <p class="user-tier" id="user-tier-badge">FREE TIER</p>
+                        <h3 id="user-display-name">Sign In</h3>
+                        <p class="user-tier" id="user-tier-badge">AUTHENTICATION REQUIRED</p>
                     </div>
                 </div>
                 <button id="upgrade-btn" class="upgrade-button">
@@ -166,25 +371,29 @@
                         <span>My Bets</span>
                         <span class="badge" id="pending-bets-count" style="display:none;">0</span>
                     </button>
-                </div>
-
-                <!-- AI Predictions -->
-                <div class="menu-section">
-                    <h4 class="menu-section-title">AI Predictions</h4>
-                    <button class="menu-item" data-page="ai-coaches">
-                        <i class="fas fa-robot"></i>
-                        <span>AI Coaches</span>
-                        <span class="badge badge-pro">PRO</span>
-                    </button>
                     <button class="menu-item" data-page="analytics">
                         <i class="fas fa-chart-line"></i>
                         <span>Analytics</span>
                     </button>
                 </div>
 
-                <!-- Social Hub -->
+                <!-- AI & Pro Features -->
                 <div class="menu-section">
-                    <h4 class="menu-section-title">Social Hub</h4>
+                    <h4 class="menu-section-title">Pro Features</h4>
+                    <button class="menu-item" data-page="ai-coaches">
+                        <i class="fas fa-robot"></i>
+                        <span>AI Coaches</span>
+                        <span class="badge badge-pro">PRO</span>
+                    </button>
+                    <button class="menu-item" data-page="subscription">
+                        <i class="fas fa-crown"></i>
+                        <span>Premium Plans</span>
+                    </button>
+                </div>
+
+                <!-- Social & Gaming -->
+                <div class="menu-section">
+                    <h4 class="menu-section-title">Social & Gaming</h4>
                     <button class="menu-item" data-page="sports-lounge">
                         <i class="fas fa-gamepad"></i>
                         <span>Sports Lounge</span>
@@ -195,10 +404,9 @@
                         <span>Tournaments</span>
                         <span class="badge badge-hot">🔥</span>
                     </button>
-                    <button class="menu-item" onclick="window.open('leaderboards.html', '_blank')">
+                    <button class="menu-item" data-page="hall-of-fame">
                         <i class="fas fa-ranking-star"></i>
-                        <span>Global Leaderboards</span>
-                        <span class="badge badge-live">LIVE</span>
+                        <span>Hall of Fame</span>
                     </button>
                 </div>
 
@@ -206,16 +414,16 @@
                 <div class="menu-section">
                     <h4 class="menu-section-title">Account</h4>
                     <button class="menu-item" data-page="profile">
-                        <i class="fas fa-user"></i>
-                        <span>Profile</span>
-                    </button>
-                    <button class="menu-item" data-page="subscription">
-                        <i class="fas fa-crown"></i>
-                        <span>Subscription</span>
+                        <i class="fas fa-user-circle"></i>
+                        <span>My Profile</span>
                     </button>
                     <button class="menu-item" data-page="settings">
                         <i class="fas fa-cog"></i>
                         <span>Settings</span>
+                    </button>
+                    <button class="menu-item" id="admin-dashboard-btn" style="display: none;" onclick="window.location.href='/admin.html'">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Admin Dashboard</span>
                     </button>
                 </div>
 
@@ -272,37 +480,15 @@
                     </div>
                 </div>
 
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h4 id="total-picks">0</h4>
-                            <p>Total Picks</p>
-                        </div>
-                    </div>
+                <!-- Daily Summary -->
+                <div id="daily-summary-container" class="dashboard-section"></div>
 
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-percentage"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h4 id="win-rate">0%</h4>
-                            <p>Win Rate</p>
-                        </div>
-                    </div>
+                <!-- Top Earners Leaderboard -->
+                <div id="top-earners-container" class="dashboard-section"></div>
 
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-fire"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h4 id="current-streak">0</h4>
-                            <p>Current Streak</p>
-                        </div>
-                    </div>
-                </div>
+                <!-- Dashboard Widgets -->
+                <div id="trending-now-container"></div>
+                <div id="sentiment-heatmap-container"></div>
             </div>
 
             <!-- AUTH PAGE -->
@@ -312,9 +498,6 @@
                         <img src="https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN" alt="Logo" class="auth-logo">
                         <h1>Welcome to Ultimate Sports AI</h1>
                         <p>Master sports analytics with AI-powered insights</p>
-                        <button class="btn btn-secondary" id="continue-as-guest-btn" style="margin-top: 16px;">
-                            <i class="fas fa-arrow-left"></i> Continue as Guest
-                        </button>
                     </div>
 
                     <!-- Login Form -->
@@ -568,7 +751,16 @@
                             <div id="achievements-showcase-container"></div>
 
                             <!-- Actions -->
-                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 32px;">
+                                <button class="btn btn-primary btn-block" onclick="window.open('badge-collection.html', '_blank')">
+                                    <i class="fas fa-medal"></i> View Badge Collection
+                                </button>
+                                <button class="btn btn-primary btn-block" data-page="sports-lounge">
+                                    <i class="fas fa-gamepad"></i> Sports Lounge & Inventory
+                                </button>
+                                <button id="transaction-history-btn" class="btn btn-primary btn-block" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                                    <i class="fas fa-history"></i> Transaction History
+                                </button>
                                 <button id="edit-profile-btn" class="btn btn-secondary btn-block">
                                     <i class="fas fa-edit"></i> Edit Profile
                                 </button>
@@ -643,7 +835,7 @@
                         </div>
                         <h2 style="margin-bottom: 12px;">Not Logged In</h2>
                         <p style="color: var(--text-secondary); margin-bottom: 32px;">Sign in to view your profile</p>
-                        <button class="btn btn-primary" onclick="navigation.navigateTo('auth')">
+                        <button class="btn btn-primary" onclick="window.appNavigation.navigateTo('auth')">
                             Sign In
                         </button>
                     </div>
@@ -672,7 +864,7 @@
                         <div class="pricing-card featured">
                             <div class="featured-badge">MOST POPULAR</div>
                             <h3>PRO</h3>
-                            <div class="price">$49.99<span>/month</span></div>
+                            <div class="price">$14.99<span>/month</span></div>
                             <ul class="features">
                                 <li><i class="fas fa-check"></i> All FREE features</li>
                                 <li><i class="fas fa-check"></i> Unlimited AI predictions</li>
@@ -685,7 +877,7 @@
 
                         <div class="pricing-card">
                             <h3>VIP</h3>
-                            <div class="price">$99.99<span>/month</span></div>
+                            <div class="price">$29.99<span>/month</span></div>
                             <ul class="features">
                                 <li><i class="fas fa-check"></i> All PRO features</li>
                                 <li><i class="fas fa-check"></i> Exclusive AI models</li>
@@ -735,6 +927,15 @@
                     title="Sports Lounge">
                 </iframe>
             </div>
+
+            <div id="hall-of-fame-page" class="page">
+                <iframe 
+                    id="hall-of-fame-frame" 
+                    src="leaderboard-badges.html" 
+                    style="width: 100%; height: calc(100vh - 120px); border: none; display: block;"
+                    title="Hall of Fame">
+                </iframe>
+            </div>
         </main>
 
         <!-- Bottom Navigation (Mobile) -->
@@ -762,16 +963,51 @@
         </nav>
     </div>
 
-
     <!-- Core App & Navigation (Load First) -->
+    <!-- 
+      SYSTEM LOADING ORDER NOTES:
+      1. Age Verification: Must run before any content is shown for legal compliance.
+      2. Global State: Initializes the central data store.
+      3. Error Handlers & Services: Sets up the infrastructure.
+      4. Core Systems: App logic, tutorials, rewards.
+      5. WebSocket: Real-time connection.
+      6. Auth & Modules: User session and specific features.
+    -->
     <!-- Age Verification (MUST LOAD FIRST) -->
     <script src="age-verification.js?v=20250214001"></script>
     
+    <!-- GLOBAL CONFIGURATION (MUST LOAD BEFORE STATE) -->
+    <script src="config.js?v=20250215001"></script>
+    
+    <!-- ASSET MAPPINGS (LOAD BEFORE STATE) -->
+    <script src="asset-mappings.js?v=20250215001"></script>
+    
+    <!-- GLOBAL STATE MANAGER (MUST LOAD BEFORE EVERYTHING) -->
+    <script src="global-state-manager.js?v=20250215002"></script>
+    
+    <!-- UNIFIED BALANCE MANAGER (SINGLE SOURCE OF TRUTH FOR COINS) -->
+    <script src="unified-balance-manager.js?v=20250215002"></script>
+    
+    <!-- UNIFIED INVENTORY MANAGER (SINGLE SOURCE OF TRUTH FOR ITEMS) -->
+    <script src="unified-inventory-manager.js?v=20250215002"></script>
+    
+    <!-- TRANSACTION QUEUE MANAGER (LOAD AFTER GLOBAL STATE) -->
+    <script src="transaction-queue-manager.js?v=20250215001"></script>
+    
+    <!-- Error Handling -->
+    <script src="auth-error-handler.js?v=20250215001"></script>
+    <script src="sports-data-service.js?v=20250215001"></script>
+    
     <!-- Core Systems (Load First) -->
-    <script src="unified-currency-system.js?v=20250101013"></script>
-    <script src="coin-system-unified.js?v=20250214001"></script>
     <script src="achievements-system.js?v=20250117001"></script>
     <script src="achievements-showcase.js?v=20250117001"></script>
+    <script src="daily-rewards-system.js?v=20250215001"></script>
+    <script src="daily-quest-system.js?v=20250215001"></script>
+    <script src="mystery-box-system.js?v=20250215001"></script>
+    <script src="daily-summary-card.js?v=20250215001"></script>
+    <script src="top-earners-widget.js?v=20250215001"></script>
+    <script src="referral-system.js?v=20250215001"></script>
+    <script src="tutorial-system.js?v=20250215001"></script>
     <script src="breadcrumb-manager.js?v=20250117001"></script>
     <script src="app.js?v=20250101012"></script>
     
@@ -782,17 +1018,20 @@
     <script src="auth.js?v=20250101012"></script>
     <script src="password-reset.js?v=20250101012"></script>
     <script src="profile.js?v=20250101012"></script>
+    <script src="transaction-history-modal.js"></script>
     
     <!-- Core Modules -->
     <script src="tier-restrictions.js?v=20250107003"></script>
     <script src="upgrade-prompt.js?v=20250107003"></script>
     <script src="live-scores.js?v=20250214002"></script>
-    <script src="ai-coaches-deluxe.js?v=20250101012"></script>
+    <script src="ai-coaches-espn-pro.js?v=20250215001"></script>
     <script src="ai-coach-chat.js?v=20250101012"></script>
-    <script src="ai-coach-picks.js?v=20250101012"></script>
+    <script src="paypal-shop-integration.js?v=20250215001"></script>
+    <script src="shop-system.js?v=20250215001"></script>
     <script src="subscription.js?v=20250101012"></script>
     
     <!-- UI & Experience -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="activity-feed.js?v=20250107004"></script>
     <script src="confetti.js?v=20250107001"></script>
     <script src="sound-effects.js?v=20250107001"></script>
@@ -803,6 +1042,23 @@
     <script src="settings-frontend.js?v=20250214001"></script>
     <script src="profile-inventory.js?v=20250214001"></script>
     <script src="backend-diagnostics.js?v=20250214001"></script>
+    <script src="shoutbox.js?v=20250215001"></script>
+    <script src="trending-widget.js?v=20250215001"></script>
+    <script src="public-sentiment-heatmap.js?v=20250215001"></script>
+    <script src="global-search.js?v=20250215001"></script>
+    <script src="player-profile-modal.js?v=20250215001"></script>
+    <script src="live-commentary-overlay.js?v=20250215001"></script>
+    <script src="betting-odds-tracker.js?v=20250215002" type="module"></script>
+    <script src="global-odds-comparison.js?v=20250215003"></script>
+    <script src="paper-trading-leaderboard.js?v=20250215001"></script>
+    <script src="smart-parlay-generator.js?v=20250215001"></script>
+    <script src="value-bet-scanner.js?v=20250215001"></script>
+    <script type="module" src="social-share-manager.js?v=20250215001"></script>
+    <script src="season-manager.js?v=20250215001"></script>
+    <script type="module">
+        import { LegendTradeMarket } from './legend-trade-market.js';
+        window.LegendTradeMarketClass = LegendTradeMarket;
+    </script>
 
     <script>
         // App initialization complete
@@ -813,9 +1069,6 @@
             console.log('🔍 Testing backend connectivity...');
             console.log('📡 Backend URL:', window.CONFIG?.API_BASE_URL || 'https://ultimate-sports-ai-backend-production.up.railway.app');
             console.log('💡 To run full diagnostics, type: await runBackendDiagnostics()');
-        });
-    </script>
-    
         });
     </script>
 </body>

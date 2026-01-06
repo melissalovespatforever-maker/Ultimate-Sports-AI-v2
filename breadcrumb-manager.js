@@ -153,10 +153,10 @@ class BreadcrumbManager {
                 e.preventDefault();
                 const page = link.dataset.page;
                 // Try to find our navigation instance (not the browser's built-in)
-                if (typeof navigation !== 'undefined' && navigation?.navigateTo) {
-                    navigation.navigateTo(page);
-                } else if (window.parent?.navigation?.navigateTo) {
-                    window.parent.navigation.navigateTo(page);
+                if (window.appNavigation && window.appNavigation.navigateTo) {
+                    window.appNavigation.navigateTo(page);
+                } else if (window.parent?.appNavigation?.navigateTo) {
+                    window.parent.appNavigation.navigateTo(page);
                 } else {
                     console.warn('⚠️ Navigation instance not found');
                 }

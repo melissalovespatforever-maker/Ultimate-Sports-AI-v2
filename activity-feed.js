@@ -21,7 +21,11 @@ const ActivityFeed = {
         LEVEL_UP: 'level_up',
         BIG_WIN: 'big_win',
         CHALLENGE: 'challenge',
-        MILESTONE: 'milestone'
+        MILESTONE: 'milestone',
+        PARLAY_WIN: 'parlay_win',
+        BIG_HIT: 'big_hit',
+        SHARP_ALERT: 'sharp_alert',
+        WHALE_BET: 'whale_bet'
     },
 
     // Initialize
@@ -142,6 +146,26 @@ const ActivityFeed = {
                         game: this.getRandomGame(),
                         timestamp: now - (minutesAgo * 60 * 1000)
                     }
+                },
+                {
+                    type: this.types.SHARP_ALERT,
+                    data: {
+                        game: this.getRandomMatchup(),
+                        trend: Math.random() > 0.5 ? 'Sharpening' : 'Fading',
+                        movement: (Math.random() * 8 + 2).toFixed(1),
+                        timestamp: now - (minutesAgo * 60 * 1000)
+                    }
+                },
+                {
+                    type: this.types.WHALE_BET,
+                    data: {
+                        username: usernames[Math.floor(Math.random() * usernames.length)],
+                        avatar: '🐋',
+                        selection: this.getRandomMatchup(),
+                        amount: Math.floor(Math.random() * 50000) + 10000,
+                        betType: 'MAX WAGER',
+                        timestamp: now - (minutesAgo * 60 * 1000)
+                    }
                 }
             ];
 
@@ -181,6 +205,11 @@ const ActivityFeed = {
     getRandomTournament() {
         const tournaments = ['Bronze League', 'Silver Championship', 'Gold Masters', 'Weekend Warriors', 'Daily Quick Fire'];
         return tournaments[Math.floor(Math.random() * tournaments.length)];
+    },
+
+    getRandomMatchup() {
+        const matchups = ['LAL @ BOS', 'KC @ PHI', 'NYY @ LAD', 'MCI @ ARS', 'DAL @ SF', 'GSW @ MIL'];
+        return matchups[Math.floor(Math.random() * matchups.length)];
     },
 
     // Render feed
@@ -359,6 +388,93 @@ const ActivityFeed = {
                         </div>
                         <div class="activity-badge milestone-badge">
                             🎯
+                        </div>
+                    </div>
+                `;
+
+            case this.types.PARLAY_WIN:
+                return `
+                    <div class="activity-item parlay-win" data-id="${activity.id}">
+                        <div class="activity-avatar">${activity.avatar || '🎮'}</div>
+                        <div class="activity-content">
+                            <div class="activity-main">
+                                <strong>${activity.username || 'User'}</strong> hit a 
+                                <span class="activity-highlight">${activity.legs}-leg Parlay</span> 
+                                at <strong>+${activity.odds}</strong> odds!
+                            </div>
+                            <div class="activity-meta">
+                                <span class="activity-time">${timeAgo}</span>
+                                <span class="activity-prize">Won: ${activity.amount} coins</span>
+                            </div>
+                        </div>
+                        <div class="activity-badge parlay-badge">
+                            📈
+                        </div>
+                    </div>
+                `;
+
+            case this.types.BIG_HIT:
+                return `
+                    <div class="activity-item big-hit" data-id="${activity.id}">
+                        <div class="activity-avatar">🤖</div>
+                        <div class="activity-content">
+                            <div class="activity-main">
+                                <span class="activity-highlight">AI BIG HIT ALERT!</span> 
+                                ${activity.coach || 'Coach'} just projected a massive value hit on 
+                                <strong>${activity.selection}</strong>.
+                            </div>
+                            <div class="activity-meta">
+                                <span class="activity-time">${timeAgo}</span>
+                                <span class="activity-prize">Edge: +${activity.edge}%</span>
+                            </div>
+                        </div>
+                        <div class="activity-badge big-hit-badge">
+                            ⚡
+                        </div>
+                    </div>
+                `;
+
+            case this.types.SHARP_ALERT:
+                const alertColor = activity.trend === 'Sharpening' ? '#10b981' : '#ef4444';
+                const alertIcon = activity.trend === 'Sharpening' ? '📈' : '📉';
+                return `
+                    <div class="activity-item sharp-alert" data-id="${activity.id}">
+                        <div class="activity-avatar">🎯</div>
+                        <div class="activity-content">
+                            <div class="activity-main">
+                                <span class="activity-highlight" style="color: ${alertColor}">SHARP ODDS ALERT!</span> 
+                                Rapid movement in <strong>${activity.game}</strong>. 
+                                Market is <strong>${activity.trend}</strong>.
+                            </div>
+                            <div class="activity-meta">
+                                <span class="activity-time">${timeAgo}</span>
+                                <span class="activity-prize">Movement: ${activity.movement}%</span>
+                            </div>
+                        </div>
+                        <div class="activity-badge sharp-badge">
+                            ${alertIcon}
+                        </div>
+                    </div>
+                `;
+
+            case this.types.WHALE_BET:
+                return `
+                    <div class="activity-item whale-bet" data-id="${activity.id}">
+                        <div class="activity-avatar">🐋</div>
+                        <div class="activity-content">
+                            <div class="activity-main">
+                                <span class="activity-highlight" style="color: #0ea5e9">WHALE TRACKER:</span> 
+                                <strong>${activity.username}</strong> just placed a massive 
+                                <span class="activity-highlight">${(activity.amount).toLocaleString()} coin</span> wager on 
+                                <strong>${activity.selection}</strong>.
+                            </div>
+                            <div class="activity-meta">
+                                <span class="activity-time">${timeAgo}</span>
+                                <span class="activity-prize">Type: ${activity.betType}</span>
+                            </div>
+                        </div>
+                        <div class="activity-badge whale-badge">
+                            🐋 MASSIVE
                         </div>
                     </div>
                 `;
@@ -668,6 +784,65 @@ const ActivityFeed = {
             game,
             amount
         });
+    },
+
+    // Public method to log parlay win
+    logParlayWin(legs, odds, amount) {
+        const username = localStorage.getItem('guestUsername') || 'You';
+        const avatar = localStorage.getItem('guestAvatar') || '🎮';
+        
+        if (window.ConfettiEffect) {
+            ConfettiEffect.celebration(100);
+        }
+
+        this.addActivity(this.types.PARLAY_WIN, {
+            username,
+            avatar,
+            legs,
+            odds,
+            amount
+        });
+    },
+
+    // Public method to log AI Big Hit
+    logBigHit(coach, selection, edge) {
+        this.addActivity(this.types.BIG_HIT, {
+            coach,
+            selection,
+            edge
+        });
+    },
+
+    // Public method to log Sharp Odds Alert
+    logSharpAlert(game, trend, movement) {
+        this.addActivity(this.types.SHARP_ALERT, {
+            game,
+            trend,
+            movement,
+            avatar: '🎯'
+        });
+        
+        // Also show a toast for sharp alerts
+        if (typeof showToast === 'function') {
+            const icon = trend === 'Sharpening' ? '📈' : '📉';
+            showToast(`${icon} SHARP ALERT: ${game} is ${trend} (${movement}%)`, 'warning');
+        }
+    },
+
+    // Public method to log Whale Bet
+    logWhaleBet(username, selection, amount, betType) {
+        this.addActivity(this.types.WHALE_BET, {
+            username,
+            selection,
+            amount,
+            betType,
+            avatar: '🐋'
+        });
+        
+        // Show high-priority toast for whale movement
+        if (typeof showToast === 'function' && amount >= 10000) {
+            showToast(`🐋 WHALE TRACKER: ${username} bet ${amount.toLocaleString()} on ${selection}`, 'info');
+        }
     }
 };
 

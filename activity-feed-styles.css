@@ -523,6 +523,26 @@
     border-left: 3px solid #ec4899;
 }
 
+.activity-item.sharp-alert {
+    border-left: 3px solid #6366f1;
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.activity-item.whale-bet {
+    border-left: 3px solid #0ea5e9;
+    background: linear-gradient(90deg, rgba(14, 165, 233, 0.05) 0%, rgba(14, 165, 233, 0.02) 100%);
+}
+
+.sharp-badge {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+}
+
+.whale-badge {
+    background: linear-gradient(135deg, #0ea5e9, #2563eb);
+    color: white;
+}
+
 /* Empty state */
 .activity-empty {
     text-align: center;

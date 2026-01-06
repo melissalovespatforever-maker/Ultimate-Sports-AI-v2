@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penalty Plinko | Ultimate Sports AI</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Chakra+Petch:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-glow: rgba(16, 185, 129, 0.5);
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text-light: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 100vh;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HEADER */
+        .game-header {
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.9);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .back-btn:hover { background: rgba(255,255,255,0.2); }
+
+        .balance-display {
+            background: rgba(0,0,0,0.4);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            color: #fbbf24;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+
+        /* CANVAS AREA */
+        .plinko-board {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* CONTROLS */
+        .controls-area {
+            padding: 24px;
+            background: rgba(30, 41, 59, 0.95);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            z-index: 10;
+        }
+
+        .bet-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            background: rgba(0,0,0,0.3);
+            padding: 8px;
+            border-radius: 12px;
+        }
+
+        .bet-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+        
+        .bet-btn:hover { background: rgba(255,255,255,0.2); }
+        .bet-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .current-bet {
+            font-size: 1.2rem;
+            font-weight: 800;
+            font-family: 'Chakra Petch', sans-serif;
+            color: white;
+        }
+
+        .drop-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 800;
+            font-family: 'Chakra Petch', sans-serif;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 0 #047857;
+            transition: all 0.1s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .drop-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .drop-btn:disabled {
+            background: #334155;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* Win Popup */
+        .win-popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: rgba(0,0,0,0.9);
+            padding: 20px 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 2px solid #fbbf24;
+            pointer-events: none;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+        }
+
+        .win-popup.show { transform: translate(-50%, -50%) scale(1); }
+        .win-popup.flash { animation: popupFlash 0.5s ease-out 2; }
+        .win-amount { font-size: 2.5rem; font-weight: 800; color: #fbbf24; display: block; }
+        .win-label { color: white; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 2px; }
+
+        @keyframes popupFlash {
+            0%, 100% { background: rgba(0,0,0,0.9); }
+            50% { background: rgba(16, 185, 129, 0.8); }
+        }
+
+        .multiplier-tag {
+            background: #fbbf24;
+            color: black;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            margin-top: 4px;
+            display: inline-block;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <header class="game-header">
+            <button class="back-btn" onclick="window.history.back()">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="game-title" style="font-family: 'Chakra Petch'; font-weight: 700; font-size: 1.2rem;">
+                PENALTY PLINKO
+            </div>
+        </header>
+
+        <div class="plinko-board" id="board-container">
+            <canvas id="game-canvas"></canvas>
+            <div id="win-popup" class="win-popup">
+                <span class="win-label">GOAL!</span>
+                <span class="win-amount">+500</span>
+            </div>
+        </div>
+
+        <div class="controls-area">
+            <div class="bet-controls">
+                <button class="bet-btn" onclick="Game.adjustBet(0.5)">½</button>
+                <div class="current-bet">
+                    <span id="bet-amount">100</span> 🪙
+                </div>
+                <button class="bet-btn" onclick="Game.adjustBet(2)">2x</button>
+            </div>
+            <button class="drop-btn" id="drop-btn" onclick="Game.dropBall()">
+                KICK OFF
+            </button>
+        </div>
+    </div>
+
+    <script src="minigame-sync.js"></script>
+    <script src="sound-effects.js"></script>
+    <script src="confetti.js"></script>
+    <script>
+        // ============================================
+        // TRANSACTION QUEUE INTEGRATION
+        // ============================================
+        const gameSync = MinigameSync.init('Penalty Plinko');
+        console.log('🎮 Penalty Plinko initialized with transaction queue support');
+
+        // Physics Engine & Game Logic
+        const Game = {
+            canvas: document.getElementById('game-canvas'),
+            ctx: null,
+            width: 0,
+            height: 0,
+            
+            // Config
+            pegs: [],
+            balls: [],
+            multipliers: [10, 3, 1.5, 1.1, 0.5, 0.3, 0.3, 0.5, 1.1, 1.5, 3, 10], // Goal multipliers
+            zones: [],
+            rows: 10,
+            pegSize: 4,
+            ballSize: 7,
+            
+            // State
+            bet: 100,
+            isRunning: true,
+
+            init() {
+                this.ctx = this.canvas.getContext('2d');
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                
+                this.setupBoard();
+                this.updateUI();
+                this.loop();
+
+                // Listen for backend sync events
+                window.addEventListener('transactionQueueProcessed', (e) => {
+                    console.log('📊 Queue synced, updating balance');
+                    this.updateUI();
+                });
+            },
+
+            resize() {
+                const container = document.getElementById('board-container');
+                if (!container) return;
+                this.width = container.offsetWidth;
+                this.height = container.offsetHeight;
+                this.canvas.width = this.width;
+                this.canvas.height = this.height;
+                this.setupBoard();
+            },
+
+            setupBoard() {
+                this.pegs = [];
+                this.zones = [];
+                
+                // Calculate dimensions
+                const pegSpacingX = this.width / (this.rows + 2);
+                const pegSpacingY = (this.height - 100) / (this.rows + 2);
+                const startY = 80;
+
+                // Create Pegs (Pyramid)
+                for (let row = 0; row < this.rows; row++) {
+                    const cols = row + 3; // Start with 3 pegs at top
+                    const rowWidth = (cols - 1) * pegSpacingX;
+                    const startX = (this.width - rowWidth) / 2;
+
+                    for (let col = 0; col < cols; col++) {
+                        this.pegs.push({
+                            x: startX + col * pegSpacingX,
+                            y: startY + row * pegSpacingY,
+                            r: this.pegSize
+                        });
+                    }
+                }
+
+                // Create Multiplier Zones (Goals)
+                const goalY = startY + this.rows * pegSpacingY + 30;
+                const zoneWidth = this.width / this.multipliers.length;
+                
+                this.multipliers.forEach((mult, i) => {
+                    this.zones.push({
+                        x: i * zoneWidth,
+                        y: goalY,
+                        w: zoneWidth,
+                        h: 50,
+                        val: mult,
+                        color: this.getMultiplierColor(mult)
+                    });
+                });
+            },
+
+            getMultiplierColor(val) {
+                if (val >= 10) return '#ef4444'; // Red (High Risk/Reward)
+                if (val >= 3) return '#f59e0b'; // Orange
+                if (val >= 1.5) return '#fbbf24'; // Yellow
+                if (val >= 1) return '#10b981'; // Green (Safe)
+                return '#3b82f6'; // Blue (Loss)
+            },
+
+            adjustBet(factor) {
+                let newBet = Math.floor(this.bet * factor);
+                if (newBet < 10) newBet = 10;
+                if (newBet > 5000) newBet = 5000;
+                
+                // Cap at current balance
+                const balance = gameSync.getBalance();
+                if (newBet > balance) newBet = balance;
+                if (newBet < 10 && balance >= 10) newBet = 10; // maintain min bet if possible
+                
+                this.bet = newBet;
+                this.updateUI();
+            },
+
+            updateUI() {
+                document.getElementById('bet-amount').textContent = this.bet.toLocaleString();
+                
+                const balance = gameSync.getBalance();
+                const btn = document.getElementById('drop-btn');
+                if (balance < this.bet) {
+                    btn.disabled = true;
+                    btn.textContent = "INSUFFICIENT FUNDS";
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = "KICK OFF";
+                }
+            },
+
+            dropBall() {
+                const balance = gameSync.getBalance();
+                if (balance < this.bet) return;
+                
+                // Deduct bet via transaction queue
+                if (!gameSync.recordBet(this.bet)) {
+                    return;
+                }
+                
+                this.updateUI();
+                
+                // Create ball slightly offset from center to create randomness
+                const startX = this.width / 2 + (Math.random() * 4 - 2);
+                
+                this.balls.push({
+                    x: startX,
+                    y: 20,
+                    vx: 0,
+                    vy: 0,
+                    r: this.ballSize,
+                    active: true,
+                    bounciness: 0.6,
+                    betAmount: this.bet // Track bet amount with ball for payout
+                });
+
+                if (window.playSfx) window.playSfx('click');
+            },
+
+            loop() {
+                if (!this.isRunning) return;
+                
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.loop());
+            },
+
+            update() {
+                const gravity = 0.25;
+                const friction = 0.99;
+
+                this.balls.forEach((ball, index) => {
+                    if (!ball.active) return;
+
+                    // Physics
+                    ball.vy += gravity;
+                    ball.vx *= friction;
+                    ball.x += ball.vx;
+                    ball.y += ball.vy;
+
+                    // Wall collisions
+                    if (ball.x < ball.r) {
+                        ball.x = ball.r;
+                        ball.vx *= -0.6;
+                    }
+                    if (ball.x > this.width - ball.r) {
+                        ball.x = this.width - ball.r;
+                        ball.vx *= -0.6;
+                    }
+
+                    // Peg Collisions
+                    this.pegs.forEach(peg => {
+                        const dx = ball.x - peg.x;
+                        const dy = ball.y - peg.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        const minDist = ball.r + peg.r;
+
+                        if (dist < minDist) {
+                            // Resolve collision
+                            const angle = Math.atan2(dy, dx);
+                            const tx = peg.x + Math.cos(angle) * minDist;
+                            const ty = peg.y + Math.sin(angle) * minDist;
+                            
+                            // Add randomness to bounce
+                            const randomAngle = (Math.random() - 0.5) * 0.2;
+                            
+                            ball.vx = Math.cos(angle + randomAngle) * (Math.abs(ball.vx) * 0.5 + 2); // Boost bounce
+                            ball.vy = Math.sin(angle) * (Math.abs(ball.vy) * 0.5 + 1);
+                            
+                            // Prevent sticking
+                            ball.x = tx;
+                            ball.y = ty;
+
+                            // Sound?
+                        }
+                    });
+
+                    // Check Zones
+                    if (ball.y > this.zones[0].y) {
+                        // Find which zone
+                        const zoneIndex = Math.floor(ball.x / (this.width / this.multipliers.length));
+                        if (zoneIndex >= 0 && zoneIndex < this.multipliers.length) {
+                            this.handleWin(ball, this.multipliers[zoneIndex]);
+                        } else {
+                            // Fallback if lands out of bounds (rare)
+                            this.handleWin(ball, 0); 
+                        }
+                        ball.active = false;
+                    }
+                });
+
+                // Clean up inactive balls
+                this.balls = this.balls.filter(b => b.active);
+            },
+
+            handleWin(ball, multiplier) {
+                const betAmount = ball.betAmount || this.bet;
+                const winAmount = Math.floor(betAmount * multiplier);
+                
+                if (winAmount > betAmount) {
+                     gameSync.recordWin(winAmount, {
+                        betAmount: betAmount,
+                        multiplier: multiplier,
+                        result: 'goal'
+                    });
+                } else if (winAmount > 0) {
+                     // Partial return (still a win technically in logic, but loss of funds)
+                     gameSync.recordWin(winAmount, {
+                        betAmount: betAmount,
+                        multiplier: multiplier,
+                        result: 'partial'
+                    });
+                } else {
+                    gameSync.recordLoss(betAmount, {
+                        betAmount: betAmount,
+                        multiplier: multiplier,
+                        result: 'miss'
+                    });
+                }
+                
+                this.updateUI();
+                
+                // Show popup
+                const popup = document.getElementById('win-popup');
+                popup.classList.remove('show', 'flash');
+                popup.innerHTML = `
+                    <span class="win-label">${multiplier >= 1 ? "GOAL!" : "MISS"}</span>
+                    <span class="win-amount" style="color: ${this.getMultiplierColor(multiplier)}">+${winAmount}</span>
+                    ${multiplier > 1 ? `<div class="multiplier-tag">${multiplier}x Multiplier</div>` : ''}
+                `;
+                
+                // Trigger effects for good wins
+                if (multiplier >= 1.5) {
+                    popup.classList.add('flash');
+                    if (typeof confetti === 'function') {
+                        confetti({
+                            particleCount: multiplier >= 5 ? 150 : 70,
+                            spread: 70,
+                            origin: { y: 0.6 },
+                            colors: [this.getMultiplierColor(multiplier), '#ffffff', '#fbbf24']
+                        });
+                    }
+                }
+
+                popup.classList.add('show');
+                
+                setTimeout(() => popup.classList.remove('show'), 2000);
+
+                // Play sound
+                if (window.playSfx) {
+                    window.playSfx(multiplier >= 1 ? 'win' : 'lose');
+                }
+            },
+
+            draw() {
+                // Clear
+                this.ctx.fillStyle = '#0f172a';
+                this.ctx.fillRect(0, 0, this.width, this.height);
+
+                // Draw Pegs (Field Players)
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                this.pegs.forEach(peg => {
+                    this.ctx.beginPath();
+                    this.ctx.arc(peg.x, peg.y, peg.r, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+
+                // Draw Zones
+                this.zones.forEach(zone => {
+                    this.ctx.fillStyle = zone.color;
+                    this.ctx.globalAlpha = 0.2;
+                    this.ctx.fillRect(zone.x + 2, zone.y, zone.w - 4, zone.h);
+                    
+                    this.ctx.globalAlpha = 1;
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.font = 'bold 12px Inter';
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText(`${zone.val}x`, zone.x + zone.w/2, zone.y + 30);
+                });
+
+                // Draw Balls (Soccer Balls)
+                this.balls.forEach(ball => {
+                    this.ctx.save();
+                    this.ctx.translate(ball.x, ball.y);
+                    
+                    // Ball body
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, ball.r, 0, Math.PI * 2);
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.fill();
+                    
+                    // Simple pattern
+                    this.ctx.fillStyle = 'black';
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, ball.r/2, 0, Math.PI * 2);
+                    this.ctx.fill();
+                    
+                    this.ctx.restore();
+                });
+            }
+        };
+
+        window.onload = () => Game.init();
+    </script>
+</body>
+</html>

@@ -5,24 +5,11 @@
 
 console.log('💬 AI Coach Chat Module loading...');
 
-/**
- * Escapes special HTML characters in a string to prevent XSS.
- * @param {string} str
- * @returns {string}
- */
-function escapeHTML(str) {
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
-
 const aiCoachChat = {
     currentCoach: null,
     messages: [],
     isOpen: false,
+    fallbackWarningShown: false,
 
     open(coach) {
         if (!coach) return;
@@ -156,7 +143,7 @@ const aiCoachChat = {
                 <img src="${this.currentCoach.avatar}" alt="${this.currentCoach.name}" class="message-avatar">
                 <div class="message-content">
                     <div class="message-bubble" style="background: ${this.currentCoach.color}15; border-color: ${this.currentCoach.color}30;">
-                        ${typing ? '<span class="typing-indicator"><span></span><span></span><span></span></span>' : escapeHTML(text)}
+                        ${typing ? '<span class="typing-indicator"><span></span><span></span><span></span></span>' : text}
                     </div>
                     <span class="message-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                 </div>
@@ -165,7 +152,7 @@ const aiCoachChat = {
             messageEl.innerHTML = `
                 <div class="message-content">
                     <div class="message-bubble">
-                        ${escapeHTML(text)}
+                        ${text}
                     </div>
                     <span class="message-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                 </div>
@@ -185,7 +172,7 @@ const aiCoachChat = {
         return messageEl;
     },
 
-    sendMessage() {
+    async sendMessage() {
         const input = document.getElementById('chat-input');
         if (!input) return;
 
@@ -199,12 +186,64 @@ const aiCoachChat = {
         // Show typing indicator
         const typingMsg = this.addMessage('coach', '', true);
 
-        // Simulate AI response
-        setTimeout(() => {
+        try {
+            // Call backend AI chat API
+            const apiBaseUrl = (window.CONFIG && window.CONFIG.API_BASE_URL) || 'https://ultimate-sports-ai-backend-production.up.railway.app';
+            
+            console.log('📡 Sending AI chat request to:', `${apiBaseUrl}/api/ai-chat/message`);
+            
+            // Get auth token if available
+            const token = localStorage.getItem('auth_token');
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+            
+            const response = await fetch(`${apiBaseUrl}/api/ai-chat/message`, {
+                method: 'POST',
+                headers: headers,
+                body: JSON.stringify({
+                    coachId: this.currentCoach.id,
+                    coachName: this.currentCoach.name,
+                    message: text,
+                    context: {
+                        sport: this.currentCoach.specialty,
+                        previousMessages: this.messages.slice(-5) // Last 5 messages
+                    }
+                })
+            });
+
+            console.log('✅ Response status:', response.status, response.statusText);
+            
+            const data = await response.json();
+            
             typingMsg.remove();
+            
+            if (data.success && data.response) {
+                this.addMessage('coach', data.response);
+            } else {
+                // Fallback to local response
+                const fallbackResponse = data.fallback || this.getAIResponse(text);
+                this.addMessage('coach', fallbackResponse);
+            }
+        } catch (error) {
+            console.error('❌ AI Chat error:', error.message || error);
+            console.error('Error details:', error);
+            console.log('💡 Tip: Ensure backend is deployed with OPENAI_API_KEY environment variable');
+            console.log(`💡 Test backend: ${apiBaseUrl}/api/health`);
+            typingMsg.remove();
+            // Fallback to local response on error
             const response = this.getAIResponse(text);
             this.addMessage('coach', response);
-        }, 1500 + Math.random() * 1000);
+            
+            // Show warning once per session
+            if (!this.fallbackWarningShown) {
+                this.fallbackWarningShown = true;
+                this.addMessage('coach', '⚠️ Note: I\'m currently using preset responses. For intelligent AI analysis, the backend needs to be connected with OpenAI API key.');
+            }
+        }
     },
 
     sendQuickMessage(text) {

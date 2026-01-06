@@ -1,212 +1,67 @@
 // ============================================
-// LIVE SCORES MODULE - WEBSOCKET REAL-TIME
-// Fetches actual sports data from ESPN API
-// REAL-TIME updates via WebSocket broadcaster
+// LIVE SCORES MODULE - UNIFIED SPORTS DATA
+// Now uses the robust SportsDataService as source of truth
 // ============================================
-
-// WebSocket client will be loaded from websocket-client.js
-// Access it via window.SportsWebSocketClient or window.WebSocketClient
 
 class LiveScoresManager {
     constructor() {
         this.scores = [];
+        this.upcoming = [];
         this.isLoading = false;
-        this.selectedSport = 'nfl';
+        this.selectedSport = 'NFL'; // Default to NFL (uppercase for consistency)
         this.refreshInterval = null;
-        this.cache = new Map();
-        this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
-        this.wsClient = null;
-        this.isConnected = false;
+        this.sportsService = window.sportsDataService;
     }
 
     async load() {
-        console.log('📊 Loading Live Scores (WebSocket Mode)...');
+        console.log('📊 Loading Live Scores (Unified Data Mode)...');
+        
+        // Wait for service if not ready
+        if (!this.sportsService) {
+            console.warn('⚠️ SportsDataService not found, waiting...');
+            setTimeout(() => this.load(), 500);
+            return;
+        }
+
         const container = document.getElementById('live-scores-container');
         if (!container) return;
 
         this.renderUI(container);
         this.attachEventListeners();
         
-        // Initialize WebSocket connection
-        this.initializeWebSocket();
+        // Start polling loop
+        this.startLiveUpdates();
         
-        // Fetch initial scores
-        await this.fetchScores();
+        // Initial fetch
+        await this.fetchData();
     }
 
-    // ============================================
-    // WEBSOCKET INITIALIZATION
-    // ============================================
-
-    initializeWebSocket() {
-        try {
-            // Get WebSocketClient from global scope
-            const WebSocketClient = window.SportsWebSocketClient || window.WebSocketClient;
-            
-            if (!WebSocketClient) {
-                console.warn('⚠️ WebSocket client not available, using polling');
-                this.startPolling();
-                return;
-            }
-            
-            // Initialize WebSocket client
-            // Use backend WebSocket URL, not current page URL
-            const wsUrl = window.CONFIG?.WS_URL || 'wss://ultimate-sports-ai-backend-production.up.railway.app';
-            console.log('🔌 Connecting to WebSocket:', wsUrl);
-            
-            this.wsClient = new WebSocketClient(wsUrl, {
-                reconnection: true,
-                reconnectionDelay: 1000,
-                reconnectionDelayMax: 5000,
-                reconnectionAttempts: 5
-            });
-
-            // Listen for connection events
-            this.wsClient.on('connect', () => {
-                console.log('✅ Connected to live scores WebSocket');
-                this.isConnected = true;
-                this.updateConnectionStatus('connected');
-                
-                // Subscribe to all sports
-                this.subscribeToAllSports();
-            });
-
-            this.wsClient.on('disconnect', () => {
-                console.log('❌ Disconnected from WebSocket');
-                this.isConnected = false;
-                this.updateConnectionStatus('disconnected');
-            });
-
-            // Listen for score updates from broadcaster
-            this.wsClient.on('score_update', (data) => {
-                console.log('📡 Score update received:', data);
-                this.handleScoreUpdate(data);
-            });
-
-            // Listen for game events
-            this.wsClient.on('game_event', (data) => {
-                console.log('🎯 Game event:', data);
-                this.handleGameEvent(data);
-            });
-
-            // Listen for sync status
-            this.wsClient.on('sync_status', (data) => {
-                console.log('🔄 Sync status:', data);
-                this.updateLastSyncTime(data.timestamp);
-            });
-
-            // Listen for notifications
-            this.wsClient.on('notifications', (data) => {
-                console.log('📢 Notification:', data);
-                this.showNotification(data);
-            });
-
-        } catch (error) {
-            console.error('❌ WebSocket initialization error:', error);
-            // Fall back to polling if WebSocket fails
-            this.startPolling();
-        }
+    startLiveUpdates() {
+        // Poll every 30 seconds for live data
+        if (this.refreshInterval) clearInterval(this.refreshInterval);
+        this.refreshInterval = setInterval(() => this.fetchData(true), 30000);
     }
 
-    subscribeToAllSports() {
-        const sports = ['nfl', 'nba', 'nhl', 'mlb', 'soccer'];
-        sports.forEach(sport => {
-            if (this.wsClient) {
-                this.wsClient.subscribe(sport);
-            }
-        });
-        console.log('✅ Subscribed to all sports');
-    }
-
-    // ============================================
-    // SCORE UPDATE HANDLERS
-    // ============================================
-
-    handleScoreUpdate(data) {
-        const { sport, games } = data;
+    async fetchData(isAutoRefresh = false) {
+        if (!this.sportsService) return;
         
-        // Only show updates for currently selected sport
-        if (sport === this.selectedSport) {
-            this.scores = games || [];
-            this.renderScores();
-            
-            // Animate the update
-            this.animateScoreUpdate();
-        }
-    }
-
-    handleGameEvent(data) {
-        const { sport, game, event } = data;
-        
-        if (sport === this.selectedSport) {
-            // Find and update the game
-            const gameIndex = this.scores.findIndex(g => g.id === game.id);
-            if (gameIndex !== -1) {
-                this.scores[gameIndex] = { ...this.scores[gameIndex], ...game };
-                this.renderScores();
-                
-                // Show visual notification
-                this.highlightUpdatedGame(gameIndex);
-            }
-        }
-    }
-
-    animateScoreUpdate() {
-        const scoresList = document.getElementById('scores-list');
-        if (scoresList) {
-            scoresList.classList.add('scores-updated');
-            setTimeout(() => {
-                scoresList.classList.remove('scores-updated');
-            }, 500);
-        }
-    }
-
-    highlightUpdatedGame(index) {
-        const gameElements = document.querySelectorAll('.game-card');
-        if (gameElements[index]) {
-            gameElements[index].classList.add('updated');
-            setTimeout(() => {
-                gameElements[index].classList.remove('updated');
-            }, 1500);
-        }
-    }
-
-    // ============================================
-    // POLLING FALLBACK (if WebSocket fails)
-    // ============================================
-
-    startPolling() {
-        console.log('⚠️  WebSocket unavailable, falling back to polling...');
-        clearInterval(this.refreshInterval);
-        this.refreshInterval = setInterval(() => this.fetchScores(), 30000);
-    }
-
-    // ============================================
-    // HTTP API FALLBACK
-    // ============================================
-
-    async fetchScores() {
         try {
             this.isLoading = true;
-            const apiUrl = window.CONFIG?.API_BASE_URL || 'https://ultimate-sports-ai-backend-production.up.railway.app';
-            const endpoint = `${apiUrl}/api/scores/${this.selectedSport}`;
+            if (!isAutoRefresh) this.renderLoading();
+
+            const games = await this.sportsService.getGames(this.selectedSport, true); // Force refresh
             
-            console.log('📡 Fetching scores from:', endpoint);
+            // Separate Live vs Upcoming vs Final
+            this.liveGames = games.filter(g => g.isLive);
+            this.upcomingGames = games.filter(g => g.status === 'pre');
+            this.finishedGames = games.filter(g => g.status === 'post');
             
-            const response = await fetch(endpoint);
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            
-            const data = await response.json();
-            this.scores = data.events || [];
             this.renderScores();
-            this.updateLastSyncTime(new Date());
+            this.updateLastSyncTime();
             
         } catch (error) {
             console.error('❌ Error fetching scores:', error);
-            this.showError('Failed to load scores. Retrying...');
-            
-            // Retry in 5 seconds
-            setTimeout(() => this.fetchScores(), 5000);
+            if (!isAutoRefresh) this.renderError('Failed to load live scores.');
         } finally {
             this.isLoading = false;
         }
@@ -220,27 +75,33 @@ class LiveScoresManager {
         container.innerHTML = `
             <div class="live-scores-wrapper">
                 <div class="scores-header">
-                    <div class="connection-status" id="connection-status">
+                    <div class="connection-status connected" id="connection-status">
                         <span class="status-dot"></span>
-                        <span class="status-text">Connecting...</span>
+                        <span class="status-text">Live ESPN Data Active</span>
                     </div>
+                    <button class="odds-dashboard-btn" onclick="window.globalOddsComparison?.open(window.liveScoresManager.selectedSport)">
+                        <i class="fas fa-chart-bar"></i> Odds Dashboard
+                    </button>
                 </div>
                 
                 <div class="scores-filter-bar">
-                    <button class="score-filter-btn active" data-sport="nfl">
+                    <button class="score-filter-btn active" data-sport="NFL">
                         <i class="fas fa-football-ball"></i> NFL
                     </button>
-                    <button class="score-filter-btn" data-sport="nba">
+                    <button class="score-filter-btn" data-sport="NBA">
                         <i class="fas fa-basketball-ball"></i> NBA
                     </button>
-                    <button class="score-filter-btn" data-sport="nhl">
+                    <button class="score-filter-btn" data-sport="NHL">
                         <i class="fas fa-hockey-puck"></i> NHL
                     </button>
-                    <button class="score-filter-btn" data-sport="mlb">
+                    <button class="score-filter-btn" data-sport="MLB">
                         <i class="fas fa-baseball-ball"></i> MLB
                     </button>
-                    <button class="score-filter-btn" data-sport="soccer">
+                    <button class="score-filter-btn" data-sport="SOCCER">
                         <i class="fas fa-futbol"></i> SOCCER
+                    </button>
+                    <button class="score-filter-btn" data-sport="NCAAF">
+                        <i class="fas fa-university"></i> NCAAF
                     </button>
                 </div>
                 
@@ -251,164 +112,331 @@ class LiveScoresManager {
                     <span class="last-updated">Last updated: Waiting...</span>
                 </div>
                 
-                <div id="scores-list" class="scores-list">
-                    <div class="loading-spinner">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Loading games...</p>
+                <div id="scores-content-area">
+                    <!-- Sections will be injected here -->
+                </div>
+            </div>
+        `;
+    }
+
+    renderLoading() {
+        const content = document.getElementById('scores-content-area');
+        if (content) {
+            content.innerHTML = `
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Fetching real-time data from ESPN...</p>
+                </div>
+            `;
+        }
+    }
+
+    renderError(msg) {
+        const content = document.getElementById('scores-content-area');
+        if (content) {
+            content.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-circle"></i> ${msg}</div>`;
+        }
+    }
+
+    renderScores() {
+        const content = document.getElementById('scores-content-area');
+        if (!content) return;
+
+        let html = '';
+
+        // 1. Live Games Section
+        if (this.liveGames.length > 0) {
+            html += `
+                <div class="section-header live">
+                    <h3><span class="pulse-dot"></span> Live Now</h3>
+                </div>
+                <div class="scores-list live-list">
+                    ${this.liveGames.map(g => this.renderGameCard(g)).join('')}
+                </div>
+            `;
+        }
+
+        // 2. Upcoming Games
+        if (this.upcomingGames.length > 0) {
+            html += `
+                <div class="section-header">
+                    <h3>Upcoming</h3>
+                </div>
+                <div class="scores-list">
+                    ${this.upcomingGames.map(g => this.renderGameCard(g)).join('')}
+                </div>
+            `;
+        } else if (this.liveGames.length === 0 && this.finishedGames.length === 0) {
+            html += `<div class="no-games"><i class="fas fa-calendar-times"></i> No games scheduled for today.</div>`;
+        }
+
+        // 3. Finished Games (Collapsible or at bottom)
+        if (this.finishedGames.length > 0) {
+            html += `
+                <div class="section-header finished">
+                    <h3>Final Scores</h3>
+                </div>
+                <div class="scores-list finished-list">
+                    ${this.finishedGames.map(g => this.renderGameCard(g)).join('')}
+                </div>
+            `;
+        }
+
+        content.innerHTML = html;
+    }
+
+    renderGameCard(game) {
+        const statusClass = game.isLive ? 'status-live' : game.isCompleted ? 'status-final' : 'status-pre';
+        const statusText = game.isLive ? 'LIVE' : game.statusDisplay;
+        
+        // Winner logic for final games
+        const homeWinner = game.isCompleted && parseInt(game.homeTeam.score) > parseInt(game.awayTeam.score);
+        const awayWinner = game.isCompleted && parseInt(game.awayTeam.score) > parseInt(game.homeTeam.score);
+
+        // Hype Meter Color
+        const hypeColor = game.hypeLevel > 80 ? '#ef4444' : (game.hypeLevel > 50 ? '#f59e0b' : '#3b82f6');
+        const hypeIcon = game.hypeLevel > 80 ? '🔥' : (game.hypeLevel > 50 ? '⚡' : '📈');
+
+        const fallbackLogo = 'https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
+        
+        // Resolve logos using global resolver with team IDs
+        const homeLogo = window.resolveSportsLogo ? 
+                        window.resolveSportsLogo(game.homeTeam.id || game.homeTeam.shortName, game.sport, game.homeTeam.logo) : 
+                        (game.homeTeam.logo || fallbackLogo);
+        const awayLogo = window.resolveSportsLogo ? 
+                        window.resolveSportsLogo(game.awayTeam.id || game.awayTeam.shortName, game.sport, game.awayTeam.logo) : 
+                        (game.awayTeam.logo || fallbackLogo);
+
+        // Odds History Sparkline
+        const oddsHistory = this.sportsService.getOddsHistory(game.id);
+        const hasHistory = oddsHistory.length > 1;
+        const sparklineHtml = hasHistory ? this.generateSparkline(oddsHistory) : '';
+
+        // Check if user has already voted
+        const votedGames = JSON.parse(localStorage.getItem('user_voted_games') || '[]');
+        const hasVoted = votedGames.includes(game.id);
+
+        return `
+            <div class="game-card ${game.isLive ? 'live-card' : ''}" data-game-id="${game.id}">
+                <div class="game-header">
+                    <span class="game-status-badge ${statusClass}">${statusText}</span>
+                    <span class="game-venue">${game.venue}</span>
+                    <div class="hype-meter-container" title="Hype Level: ${game.hypeLevel}%">
+                        <span class="hype-icon">${hypeIcon}</span>
+                        <div class="hype-bar-bg">
+                            <div class="hype-bar-fill" style="width: ${game.hypeLevel}%; background-color: ${hypeColor};"></div>
+                        </div>
+                        <button class="hype-vote-btn ${hasVoted ? 'voted' : ''}" 
+                                onclick="event.stopPropagation(); window.liveScoresManager.castHypeVote('${game.id}')"
+                                ${hasVoted ? 'disabled' : ''}>
+                            <i class="fas fa-fire"></i>
+                            <span class="vote-count">${this.sportsService.getVotesForGame(game.id)}</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="game-teams" onclick="window.liveScoresManager.openCommentary('${game.id}')">
+                    <!-- Away Team -->
+                    <div class="team-row ${awayWinner ? 'winner' : ''}">
+                        <div class="team-meta">
+                            <img src="${awayLogo}" onerror="this.onerror=null; this.src='${fallbackLogo}'" alt="${game.awayTeam.shortName}" class="team-logo">
+                            <div class="team-name-group">
+                                <span class="team-name">${game.awayTeam.name}</span>
+                                <span class="team-record">${game.awayTeam.record}</span>
+                            </div>
+                        </div>
+                        <div class="team-score">${game.awayTeam.score !== undefined ? game.awayTeam.score : '-'}</div>
+                    </div>
+
+                    <!-- Home Team -->
+                    <div class="team-row ${homeWinner ? 'winner' : ''}">
+                        <div class="team-meta">
+                            <img src="${homeLogo}" onerror="this.onerror=null; this.src='${fallbackLogo}'" alt="${game.homeTeam.shortName}" class="team-logo">
+                            <div class="team-name-group">
+                                <span class="team-name">${game.homeTeam.name}</span>
+                                <span class="team-record">${game.homeTeam.record}</span>
+                            </div>
+                        </div>
+                        <div class="team-score">${game.homeTeam.score !== undefined ? game.homeTeam.score : '-'}</div>
+                    </div>
+                </div>
+                
+                <div class="game-footer">
+                    ${game.odds ? `
+                        <div class="game-odds">
+                            <div class="odds-current">
+                                <span class="odds-pill"><i class="fas fa-chart-line"></i> ${game.odds.details}</span>
+                                <span class="odds-pill"><i class="fas fa-arrows-alt-v"></i> O/U ${game.odds.overUnder}</span>
+                            </div>
+                            ${sparklineHtml}
+                        </div>
+                    ` : ''}
+
+                    <div class="game-actions">
+                        <button class="game-action-btn" onclick="event.stopPropagation(); window.liveScoresManager.openCommentary('${game.id}')">
+                            <i class="fas fa-microphone"></i> Commentary
+                        </button>
+                        <button class="game-action-btn betting-btn" onclick="event.stopPropagation(); window.liveScoresManager.openBettingOdds('${game.id}')">
+                            <i class="fas fa-chart-line"></i> Live Odds
+                        </button>
                     </div>
                 </div>
             </div>
         `;
+    }
+
+    generateSparkline(history) {
+        if (history.length < 2) return '';
+        
+        const width = 80;
+        const height = 24;
+        const padding = 2;
+        
+        const values = history.map(p => p.value);
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        const range = max - min || 1;
+        
+        const points = history.map((p, i) => {
+            const x = (i / (history.length - 1)) * width;
+            const y = height - (((p.value - min) / range) * (height - padding * 2) + padding);
+            return `${x},${y}`;
+        }).join(' ');
+
+        // Determine trend color
+        const first = values[0];
+        const last = values[values.length - 1];
+        const color = last < first ? '#10b981' : (last > first ? '#ef4444' : '#64748b'); // Green if odds improved (value decreased for spread), Red if worsened
+        const trend = last < first ? 'Sharpening' : (last > first ? 'Fading' : 'Stable');
+        const movement = ((last - first) / (Math.abs(first) || 1) * 100).toFixed(1);
+
+        return `
+            <div class="odds-sparkline" 
+                 title="Market Movement: ${trend} (${movement}%)"
+                 onclick="event.stopPropagation(); window.liveScoresManager.showSparklineTooltip('${trend}', '${movement}%')">
+                <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+                    <polyline fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points="${points}" />
+                </svg>
+            </div>
+        `;
+    }
+
+    showSparklineTooltip(trend, movement) {
+        if (typeof showToast === 'function') {
+            const icon = trend === 'Sharpening' ? '📈' : (trend === 'Fading' ? '📉' : '↔️');
+            showToast(`${icon} Market ${trend}: ${movement} movement over 60m`, 'info');
+        } else {
+            alert(`Market ${trend}: ${movement} movement over 60m`);
+        }
+    }
+
+    async castHypeVote(gameId) {
+        if (!this.sportsService) return;
+
+        const success = await this.sportsService.voteForGame(gameId);
+        if (success) {
+            if (typeof showToast === 'function') {
+                showToast('🔥 Hype increased!', 'success');
+            }
+            
+            // Re-render scores to show updated hype and button state
+            this.fetchData(true); 
+
+            // Play sound if available
+            if (window.soundEffects) {
+                window.soundEffects.playSound('click');
+            }
+        }
+    }
+
+    openCommentary(gameId) {
+        // Find the game data
+        const allGames = [...this.liveGames, ...this.upcomingGames, ...this.finishedGames];
+        const game = allGames.find(g => g.id === gameId);
+        
+        if (game && window.liveCommentaryOverlay) {
+            window.liveCommentaryOverlay.open(game);
+            
+            // Play sound
+            if (window.soundEffects) {
+                window.soundEffects.playSound('notification');
+            }
+        }
+    }
+
+    openBettingOdds(gameId) {
+        // Find the game data
+        const allGames = [...this.liveGames, ...this.upcomingGames, ...this.finishedGames];
+        const game = allGames.find(g => g.id === gameId);
+        
+        if (game && window.bettingOddsTracker) {
+            // Format game data for betting odds tracker
+            const bettingGame = {
+                awayTeam: game.awayTeam.name,
+                homeTeam: game.homeTeam.name,
+                awayTeamId: game.awayTeam.id,
+                homeTeamId: game.homeTeam.id,
+                awayScore: game.awayTeam.score || 0,
+                homeScore: game.homeTeam.score || 0,
+                time: game.time,
+                status: game.statusDisplay,
+                sport: game.sport,
+                id: game.id
+            };
+            
+            window.bettingOddsTracker.open(bettingGame);
+            
+            // Play sound
+            if (window.soundEffects) {
+                window.soundEffects.playSound('click');
+            }
+        }
     }
 
     attachEventListeners() {
         // Sport filter buttons
         document.querySelectorAll('.score-filter-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('click', () => {
                 document.querySelectorAll('.score-filter-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 this.selectedSport = btn.dataset.sport;
-                
-                // Resubscribe WebSocket to new sport
-                if (this.wsClient && this.isConnected) {
-                    this.wsClient.emit('sport_change', { sport: this.selectedSport });
-                }
-                
-                this.fetchScores();
+                this.fetchData();
             });
         });
 
         // Refresh button
         document.getElementById('scores-refresh-btn')?.addEventListener('click', () => {
-            this.fetchScores();
+            this.fetchData(true);
         });
     }
 
-    renderScores() {
-        const scoresList = document.getElementById('scores-list');
-        if (!scoresList) return;
-
-        if (this.scores.length === 0) {
-            scoresList.innerHTML = '<p class="no-games">No games found</p>';
-            return;
+    updateLastSyncTime() {
+        const el = document.querySelector('.last-updated');
+        if (el) {
+            const time = new Date().toLocaleTimeString();
+            const source = this.sportsService.isUsingMockData ? '(Simulated Mode)' : '(Live ESPN)';
+            el.textContent = `Last updated: ${time} ${source}`;
         }
-
-        scoresList.innerHTML = this.scores.map(game => this.renderGameCard(game)).join('');
-    }
-
-    renderGameCard(game) {
-        const homeTeam = game.competitions?.[0]?.home;
-        const awayTeam = game.competitions?.[0]?.away;
-        const status = game.status?.type?.description || 'TBD';
-        const time = new Date(game.date).toLocaleString();
-
-        return `
-            <div class="game-card" data-game-id="${game.id}">
-                <div class="game-header">
-                    <span class="game-time">${time}</span>
-                    <span class="game-status">${status}</span>
-                </div>
-                
-                <div class="game-matchup">
-                    <div class="team away-team">
-                        <img src="${awayTeam?.logo || ''}" alt="${awayTeam?.displayName}" class="team-logo">
-                        <div class="team-info">
-                            <p class="team-name">${awayTeam?.displayName || 'Away'}</p>
-                            <p class="team-score">${awayTeam?.score || '-'}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="vs-badge">VS</div>
-                    
-                    <div class="team home-team">
-                        <div class="team-info">
-                            <p class="team-name">${homeTeam?.displayName || 'Home'}</p>
-                            <p class="team-score">${homeTeam?.score || '-'}</p>
-                        </div>
-                        <img src="${homeTeam?.logo || ''}" alt="${homeTeam?.displayName}" class="team-logo">
-                    </div>
-                </div>
-                
-                <div class="game-details">
-                    ${game.competitions?.[0]?.venue ? `<p class="venue">${game.competitions[0].venue.fullName}</p>` : ''}
-                    ${game.competitions?.[0]?.broadcasts ? `<p class="broadcast">${game.competitions[0].broadcasts[0].names[0]}</p>` : ''}
-                </div>
-            </div>
-        `;
-    }
-
-    // ============================================
-    // STATUS UPDATES
-    // ============================================
-
-    updateConnectionStatus(status) {
-        const statusElement = document.getElementById('connection-status');
-        if (!statusElement) return;
-
-        const dotElement = statusElement.querySelector('.status-dot');
-        const textElement = statusElement.querySelector('.status-text');
-
-        if (status === 'connected') {
-            dotElement.className = 'status-dot connected';
-            textElement.textContent = '🟢 Connected - Real-time updates active';
-            statusElement.classList.remove('disconnected');
-        } else if (status === 'disconnected') {
-            dotElement.className = 'status-dot disconnected';
-            textElement.textContent = '🔴 Disconnected - Using polling (30s)';
-            statusElement.classList.add('disconnected');
-        } else if (status === 'connecting') {
-            dotElement.className = 'status-dot connecting';
-            textElement.textContent = '🟡 Connecting...';
-        }
-    }
-
-    updateLastSyncTime(timestamp) {
-        const lastUpdatedElement = document.querySelector('.last-updated');
-        if (!lastUpdatedElement) return;
-
-        const time = new Date(timestamp);
-        const formattedTime = time.toLocaleTimeString();
-        lastUpdatedElement.textContent = `Last updated: ${formattedTime}`;
-    }
-
-    showError(message) {
-        const scoresList = document.getElementById('scores-list');
-        if (scoresList) {
-            scoresList.innerHTML = `<p class="error-message">${message}</p>`;
-        }
-    }
-
-    showNotification(data) {
-        console.log('📢 Showing notification:', data);
-        // Implement notification UI if needed
-    }
-
-    // ============================================
-    // CLEANUP
-    // ============================================
-
-    destroy() {
-        clearInterval(this.refreshInterval);
-        if (this.wsClient) {
-            this.wsClient.disconnect();
+        
+        // Update connection status badge
+        const statusBadge = document.getElementById('connection-status');
+        if (statusBadge) {
+            if (this.sportsService.isUsingMockData) {
+                statusBadge.className = 'connection-status simulated';
+                statusBadge.querySelector('.status-text').textContent = 'Simulated Data Active';
+            } else {
+                statusBadge.className = 'connection-status connected';
+                statusBadge.querySelector('.status-text').textContent = 'Live ESPN Data Active';
+            }
         }
     }
 }
 
-// Export the manager
-export { LiveScoresManager };
+// Global Export & Init
+window.liveScoresManager = new LiveScoresManager();
 
-// Auto-initialize if DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        const manager = new LiveScoresManager();
-        manager.load();
-        
-        // Store in window for debugging
-        window.liveScoresManager = manager;
-    });
+    document.addEventListener('DOMContentLoaded', () => window.liveScoresManager.load());
 } else {
-    const manager = new LiveScoresManager();
-    manager.load();
-    window.liveScoresManager = manager;
-                }
+    window.liveScoresManager.load();
+}

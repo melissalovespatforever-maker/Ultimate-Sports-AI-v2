@@ -204,8 +204,13 @@ class MyBetsManager {
                             <i class="fas fa-check"></i> ${bet.pick}
                         </div>
                     </div>
-                    <div class="bet-status ${bet.status}">
-                        ${bet.status}
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button class="btn-icon-sm" onclick="event.stopPropagation(); myBetsManager.shareBet('${bet.id}')" title="Share Bet">
+                            <i class="fas fa-share-alt" style="font-size: 14px;"></i>
+                        </button>
+                        <div class="bet-status ${bet.status}">
+                            ${bet.status}
+                        </div>
                     </div>
                 </div>
                 
@@ -417,6 +422,43 @@ Added: ${this.formatTime(bet.timestamp)}
         this.closeExportModal();
     }
 
+    shareBet(betId) {
+        const bet = this.getBet(betId);
+        if (!bet) return;
+
+        const shareData = {
+            title: 'Ultimate Sports AI Bet',
+            text: `🔥 Check out my bet on Ultimate Sports AI!\n\n${this.getSportIcon(bet.sport)} ${bet.sport}: ${bet.match}\n✅ Pick: ${bet.pick}\n📈 Odds: ${bet.odds}\n🤖 Coach: ${bet.coach}\n\n#UltimateSportsAI #SportsBetting`,
+            url: window.location.origin
+        };
+
+        if (navigator.share) {
+            navigator.share(shareData)
+                .then(() => console.log('Successful share'))
+                .catch((error) => console.log('Error sharing', error));
+        } else {
+            // Fallback to clipboard
+            const text = `${shareData.text}\n${shareData.url}`;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Bet details copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('❌ Failed to copy to clipboard');
+            });
+        }
+    }
+
+    getSportIcon(sport) {
+        if (!sport) return '🏆';
+        const s = sport.toLowerCase();
+        if (s.includes('basketball') || s.includes('nba')) return '🏀';
+        if (s.includes('football') || s.includes('nfl')) return '🏈';
+        if (s.includes('soccer')) return '⚽';
+        if (s.includes('baseball') || s.includes('mlb')) return '⚾';
+        if (s.includes('hockey') || s.includes('nhl')) return '🏒';
+        return '🏆';
+    }
+
     copyToClipboard() {
         const text = this.bets.map(bet => 
             `${bet.sport}: ${bet.match} - ${bet.pick} (${bet.odds}) - ${bet.status}`
@@ -500,6 +542,15 @@ Added: ${this.formatTime(bet.timestamp)}
         });
 
         // Modal buttons
+        const shareBetBtn = document.getElementById('shareBetBtn');
+        if (shareBetBtn) {
+            shareBetBtn.addEventListener('click', () => {
+                if (this.selectedBetId) {
+                    this.shareBet(this.selectedBetId);
+                }
+            });
+        }
+
         document.getElementById('deleteBetBtn').addEventListener('click', () => {
             if (this.selectedBetId && confirm('Are you sure you want to delete this bet?')) {
                 this.deleteBet(this.selectedBetId);

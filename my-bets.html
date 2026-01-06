@@ -104,7 +104,7 @@
             <i class="fas fa-clipboard-list"></i>
             <h2>No Bets Yet</h2>
             <p>Start adding AI coach picks from the AI Coaches page!</p>
-            <button class="btn-primary" onclick="window.location.href='ai-coaches-deluxe.js'">
+            <button class="btn-primary" onclick="window.parent.navigation?.navigateTo('ai-coaches') || (window.location.href='/index.html?page=ai-coaches')">
                 <i class="fas fa-robot"></i> View AI Coaches
             </button>
         </div>
@@ -124,11 +124,14 @@
             </div>
             <div class="modal-footer">
                 <button class="btn-secondary" onclick="closeBetModal()">Close</button>
+                <button class="btn-share" id="shareBetBtn" style="background: #8b5cf6; color: white;">
+                    <i class="fas fa-share-alt"></i> Share
+                </button>
                 <button class="btn-danger" id="deleteBetBtn">
-                    <i class="fas fa-trash"></i> Delete Bet
+                    <i class="fas fa-trash"></i> Delete
                 </button>
                 <button class="btn-primary" id="updateStatusBtn">
-                    <i class="fas fa-edit"></i> Update Status
+                    <i class="fas fa-edit"></i> Update
                 </button>
             </div>
         </div>

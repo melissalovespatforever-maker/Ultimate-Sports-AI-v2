@@ -3,9 +3,11 @@
  * Multiple game modes with real-time opponent simulation
  */
 
+// Initialize MinigameSync
+const gameSync = MinigameSync.init('Parlay Battle');
+
 // Game State
 const battleState = {
-    coins: parseInt(localStorage.getItem('sportsLoungeBalance')) || 1000,
     currentMode: null,
     opponent: null,
     yourPicks: [],
@@ -90,15 +92,8 @@ const opponentPool = [
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
     console.log('⚔️ Parlay Battle initialized');
-    loadUserData();
     initializeModeButtons();
 });
-
-// Load user data
-function loadUserData() {
-    battleState.coins = parseInt(localStorage.getItem('sportsLoungeBalance')) || 1000;
-    document.getElementById('user-coins').textContent = battleState.coins;
-}
 
 // Initialize mode selection buttons
 function initializeModeButtons() {
@@ -390,6 +385,7 @@ function processResults() {
     ).length;
     
     const won = yourCorrect > opponentCorrect;
+    const tie = yourCorrect === opponentCorrect;
     const modeConfig = modes[battleState.currentMode];
     
     // Calculate rewards
@@ -399,17 +395,30 @@ function processResults() {
     if (won) {
         coinsWon = Math.floor(modeConfig.minBet + (yourCorrect * 50));
         rankPoints = 10 + (yourCorrect * 2);
-        battleState.coins += coinsWon;
-    } else {
-        coinsWon = -Math.floor(modeConfig.minBet / 2);
+        
+        // Award coins using MinigameSync
+        gameSync.addCoins(coinsWon, `${modeConfig.name} victory`, {
+            mode: battleState.currentMode,
+            correctPicks: yourCorrect,
+            opponentCorrect: opponentCorrect,
+            opponent: battleState.opponent.name,
+            rankPoints: rankPoints
+        });
+    } else if (!tie) {
+        // Lost - deduct entry fee
+        const entryFee = Math.floor(modeConfig.minBet / 2);
+        coinsWon = -entryFee;
         rankPoints = -5;
-        battleState.coins += coinsWon;
+        
+        gameSync.deductCoins(entryFee, `${modeConfig.name} loss`, {
+            mode: battleState.currentMode,
+            correctPicks: yourCorrect,
+            opponentCorrect: opponentCorrect,
+            opponent: battleState.opponent.name
+        });
     }
     
-    // Save coins
-    localStorage.setItem('sportsLoungeBalance', battleState.coins);
-    
-    // Update stats
+    // Track stats
     const stats = JSON.parse(localStorage.getItem('parlayBattleStats')) || { games: 0, wins: 0 };
     stats.games++;
     if (won) stats.wins++;
@@ -467,7 +476,6 @@ window.goToModeSelect = function() {
         clearInterval(battleState.timer);
     }
     switchScreen('mode-screen');
-    loadUserData();
 };
 
 window.playAgain = function() {

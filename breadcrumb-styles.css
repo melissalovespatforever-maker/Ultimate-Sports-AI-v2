@@ -1,0 +1,126 @@
+/* ============================================
+   BREADCRUMB NAVIGATION STYLES
+   ============================================ */
+
+.breadcrumb-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(236, 72, 153, 0.03) 100%);
+    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    font-size: 13px;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(99, 102, 241, 0.3) transparent;
+}
+
+.breadcrumb-container::-webkit-scrollbar {
+    height: 4px;
+}
+
+.breadcrumb-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.breadcrumb-container::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.3);
+    border-radius: 2px;
+}
+
+.breadcrumb-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(99, 102, 241, 0.5);
+}
+
+.breadcrumb-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.breadcrumb-item:hover {
+    color: var(--primary, #6366f1);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.breadcrumb-item.active {
+    color: var(--primary, #6366f1);
+    font-weight: 600;
+    cursor: default;
+}
+
+.breadcrumb-item.active:hover {
+    background: transparent;
+}
+
+.breadcrumb-separator {
+    color: var(--border-color, rgba(255, 255, 255, 0.3));
+    margin: 0 4px;
+    user-select: none;
+}
+
+.breadcrumb-icon {
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.breadcrumb-item.active .breadcrumb-icon {
+    opacity: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .breadcrumb-container {
+        padding: 10px 12px;
+        font-size: 12px;
+        gap: 6px;
+    }
+
+    .breadcrumb-item {
+        padding: 3px 6px;
+        gap: 4px;
+    }
+
+    .breadcrumb-icon {
+        font-size: 11px;
+    }
+
+    /* Hide non-active items on very small screens */
+    @media (max-width: 480px) {
+        .breadcrumb-item:not(.active):not(:last-child) {
+            display: none;
+        }
+
+        .breadcrumb-separator:not(:last-child) {
+            display: none;
+        }
+    }
+}
+
+/* Hide breadcrumb on home page or when not needed */
+.breadcrumb-container.hidden {
+    display: none;
+}
+
+/* Animation */
+.breadcrumb-item {
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

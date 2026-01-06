@@ -337,14 +337,6 @@
                 <p class="game-subtitle">Double or nothing!</p>
             </div>
 
-            <div class="balance-display">
-                <div class="balance-label">Your Balance</div>
-                <div class="balance-amount">
-                    <span id="balance">1000</span>
-                    <span>🪙</span>
-                </div>
-            </div>
-
             <!-- Games Remaining Counter -->
             <div id="games-remaining" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px; margin: 16px 0; text-align: center; font-size: 14px; color: #10b981;">
                 <i class="fas fa-gamepad"></i> <span id="games-count">Loading...</span>
@@ -406,14 +398,26 @@
     </div>
 
     <script>
+        // ============================================
+        // COIN FLIP - TRANSACTION QUEUE REFERENCE
+        // This is the reference implementation showing
+        // how to use MinigameSync for all transactions
+        // ============================================
+        
+        // Initialize MinigameSync at game start
+        // This handles all balance updates and transaction queueing
+        const gameSync = MinigameSync.init('Coin Flip');
+        
         // Game state
-        let balance = 1000;
+        let balance = gameSync.getBalance();
         let currentBet = 25;
         let playerChoice = 'heads';
         let isFlipping = false;
         let totalFlips = 0;
         let totalWins = 0;
         let restrictions = null;
+        
+        console.log('🎮 Coin Flip initialized with transaction queue support');
 
         // Tier restriction functions
         function initTierRestrictions() {
@@ -460,7 +464,6 @@
         }
 
         // Elements
-        const balanceEl = document.getElementById('balance');
         const flipButton = document.getElementById('flip-button');
         const resultMessage = document.getElementById('result-message');
         const coin = document.getElementById('coin');
@@ -494,9 +497,15 @@
             });
         });
 
-        // Flip coin
+        // Flip coin - UPDATED WITH TRANSACTION QUEUE
         async function flipCoin() {
-            if (isFlipping || balance < currentBet) return;
+            // Check if already flipping or insufficient balance
+            if (isFlipping) return;
+            
+            // Use gameSync to validate balance (includes insufficient funds message)
+            if (!gameSync.canAfford(currentBet)) {
+                return;
+            }
 
             // Check tier restrictions
             if (restrictions) {
@@ -511,9 +520,21 @@
             flipButton.disabled = true;
             resultMessage.classList.remove('show');
 
-            // Deduct bet
-            balance -= currentBet;
-            updateBalance();
+            // ✅ RECORD BET - Uses transaction queue
+            // This:
+            // 1. Deducts coins immediately (localStorage)
+            // 2. Queues transaction for backend
+            // 3. Syncs to database when online
+            if (!gameSync.recordBet(currentBet)) {
+                console.error('❌ Failed to record bet');
+                isFlipping = false;
+                flipButton.disabled = false;
+                return;
+            }
+            
+            // Update local balance state
+            balance = gameSync.getBalance();
+            updateFlipButton();
 
             // Random result
             const result = Math.random() < 0.5 ? 'heads' : 'tails';
@@ -530,7 +551,6 @@
             // Determine final rotation for result
             const rotations = 5 + Math.floor(Math.random() * 3); // 5-7 full flips
             const finalRotation = result === 'heads' ? 0 : 180;
-            const totalRotation = (rotations * 360) + finalRotation;
             
             coin.style.animation = 'none';
             setTimeout(() => {
@@ -545,19 +565,38 @@
             coin.classList.remove('flipping');
             coin.style.transform = `rotateY(${finalRotation}deg)`;
 
-            // Calculate winnings
+            // ✅ HANDLE RESULT - Record win or loss
             if (isWin) {
-                balance += currentBet * 2; // Double the bet
-                showResult(true, currentBet * 2);
+                const payout = currentBet * 2;
+                
+                // Record win with transaction queue
+                gameSync.recordWin(payout, {
+                    betAmount: currentBet,
+                    result: result,
+                    multiplier: 2,
+                    playerChoice: playerChoice
+                });
+                
+                showResult(true, payout);
             } else {
+                // Record loss for stats tracking (no balance change)
+                gameSync.recordLoss(currentBet, {
+                    betAmount: currentBet,
+                    result: result,
+                    playerChoice: playerChoice
+                });
+                
                 showResult(false, 0);
             }
 
-            updateBalance();
+            // Update balance display
+            balance = gameSync.getBalance();
+            updateFlipButton();
+            
             isFlipping = false;
             flipButton.disabled = false;
 
-            // Track game played
+            // Track game played (for tier restrictions)
             if (restrictions) {
                 restrictions.trackGamePlayed();
                 updateGamesRemaining();
@@ -580,12 +619,6 @@
             }, 100);
         }
 
-        // Update balance
-        function updateBalance() {
-            balanceEl.textContent = balance;
-            updateFlipButton();
-        }
-
         // Update flip button
         function updateFlipButton() {
             if (balance < currentBet) {
@@ -604,29 +637,14 @@
             const winRate = totalFlips > 0 ? Math.round((totalWins / totalFlips) * 100) : 0;
             winRateEl.textContent = `${winRate}%`;
             
-            saveStats();
-        }
-
-        // Save/load functions
-        function saveBalance() {
-            localStorage.setItem('sportsLoungeBalance', balance);
-        }
-
-        function loadBalance() {
-            const saved = localStorage.getItem('sportsLoungeBalance');
-            if (saved) {
-                balance = parseInt(saved);
-                updateBalance();
-            }
-        }
-
-        function saveStats() {
+            // ✅ Stats saved to localStorage (gameSync handles backend sync)
             localStorage.setItem('coinFlipStats', JSON.stringify({
                 totalFlips,
                 totalWins
             }));
         }
 
+        // Load session stats from localStorage
         function loadStats() {
             const saved = localStorage.getItem('coinFlipStats');
             if (saved) {
@@ -640,12 +658,36 @@
         // Event listeners
         flipButton.addEventListener('click', flipCoin);
 
-        // Initialize
-        initTierRestrictions();
-        loadBalance();
-        loadStats();
-        updateBalance();
-        window.addEventListener('beforeunload', saveBalance);
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        function initGame() {
+            console.log('🎮 Initializing Coin Flip game...');
+            
+            // Initialize tier restrictions
+            initTierRestrictions();
+            
+            // Load local session stats
+            loadStats();
+            
+            // Load balance from global state (via gameSync)
+            balance = gameSync.getBalance();
+            updateBalance();
+            
+            console.log('✅ Game initialized');
+            console.log('💳 Transaction queue status:', gameSync.getQueueStatus());
+        }
+
+        // Initialize on page load
+        initGame();
+        
+        // Debug: Listen for transaction queue events
+        window.addEventListener('transactionQueueProcessed', (e) => {
+            console.log('📊 Queue processed:', e.detail);
+            // Update balance if it changed on backend
+            balance = gameSync.getBalance();
+            updateBalance();
+        });
     </script>
 </body>
 </html>

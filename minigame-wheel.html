@@ -12,6 +12,8 @@
     
     <!-- Tier Restrictions -->
     <script src="tier-restrictions.js"></script>
+    <script src="minigame-sync.js"></script>
+    <script src="confetti.js"></script>
     
     <style>
         * {
@@ -228,6 +230,15 @@
             color: #10b981;
         }
 
+        .win-flash {
+            animation: winFlash 0.5s ease-out 2;
+        }
+
+        @keyframes winFlash {
+            0%, 100% { background: rgba(16, 185, 129, 0.2); }
+            50% { background: rgba(16, 185, 129, 0.8); }
+        }
+
         .prizes-list {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -250,3 +261,400 @@
             margin-top: 4px;
         }
     </style>
+</head>
+<body>
+    <div class="game-container">
+        <button class="back-button" onclick="window.history.back()">
+            <i class="fas fa-arrow-left"></i>
+            Back to Lounge
+        </button>
+
+        <div class="game-card">
+            <div class="game-header">
+                <h1 class="game-title">🎡 Prize Wheel</h1>
+                <p class="game-subtitle">Spin to win instant rewards!</p>
+            </div>
+
+            <div class="balance-display">
+                <div class="balance-label">Your Balance</div>
+                <div class="balance-amount">
+                    <span id="balance">1000</span>
+                    <span>🪙</span>
+                </div>
+            </div>
+
+            <!-- Games Remaining Counter -->
+            <div id="games-remaining" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px; margin: 16px 0; text-align: center; font-size: 14px; color: #10b981;">
+                <i class="fas fa-gamepad"></i> <span id="games-count">Loading...</span>
+            </div>
+
+            <div class="wheel-container">
+                <div class="wheel-pointer">⬇️</div>
+                <canvas id="wheel-canvas" width="400" height="400"></canvas>
+                <div class="wheel-center">🎡</div>
+            </div>
+
+            <div class="cost-display">Cost per spin: <strong>50 🪙</strong></div>
+
+            <button class="spin-button" id="spin-button">
+                <i class="fas fa-rotate"></i>
+                <span>SPIN THE WHEEL</span>
+            </button>
+
+            <div class="result-message" id="result-message"></div>
+
+            <div class="prizes-list">
+                <div class="prize-item" style="border: 2px solid #fbbf24; background: rgba(251, 191, 36, 0.1);">
+                    <div>👑 ULTIMATE BUNDLE (VIP ONLY)</div>
+                    <div class="prize-amount" style="color: #fbbf24;">5,000 🪙</div>
+                </div>
+                <div class="prize-item" style="border: 2px solid #fbbf24; background: rgba(251, 191, 36, 0.1);">
+                    <div>💰 COIN PRIZE (VIP ONLY)</div>
+                    <div class="prize-amount" style="color: #fbbf24;">10,000 🪙</div>
+                </div>
+                <div class="prize-item">
+                    <div>💎 Big Win</div>
+                    <div class="prize-amount">500 🪙</div>
+                </div>
+                <div class="prize-item">
+                    <div>⭐ Bonus</div>
+                    <div class="prize-amount">250 🪙</div>
+                </div>
+                <div class="prize-item">
+                    <div>🎯 Prize</div>
+                    <div class="prize-amount">100 🪙</div>
+                </div>
+                <div class="prize-item">
+                    <div>🍀 Lucky</div>
+                    <div class="prize-amount">75 🪙</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // TRANSACTION QUEUE INTEGRATION
+        // ============================================
+        const gameSync = MinigameSync.init('Prize Wheel');
+        console.log('🎮 Prize Wheel initialized with transaction queue support');
+
+        // Game state
+        let balance = gameSync.getBalance();
+        const spinCost = window.UnifiedCoinSystem?.costs.games.prizeWheel || 50;
+        let isSpinning = false;
+        let restrictions = null;
+
+        // Initialize tier restrictions
+        function initTierRestrictions() {
+            restrictions = new TierRestrictions();
+            updateGamesRemaining();
+        }
+
+        // Update games remaining display
+        function updateGamesRemaining() {
+            if (!restrictions) return;
+            
+            const limits = restrictions.getGameLimits();
+            const countEl = document.getElementById('games-count');
+            const containerEl = document.getElementById('games-remaining');
+            
+            if (limits.maxDailyGames === -1) {
+                countEl.textContent = 'Unlimited Games (VIP)';
+                containerEl.style.background = 'rgba(251, 191, 36, 0.1)';
+                containerEl.style.borderColor = 'rgba(251, 191, 36, 0.3)';
+                containerEl.style.color = '#fbbf24';
+            } else {
+                const remaining = limits.gamesRemaining;
+                countEl.textContent = `${remaining}/${limits.maxDailyGames} Games Remaining Today`;
+                
+                if (remaining === 0) {
+                    containerEl.style.background = 'rgba(239, 68, 68, 0.1)';
+                    containerEl.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+                    containerEl.style.color = '#ef4444';
+                } else if (remaining <= 2) {
+                    containerEl.style.background = 'rgba(251, 191, 36, 0.1)';
+                    containerEl.style.borderColor = 'rgba(251, 191, 36, 0.3)';
+                    containerEl.style.color = '#fbbf24';
+                } else {
+                    containerEl.style.background = 'rgba(16, 185, 129, 0.1)';
+                    containerEl.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                    containerEl.style.color = '#10b981';
+                }
+            }
+        }
+
+        // Show upgrade prompt
+        function showUpgradePrompt(reason) {
+            const message = `${reason}\n\nUpgrade to PRO for 15 games/day or VIP for unlimited games!`;
+            if (confirm(message + '\n\nGo to subscription page?')) {
+                window.parent.postMessage({ action: 'navigate', page: 'subscription' }, '*');
+            }
+        }
+
+        // Wheel segments (prizes)
+        const segments = [
+            // VIP-ONLY Grand Prizes (Very Slim Segments)
+            { label: '👑 BUNDLE', value: 5000, color: '#fbbf24', vipOnly: true, isGrandPrize: true },
+            { label: '💰 COIN', value: 10000, color: '#fbbf24', vipOnly: true, isGrandPrize: true },
+            
+            // Regular prizes
+            { label: '💎 500', value: 500, color: '#ec4899' },
+            { label: '⭐ 250', value: 250, color: '#3b82f6' },
+            { label: '🎯 100', value: 100, color: '#f59e0b' },
+            { label: '🍀 75', value: 75, color: '#10b981' },
+            { label: '💫 50', value: 50, color: '#8b5cf6' },
+            { label: '🎁 75', value: 75, color: '#06b6d4' },
+            { label: '💫 25', value: 25, color: '#8b5cf6' },
+            { label: '🎲 100', value: 100, color: '#f59e0b' },
+            { label: '🌟 50', value: 50, color: '#eab308' },
+            { label: '💝 150', value: 150, color: '#ec4899' }
+        ];
+
+        // Elements
+        const canvas = document.getElementById('wheel-canvas');
+        const ctx = canvas.getContext('2d');
+        const balanceEl = document.getElementById('balance');
+        const spinButton = document.getElementById('spin-button');
+        const resultMessage = document.getElementById('result-message');
+
+        let currentRotation = 0;
+
+        // Draw wheel
+        function drawWheel() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = canvas.width / 2 - 10;
+            const segmentAngle = (2 * Math.PI) / segments.length;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            segments.forEach((segment, i) => {
+                const startAngle = i * segmentAngle + currentRotation;
+                const endAngle = startAngle + segmentAngle;
+
+                // Draw segment
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = segment.color;
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Draw text
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(startAngle + segmentAngle / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 18px Inter';
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 4;
+                ctx.fillText(segment.label, radius - 20, 5);
+                ctx.restore();
+            });
+        }
+
+        // Get winning segment
+        function getWinningSegment(rotation) {
+            // Normalize rotation
+            const normalizedRotation = (rotation % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+            
+            // The pointer is at the top (0 degrees), so we need to find which segment is at the top
+            const segmentAngle = (2 * Math.PI) / segments.length;
+            
+            // Calculate which segment is at the top (accounting for rotation direction)
+            const topAngle = (2 * Math.PI - normalizedRotation) % (2 * Math.PI);
+            const segmentIndex = Math.floor(topAngle / segmentAngle);
+            
+            return segments[segmentIndex];
+        }
+
+        // Spin animation
+        function animateSpin(targetRotation, duration) {
+            const startRotation = currentRotation;
+            const startTime = Date.now();
+
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Easing function (ease out)
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                
+                currentRotation = startRotation + (targetRotation - startRotation) * easeProgress;
+                drawWheel();
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    currentRotation = targetRotation % (2 * Math.PI);
+                    drawWheel();
+                }
+            }
+
+            animate();
+        }
+
+        // Spin wheel
+        async function spin() {
+            if (isSpinning) return;
+            
+            // Check balance using gameSync logic
+            if (!gameSync.canAfford(spinCost)) {
+                alert('Insufficient funds!');
+                return;
+            }
+
+            // Check tier restrictions
+            if (restrictions) {
+                const canPlay = restrictions.canPlayGame('Prize Wheel');
+                if (!canPlay.allowed) {
+                    showUpgradePrompt(canPlay.reason);
+                    return;
+                }
+            }
+
+            isSpinning = true;
+            spinButton.disabled = true;
+            resultMessage.classList.remove('show');
+
+            // Deduct cost via transaction queue
+            if (!gameSync.recordBet(spinCost)) {
+                isSpinning = false;
+                spinButton.disabled = false;
+                return;
+            }
+            
+            // Update balance display
+            updateBalance();
+
+            // Random spins + target segment
+            const spins = 5 + Math.random() * 3; // 5-8 full rotations
+            const randomOffset = Math.random() * (2 * Math.PI);
+            const targetRotation = currentRotation + spins * 2 * Math.PI + randomOffset;
+
+            // Animate spin
+            animateSpin(targetRotation, 4000);
+
+            // Wait for animation
+            await new Promise(resolve => setTimeout(resolve, 4000));
+
+            // Get result
+            const winningSegment = getWinningSegment(targetRotation);
+            
+            // Check if VIP-only prize and user is not VIP
+            if (winningSegment.vipOnly && restrictions && !restrictions.isVIP()) {
+                // Show VIP-only message and give consolation prize instead
+                const consolation = { label: '🎯 Consolation', value: 50 };
+                
+                gameSync.recordWin(consolation.value, {
+                    betAmount: spinCost,
+                    prize: consolation.label,
+                    originalPrize: winningSegment.label, // Analytics: know they missed out!
+                    wasVipRestricted: true
+                });
+                
+                showResult(consolation);
+                alert('🔒 That Grand Prize is VIP-ONLY!\n\nUpgrade to VIP to unlock these amazing rewards!');
+            } else {
+                // Regular win
+                gameSync.recordWin(winningSegment.value, {
+                    betAmount: spinCost,
+                    prize: winningSegment.label,
+                    isGrandPrize: winningSegment.isGrandPrize || false
+                });
+
+                // Show result
+                showResult(winningSegment);
+            }
+
+            // Update balance after win
+            updateBalance();
+
+            // Track game played
+            if (restrictions) {
+                restrictions.trackGamePlayed();
+                updateGamesRemaining();
+            }
+
+            // Track stats
+            trackGameStats();
+
+            isSpinning = false;
+            spinButton.disabled = false;
+        }
+
+        // Show result
+        function showResult(segment) {
+            resultMessage.classList.remove('win-flash');
+            resultMessage.textContent = `🎉 You won ${segment.value} coins! 🎉`;
+            resultMessage.classList.add('win', 'show', 'win-flash');
+
+            // Trigger confetti
+            if (typeof confetti === 'function') {
+                const isHighWin = segment.value >= 250;
+                confetti({
+                    particleCount: isHighWin ? 150 : 70,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: [segment.color || '#8b5cf6', '#fbbf24', '#ffffff']
+                });
+            }
+        }
+
+        // Update balance
+        function updateBalance() {
+            balance = gameSync.getBalance();
+            balanceEl.textContent = balance;
+            
+            if (balance < spinCost) {
+                spinButton.disabled = true;
+                spinButton.querySelector('span').textContent = 'Insufficient funds';
+            } else {
+                spinButton.disabled = false;
+                spinButton.querySelector('span').textContent = 'SPIN THE WHEEL';
+            }
+        }
+
+        // Track game statistics
+        function trackGameStats() {
+            const stats = JSON.parse(localStorage.getItem('wheelStats')) || { spins: 0, wins: 0 };
+            stats.spins++;
+            stats.wins++; // Wheel always pays out something
+            localStorage.setItem('wheelStats', JSON.stringify(stats));
+        }
+
+        // Event listeners
+        spinButton.addEventListener('click', spin);
+
+        // Initialize
+        function initGame() {
+            console.log('🎡 Initializing Prize Wheel...');
+            updateBalance();
+            drawWheel();
+            initTierRestrictions();
+            console.log('✅ Game initialized');
+        }
+        
+        initGame();
+        
+        // Listen for balance updates from sync system
+        window.addEventListener('transactionQueueProcessed', (e) => {
+            console.log('📊 Queue synced, updating balance');
+            updateBalance();
+        });
+
+        // Redraw on resize
+        window.addEventListener('resize', () => {
+            const size = Math.min(window.innerWidth - 100, 400);
+            canvas.width = size;
+            canvas.height = size;
+            drawWheel();
+        });
+    </script>
+</body>
+</html>

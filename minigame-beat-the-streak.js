@@ -5,9 +5,9 @@
 
 // Game State
 const gameState = {
-    coins: parseInt(localStorage.getItem('sportsLoungeBalance')) || 1000,
-    currentStreak: parseInt(localStorage.getItem('beatTheStreakCurrent')) || 0,
-    bestStreak: parseInt(localStorage.getItem('beatTheStreakBest')) || 0,
+    coins: 1000,
+    currentStreak: 0,
+    bestStreak: 0,
     mode: 'double', // single, double, triple
     selectedPicks: [],
     todaysGames: [],
@@ -22,6 +22,17 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeModes();
     loadTodaysGames();
     updateUI();
+    
+    // Listen for balance updates from parent
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'requestState' }, '*');
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'stateUpdate' && event.data.balance) {
+                gameState.coins = event.data.balance;
+                updateUI();
+            }
+        });
+    }
 });
 
 // Check if it's a new day
@@ -39,9 +50,31 @@ function checkDailyReset() {
 
 // Load saved state
 function loadGameState() {
+    // Get coins from global state or parent
+    if (window.parent && window.parent !== window && window.parent.globalState) {
+        gameState.coins = window.parent.globalState.getBalance();
+    } else if (window.globalState) {
+        gameState.coins = window.globalState.getBalance();
+    } else {
+        gameState.coins = parseInt(localStorage.getItem('unified_balance') || localStorage.getItem('sportsLoungeBalance') || '1000');
+    }
+    
+    gameState.currentStreak = parseInt(localStorage.getItem('beatTheStreakCurrent')) || 0;
+    gameState.bestStreak = parseInt(localStorage.getItem('beatTheStreakBest')) || 0;
+    
     document.getElementById('coins-display').textContent = gameState.coins.toLocaleString();
     document.getElementById('current-streak').textContent = gameState.currentStreak;
     document.getElementById('best-streak').textContent = gameState.bestStreak;
+}
+
+// Sync coins back to parent
+function syncCoinsWithParent() {
+    if (window.parent && window.parent !== window && window.parent.globalState) {
+        window.parent.globalState.setBalance(gameState.coins);
+    } else if (window.globalState) {
+        window.globalState.setBalance(gameState.coins);
+    }
+    localStorage.setItem('unified_balance', gameState.coins.toString());
 }
 
 // Initialize game modes

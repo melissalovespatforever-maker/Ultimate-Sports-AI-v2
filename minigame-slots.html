@@ -12,6 +12,8 @@
     
     <!-- Tier Restrictions -->
     <script src="tier-restrictions.js"></script>
+    <script src="minigame-sync.js"></script>
+    <script src="confetti.js"></script>
     
     <style>
         * {
@@ -255,6 +257,33 @@
             color: #ef4444;
         }
 
+        .win-flash {
+            animation: winFlash 0.5s ease-out 2;
+        }
+
+        @keyframes winFlash {
+            0%, 100% { background: rgba(16, 185, 129, 0.2); }
+            50% { background: rgba(16, 185, 129, 0.8); }
+        }
+
+        .multiplier-badge {
+            display: inline-block;
+            background: #fbbf24;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-left: 8px;
+            vertical-align: middle;
+            animation: bounce 0.5s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
         .paytable {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -307,14 +336,6 @@
                 <p class="game-subtitle">Match 3 symbols to win!</p>
             </div>
 
-            <div class="balance-display">
-                <div class="balance-label">Your Balance</div>
-                <div class="balance-amount">
-                    <span id="balance">1000</span>
-                    <span>🪙</span>
-                </div>
-            </div>
-
             <!-- Games Remaining Counter -->
             <div id="games-remaining" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px; margin: 16px 0; text-align: center; font-size: 14px; color: #10b981;">
                 <i class="fas fa-gamepad"></i> <span id="games-count">Loading...</span>
@@ -345,39 +366,50 @@
             <div class="paytable">
                 <div class="paytable-title">💰 Paytable</div>
                 <div class="paytable-row">
+                    <div class="paytable-symbols">🔥 🔥 🔥</div>
+                    <div class="paytable-payout">x500 (MEGA!)</div>
+                </div>
+                <div class="paytable-row">
                     <div class="paytable-symbols">🏆 🏆 🏆</div>
-                    <div class="paytable-payout">x20 (500 🪙)</div>
+                    <div class="paytable-payout">x50</div>
                 </div>
                 <div class="paytable-row">
                     <div class="paytable-symbols">💎 💎 💎</div>
-                    <div class="paytable-payout">x10 (250 🪙)</div>
+                    <div class="paytable-payout">x20</div>
                 </div>
                 <div class="paytable-row">
                     <div class="paytable-symbols">⭐ ⭐ ⭐</div>
-                    <div class="paytable-payout">x8 (200 🪙)</div>
+                    <div class="paytable-payout">x10</div>
                 </div>
                 <div class="paytable-row">
                     <div class="paytable-symbols">🎰 🎰 🎰</div>
-                    <div class="paytable-payout">x5 (125 🪙)</div>
+                    <div class="paytable-payout">x5</div>
                 </div>
                 <div class="paytable-row">
                     <div class="paytable-symbols">🍀 🍀 🍀</div>
-                    <div class="paytable-payout">x3 (75 🪙)</div>
+                    <div class="paytable-payout">x3</div>
                 </div>
                 <div class="paytable-row">
                     <div class="paytable-symbols">🎲 🎲 🎲</div>
-                    <div class="paytable-payout">x2 (50 🪙)</div>
+                    <div class="paytable-payout">x2</div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
+        // ============================================
+        // TRANSACTION QUEUE INTEGRATION
+        // ============================================
+        const gameSync = MinigameSync.init('Lucky Slots');
+
         // Game state
-        let balance = 1000;
+        let balance = gameSync.getBalance();
         let currentBet = 25;
         let isSpinning = false;
         let restrictions = null;
+
+        console.log('🎮 Lucky Slots initialized with transaction queue support');
 
         // Initialize tier restrictions
         function initTierRestrictions() {
@@ -387,14 +419,15 @@
 
         // Symbols and their weights (rarer = higher payout)
         const symbols = [
-            { icon: '🏆', weight: 1, payout: 20 },   // Rarest
-            { icon: '💎', weight: 2, payout: 10 },
-            { icon: '⭐', weight: 3, payout: 8 },
-            { icon: '🎰', weight: 5, payout: 5 },
-            { icon: '🍀', weight: 8, payout: 3 },
-            { icon: '🎲', weight: 10, payout: 2 },   // Most common
-            { icon: '🎯', weight: 15, payout: 0 },   // No payout
-            { icon: '🎪', weight: 15, payout: 0 }
+            { icon: '🔥', weight: 1, payout: 500 },  // MEGA JACKPOT
+            { icon: '🏆', weight: 2, payout: 50 },
+            { icon: '💎', weight: 4, payout: 20 },
+            { icon: '⭐', weight: 6, payout: 10 },
+            { icon: '🎰', weight: 10, payout: 5 },
+            { icon: '🍀', weight: 15, payout: 3 },
+            { icon: '🎲', weight: 20, payout: 2 },   // Most common
+            { icon: '🎯', weight: 30, payout: 0 },   // No payout
+            { icon: '🎪', weight: 30, payout: 0 }
         ];
 
         // Create weighted symbol pool
@@ -406,7 +439,6 @@
         });
 
         // Elements
-        const balanceEl = document.getElementById('balance');
         const spinButton = document.getElementById('spin-button');
         const resultMessage = document.getElementById('result-message');
         const reel1 = document.getElementById('reel1');
@@ -482,22 +514,50 @@
         function checkWin(results) {
             // Check if all three match
             if (results[0].icon === results[1].icon && results[1].icon === results[2].icon) {
+                const payout = results[0].payout * currentBet;
+                const multiplier = results[0].payout;
+
+                // TRIGGER JACKPOT ANIMATION IN PARENT IF > 500x
+                if (multiplier >= 500) {
+                    window.parent.postMessage({ 
+                        action: 'jackpot_celebration', 
+                        multiplier: multiplier,
+                        payout: payout,
+                        game: 'Lucky Slots'
+                    }, '*');
+                }
+
                 return {
                     isWin: true,
-                    payout: results[0].payout * currentBet
+                    payout: payout,
+                    multiplier: multiplier
                 };
             }
-            return { isWin: false, payout: 0 };
+            return { isWin: false, payout: 0, multiplier: 0 };
         }
 
         // Show result
-        function showResult(isWin, payout) {
-            resultMessage.classList.remove('show', 'win', 'lose');
+        function showResult(isWin, payout, multiplier) {
+            resultMessage.classList.remove('show', 'win', 'lose', 'win-flash');
             
             setTimeout(() => {
                 if (isWin) {
-                    resultMessage.textContent = `🎉 YOU WIN ${payout} COINS! 🎉`;
+                    const multiplierText = multiplier > 1 ? `<span class="multiplier-badge">${multiplier}X</span>` : '';
+                    resultMessage.innerHTML = `🎉 YOU WIN ${payout} COINS! ${multiplierText} 🎉`;
                     resultMessage.classList.add('win');
+                    
+                    // Add flash effect for wins
+                    resultMessage.classList.add('win-flash');
+                    
+                    // Trigger confetti
+                    if (typeof confetti === 'function') {
+                        confetti({
+                            particleCount: multiplier >= 50 ? 200 : 70,
+                            spread: 70,
+                            origin: { y: 0.6 },
+                            colors: ['#fbbf24', '#f59e0b', '#10b981', '#ffffff']
+                        });
+                    }
                 } else {
                     resultMessage.textContent = '❌ No match. Try again!';
                     resultMessage.classList.add('lose');
@@ -508,8 +568,6 @@
 
         // Update balance display
         function updateBalance() {
-            balanceEl.textContent = balance;
-            
             // Disable spin if can't afford bet
             if (balance < currentBet) {
                 spinButton.disabled = true;
@@ -563,7 +621,13 @@
 
         // Main spin function
         async function spin() {
-            if (isSpinning || balance < currentBet) return;
+            if (isSpinning) return;
+            
+            // Check balance using gameSync logic (redundant but safe)
+            if (!gameSync.canAfford(currentBet)) {
+                alert('Insufficient funds!');
+                return;
+            }
             
             // Check tier restrictions
             if (restrictions) {
@@ -578,24 +642,46 @@
             spinButton.disabled = true;
             resultMessage.classList.remove('show');
             
-            // Deduct bet
-            balance -= currentBet;
+            // Deduct bet via transaction queue
+            if (!gameSync.recordBet(currentBet)) {
+                isSpinning = false;
+                spinButton.disabled = false;
+                return;
+            }
+
+            // Track for daily quests
+            window.parent.postMessage({ type: 'questProgress', category: 'slots_played', amount: 1 }, '*');
+            
+            // Update local balance
+            balance = gameSync.getBalance();
             updateBalance();
             
             // Spin reels
             const results = await spinReels();
             
             // Check win
-            const { isWin, payout } = checkWin(results);
+            const { isWin, payout, multiplier } = checkWin(results);
             
-            // Add winnings
+            // Record result
             if (isWin) {
-                balance += payout;
-                updateBalance();
+                gameSync.recordWin(payout, {
+                    betAmount: currentBet,
+                    results: results.map(r => r.icon),
+                    isJackpot: payout >= currentBet * 20
+                });
+            } else {
+                gameSync.recordLoss(currentBet, {
+                    betAmount: currentBet,
+                    results: results.map(r => r.icon)
+                });
             }
             
+            // Update balance after result
+            balance = gameSync.getBalance();
+            updateBalance();
+            
             // Show result
-            showResult(isWin, payout);
+            showResult(isWin, payout, multiplier);
             
             // Track game played
             if (restrictions) {
@@ -622,25 +708,21 @@
         spinButton.addEventListener('click', spin);
 
         // Initialize
-        updateBalance();
-        initTierRestrictions();
+        function initGame() {
+            console.log('🎰 Initializing Lucky Slots...');
+            updateBalance();
+            initTierRestrictions();
+            console.log('✅ Game initialized');
+        }
+
+        initGame();
         
-        // Save balance to localStorage
-        function saveBalance() {
-            localStorage.setItem('sportsLoungeBalance', balance);
-        }
-
-        // Load balance from localStorage
-        function loadBalance() {
-            const saved = localStorage.getItem('sportsLoungeBalance');
-            if (saved) {
-                balance = parseInt(saved);
-                updateBalance();
-            }
-        }
-
-        loadBalance();
-        window.addEventListener('beforeunload', saveBalance);
+        // Listen for external updates
+        window.addEventListener('transactionQueueProcessed', (e) => {
+            console.log('📊 Queue synced, updating balance');
+            balance = gameSync.getBalance();
+            updateBalance();
+        });
     </script>
 </body>
 </html>

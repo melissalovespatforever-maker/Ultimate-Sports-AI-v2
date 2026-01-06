@@ -2,6 +2,52 @@
 
 .live-scores-wrapper { padding: 16px; }
 
+.scores-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+}
+
+.odds-dashboard-btn {
+    padding: 10px 18px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 12px;
+    color: var(--accent-color);
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.odds-dashboard-btn:hover {
+    background: var(--accent-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+}
+
 .scores-filter-bar {
     display: flex;
     gap: 8px;
@@ -93,7 +139,6 @@
     border-radius: 12px;
     padding: 16px;
     margin-bottom: 12px;
-    cursor: pointer;
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
@@ -104,10 +149,60 @@
     box-shadow: 0 0 16px rgba(239, 68, 68, 0.2);
 }
 
+.game-teams {
+    cursor: pointer;
+}
+
+.game-teams:hover {
+    opacity: 0.9;
+}
+
 .game-card:hover {
     border-color: var(--accent-color);
     box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
     transform: translateY(-2px);
+}
+
+/* Game Actions */
+.game-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 0;
+}
+
+.game-action-btn {
+    flex: 1;
+    padding: 10px 16px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 8px;
+    color: var(--accent-color);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.game-action-btn:hover {
+    background: rgba(16, 185, 129, 0.2);
+    border-color: var(--accent-color);
+    transform: translateY(-1px);
+}
+
+.game-action-btn.betting-btn {
+    background: rgba(234, 179, 8, 0.1);
+    border-color: rgba(234, 179, 8, 0.3);
+    color: #fbbf24;
+}
+
+.game-action-btn.betting-btn:hover {
+    background: rgba(234, 179, 8, 0.2);
+    border-color: #eab308;
 }
 
 .game-status-badge {
@@ -136,6 +231,73 @@
 .game-status-badge.scheduled {
     background: rgba(59, 130, 246, 0.2);
     color: #bfdbfe;
+}
+
+/* Hype Meter Styles */
+.hype-meter-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hype-icon {
+    font-size: 14px;
+    filter: drop-shadow(0 0 4px rgba(0,0,0,0.5));
+}
+
+.hype-bar-bg {
+    width: 60px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.hype-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s ease-in-out;
+}
+
+.hype-vote-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: white;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s ease;
+    margin-left: 4px;
+}
+
+.hype-vote-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.hype-vote-btn.voted {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+    color: #fca5a5;
+    cursor: default;
+}
+
+.hype-vote-btn i {
+    font-size: 10px;
+}
+
+.vote-count {
+    min-width: 10px;
 }
 
 .live-dot {
@@ -169,6 +331,13 @@
 
 .team-icon {
     font-size: 40px;
+    flex-shrink: 0;
+}
+
+.team-logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
     flex-shrink: 0;
 }
 
@@ -216,13 +385,65 @@
 }
 
 .game-footer {
+    padding: 12px;
+    border-top: 1px solid var(--border-color);
+    background: rgba(0, 0, 0, 0.02);
+}
+
+.game-odds {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 12px;
-    color: var(--text-muted);
-    padding-top: 12px;
-    border-top: 1px solid var(--border-color);
+    margin-bottom: 12px;
+}
+
+.odds-current {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.odds-pill {
+    padding: 4px 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.odds-sparkline {
+    background: var(--background-secondary);
+    border-radius: 6px;
+    padding: 4px 8px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.odds-sparkline:hover {
+    border-color: var(--accent-color);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.odds-sparkline:active {
+    transform: scale(0.95);
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.odds-sparkline svg {
+    display: block;
 }
 
 .empty-state, .error-state {
@@ -432,8 +653,18 @@
     background: rgba(255, 255, 255, 0.15);
 }
 
-@media (max-width: 640px) {
-    .game-score-container { flex-direction: column; }
-    .team-icon { font-size: 32px; }
-    .score { font-size: 24px; }
-       }
+@media (max-width: 480px) {
+    .game-odds {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .odds-sparkline {
+        width: 100%;
+        height: 40px;
+    }
+    .odds-sparkline svg {
+        width: 100%;
+        height: 100%;
+    }
+}
