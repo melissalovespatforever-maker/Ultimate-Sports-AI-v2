@@ -15,10 +15,15 @@ class ProfileManager {
         this.setupEditForm();
         this.setupPasswordForm();
         
-        // Subscribe to auth state changes - check if appState exists
-        if (typeof appState !== 'undefined') {
+        // Subscribe to global state changes
+        if (window.globalState) {
+            window.globalState.subscribe(() => this.updateProfileDisplay());
+        } else if (typeof appState !== 'undefined') {
             appState.subscribe(() => this.updateProfileDisplay());
         }
+        
+        // Initial display update
+        setTimeout(() => this.updateProfileDisplay(), 100);
     }
 
     setupProfileButtons() {
@@ -28,6 +33,12 @@ class ProfileManager {
 
         document.getElementById('change-password-btn')?.addEventListener('click', () => {
             this.showPasswordForm();
+        });
+
+        document.getElementById('transaction-history-btn')?.addEventListener('click', () => {
+            if (window.transactionHistoryModal) {
+                window.transactionHistoryModal.open();
+            }
         });
 
         document.getElementById('profile-logout-btn')?.addEventListener('click', () => {
@@ -95,6 +106,17 @@ class ProfileManager {
         if (profileName) profileName.textContent = user.name || 'User';
         if (profileEmail) profileEmail.textContent = user.email;
         if (profileTier) profileTier.textContent = (user.subscription_tier || 'FREE') + ' TIER';
+
+        // Update achievements and stats
+        this.updateAchievementsDisplay();
+        
+        // Render achievements showcase
+        if (window.achievementsShowcase) {
+            setTimeout(() => window.achievementsShowcase.renderShowcase(), 100);
+        }
+
+        // Note: Inventory is now exclusively in Sports Lounge
+        // No inventory rendering on profile page
 
         // Format date
         if (user.created_at && profileCreated) {
@@ -238,6 +260,39 @@ class ProfileManager {
             this.showProfileView();
         } catch (error) {
             showToast(error.message || 'Failed to change password', 'error');
+        }
+    }
+
+    updateAchievementsDisplay() {
+        if (!window.achievementsSystem) return;
+
+        const stats = window.achievementsSystem.userStats;
+        const progress = window.achievementsSystem.getProgress();
+
+        // Update level and rank
+        const profileLevel = document.getElementById('profile-level');
+        const profileRank = document.getElementById('profile-rank');
+        if (profileLevel) profileLevel.textContent = stats.level;
+        if (profileRank) profileRank.textContent = stats.rank;
+
+        // Update XP bar
+        const xpBar = document.getElementById('profile-xp-bar');
+        const xpCurrent = document.getElementById('profile-xp-current');
+        const xpNeeded = document.getElementById('profile-xp-needed');
+        if (xpBar) xpBar.style.width = progress.progress + '%';
+        if (xpCurrent) xpCurrent.textContent = progress.xpInCurrentLevel;
+        if (xpNeeded) xpNeeded.textContent = progress.xpNeededForNextLevel;
+
+        // Update login streak
+        const loginStreak = document.getElementById('profile-login-streak');
+        if (loginStreak) loginStreak.textContent = stats.loginStreak;
+
+        // Update achievements count
+        const achievementsEl = document.getElementById('profile-achievements');
+        if (achievementsEl) {
+            const unlocked = window.achievementsSystem.getUnlockedCount();
+            const total = window.achievementsSystem.getTotalCount();
+            achievementsEl.textContent = `${unlocked}/${total}`;
         }
     }
 }

@@ -80,7 +80,7 @@ class SubscriptionManager {
         // Check if user is logged in
         if (!appState.isAuthenticated) {
             showToast('Please sign in to upgrade', 'error');
-            navigation.navigateTo('auth');
+            window.appNavigation.navigateTo('auth');
             return;
         }
 
@@ -107,6 +107,7 @@ class SubscriptionManager {
 
         // Create modal
         const modal = document.createElement('div');
+        modal.className = 'modal'; // Add class for easy removal
         modal.style.cssText = `
             position: fixed;
             top: 0;
@@ -129,6 +130,8 @@ class SubscriptionManager {
                 max-width: 500px;
                 width: 100%;
                 border: 1px solid var(--border-color);
+                max-height: 90vh;
+                overflow-y: auto;
             ">
                 <h2 style="margin: 0 0 24px; text-align: center;">Upgrade to ${tierName}</h2>
                 
@@ -170,19 +173,19 @@ class SubscriptionManager {
                     </div>
                 </div>
 
+                <!-- PayPal Button Container -->
+                <div id="paypal-subscription-container-${tier}" style="min-height: 150px; margin-bottom: 16px;">
+                    <div style="text-align: center; color: var(--text-secondary); padding: 20px;">
+                        <i class="fas fa-spinner fa-spin"></i> Loading secure payment...
+                    </div>
+                </div>
+
                 <div style="display: flex; gap: 12px;">
                     <button 
                         class="btn btn-secondary btn-block"
-                        onclick="this.closest('div').parentElement.remove()"
+                        onclick="this.closest('.modal').remove()"
                     >
                         Cancel
-                    </button>
-                    <button 
-                        class="btn btn-primary btn-block"
-                        id="confirm-upgrade-btn"
-                        onclick="subscriptionManager.processUpgrade('${tier}', ${amount}, this)"
-                    >
-                        <i class="fas fa-check"></i> Confirm Upgrade
                     </button>
                 </div>
             </div>
@@ -192,6 +195,21 @@ class SubscriptionManager {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) modal.remove();
         });
+
+        // Initialize PayPal Buttons
+        if (window.PayPalShop && window.PayPalShop.createSubscriptionButton) {
+            window.PayPalShop.createSubscriptionButton(`paypal-subscription-container-${tier}`, tier, amount);
+        } else {
+            const container = document.getElementById(`paypal-subscription-container-${tier}`);
+            if (container) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: #ef4444; padding: 20px;">
+                        <i class="fas fa-exclamation-triangle"></i> Payment system unavailable.<br>
+                        Please refresh and try again.
+                    </div>
+                `;
+            }
+        }
     }
 
     getTierFeatures(tier) {
@@ -228,7 +246,7 @@ class SubscriptionManager {
             const authToken = localStorage.getItem('auth_token') || localStorage.getItem('token');
             if (!authToken) {
                 showToast('Please sign in to upgrade your subscription', 'error');
-                navigation.navigateTo('auth');
+                window.appNavigation.navigateTo('auth');
                 button.disabled = false;
                 button.innerHTML = originalText;
                 return;
@@ -252,7 +270,7 @@ class SubscriptionManager {
             if (!response.ok) {
                 if (response.status === 401) {
                     showToast('Session expired. Please sign in again', 'error');
-                    navigation.navigateTo('auth');
+                    window.appNavigation.navigateTo('auth');
                     button.disabled = false;
                     button.innerHTML = originalText;
                     return;

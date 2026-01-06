@@ -22,7 +22,7 @@ INSTRUCTIONS:
  * Replaces: localStorage.getItem('sportsLoungeBalance'), etc.
  */
 async getUserProfile() {
-    return this.request('/api/users/me/profile');
+    return this.request('/api/users/profile');
 }
 
 /**
@@ -30,7 +30,7 @@ async getUserProfile() {
  * Replaces: localStorage.setItem('guestUsername'), localStorage.setItem('guestAvatar')
  */
 async updateUserProfile(username, avatar) {
-    return this.request('/api/users/me/profile', {
+    return this.request('/api/users/profile', {
         method: 'PUT',
         body: JSON.stringify({ username, avatar })
     });
@@ -38,25 +38,28 @@ async updateUserProfile(username, avatar) {
 
 /**
  * Perform wallet transaction (deduct or credit coins)
- * Replaces: localStorage.setItem('sportsLoungeBalance', newBalance)
- * 
- * @param {string} type - 'deduct' or 'credit'
- * @param {number} amount - Amount of coins
- * @param {string} reason - 'tournament_entry', 'game_wager', 'game_win', etc.
- * @param {object} metadata - Additional data about the transaction
+ * NOTE: Backend currently uses specific endpoints for transactions (join tournament, place bet).
+ * This generic endpoint is not yet implemented.
  */
 async walletTransaction(type, amount, reason, metadata = {}) {
+    console.warn('Generic wallet transactions not supported. Use specific feature endpoints.');
+    return { success: false, error: 'Not implemented' };
+    /*
     return this.request('/api/users/me/wallet/transaction', {
         method: 'POST',
         body: JSON.stringify({ type, amount, reason, metadata })
     });
+    */
 }
 
 /**
  * Get transaction history
+ * NOTE: Currently not exposed via API
  */
 async getTransactionHistory(limit = 50, offset = 0) {
-    return this.request(`/api/users/me/wallet/transactions?limit=${limit}&offset=${offset}`);
+    console.warn('Transaction history API not implemented');
+    return { transactions: [] };
+    // return this.request(`/api/users/me/wallet/transactions?limit=${limit}&offset=${offset}`);
 }
 
 // ============================================
@@ -85,7 +88,7 @@ async joinTournament(tournamentId) {
  * Get user's tournament history
  */
 async getUserTournaments() {
-    return this.request('/api/users/me/tournaments');
+    return this.request('/api/tournaments/user/registered');
 }
 
 // ============================================
@@ -119,7 +122,9 @@ async submitGameResult(gameId, outcome, score = null, multiplier = 2) {
  * Replaces: localStorage.getItem('slotsStats'), etc.
  */
 async getGameStats() {
-    return this.request('/api/users/me/games/stats');
+    console.warn('Game stats API not implemented');
+    return { stats: {} };
+    // return this.request('/api/users/me/games/stats');
 }
 
 // ============================================

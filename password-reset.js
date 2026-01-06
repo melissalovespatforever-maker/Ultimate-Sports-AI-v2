@@ -235,7 +235,7 @@ class PasswordResetManager {
             setTimeout(() => {
                 this.showRequestStep();
                 document.getElementById('password-reset-page').style.display = 'none';
-                navigation.navigateTo('auth');
+                window.appNavigation.navigateTo('auth');
             }, 2000);
         } catch (error) {
             console.error('❌ Password reset failed:', error);
@@ -333,7 +333,7 @@ class PasswordResetManager {
             this.resetEmail = email;
             
             // Navigate to reset page and show password step
-            navigation.navigateTo('password-reset');
+            window.appNavigation.navigateTo('password-reset');
             setTimeout(() => {
                 this.showResetStep();
                 showToast('Enter your new password to complete reset', 'info');
@@ -349,13 +349,13 @@ class PasswordResetManager {
         console.log('🔓 Opening password reset flow');
         this.resetState();
         this.showRequestStep();
-        navigation.navigateTo('password-reset');
+        window.appNavigation.navigateTo('password-reset');
     }
 
     goBackToLogin() {
         console.log('← Going back to login');
         this.resetState();
-        navigation.navigateTo('auth');
+        window.appNavigation.navigateTo('auth');
     }
 }
 

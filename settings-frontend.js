@@ -7,21 +7,43 @@ console.log('⚙️ Loading Settings Module');
 
 class SettingsManager {
     constructor() {
-        this.init();
+        try {
+            this.init();
+        } catch (e) {
+            console.error('❌ Settings init error:', e);
+        }
     }
 
     init() {
-        // Wait for DOM
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this.setupSettings());
-        } else {
-            this.setupSettings();
+        try {
+            // Wait for DOM
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    try {
+                        this.setupSettings();
+                    } catch (e) {
+                        console.error('Settings setup error:', e);
+                    }
+                });
+            } else {
+                this.setupSettings();
+            }
+        } catch (e) {
+            console.error('Settings init error:', e);
         }
     }
 
     setupSettings() {
         const container = document.getElementById('settings-container');
         if (!container) return;
+
+        // Render immediately on setup
+        this.renderSettings();
+
+        // Also listen for page navigation events
+        document.addEventListener('page-settings-loaded', () => {
+            this.renderSettings();
+        });
 
         // Observe when settings page becomes visible
         const observer = new MutationObserver(() => {
@@ -107,6 +129,12 @@ class SettingsManager {
                         ${this.createToggle('Animations', 'Enable visual animations', 'animations', settings.animations)}
                         ${this.createToggle('Sound Effects', 'Play sound effects', 'soundEffects', settings.soundEffects)}
                         ${this.createToggle('Auto-Refresh Scores', 'Automatically refresh live scores', 'autoRefresh', settings.autoRefresh)}
+                        
+                        <div style="padding-top: 12px; border-top: 1px solid var(--border-color); margin-top: 12px;">
+                            <button class="btn btn-secondary" onclick="window.tutorialSystem && window.tutorialSystem.resetAndStart()" style="width: 100%;">
+                                <i class="fas fa-question-circle"></i> Restart App Tutorial
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -201,9 +229,11 @@ class SettingsManager {
 
     getSettings() {
         const saved = localStorage.getItem('userSettings');
+        const currentUser = window.globalState ? window.globalState.getUser() : null;
+        
         const defaults = {
-            displayName: typeof appState !== 'undefined' ? (appState.user?.name || 'Guest User') : 'Guest User',
-            email: typeof appState !== 'undefined' ? (appState.user?.email || 'guest@ultimatesports.ai') : 'guest@ultimatesports.ai',
+            displayName: currentUser?.name || 'Guest User',
+            email: currentUser?.email || 'guest@ultimatesports.ai',
             emailNotifications: true,
             pushNotifications: false,
             liveScoreAlerts: true,
@@ -218,7 +248,16 @@ class SettingsManager {
 
         if (saved) {
             try {
-                return { ...defaults, ...JSON.parse(saved) };
+                const parsed = JSON.parse(saved);
+                // Priority: State > Settings > Default
+                // If state has a name (e.g. from login), use it. Otherwise use saved setting.
+                if (currentUser && currentUser.name && currentUser.name !== 'Guest User') {
+                    parsed.displayName = currentUser.name;
+                }
+                if (currentUser && currentUser.email && currentUser.email !== 'guest@ultimatesports.ai') {
+                    parsed.email = currentUser.email;
+                }
+                return { ...defaults, ...parsed };
             } catch (e) {
                 console.warn('Failed to parse settings');
             }
@@ -228,8 +267,10 @@ class SettingsManager {
     }
 
     saveSettings(showToastMsg = true) {
+        const displayName = document.getElementById('setting-display-name')?.value || 'Guest User';
+        
         const settings = {
-            displayName: document.getElementById('setting-display-name')?.value || 'Guest User',
+            displayName: displayName,
             email: this.getSettings().email,
             emailNotifications: document.getElementById('setting-emailNotifications')?.checked ?? true,
             pushNotifications: document.getElementById('setting-pushNotifications')?.checked ?? false,
@@ -245,13 +286,14 @@ class SettingsManager {
 
         localStorage.setItem('userSettings', JSON.stringify(settings));
 
-        // Update guest username if changed
-        if (settings.displayName) {
-            localStorage.setItem('guestUsername', settings.displayName);
-            if (typeof appState !== 'undefined') {
-                appState.user.name = settings.displayName;
-                appState.notify();
-            }
+        // CRITICAL: Update Global State
+        // This ensures the profile page, header, and sidebar update immediately
+        if (window.globalState) {
+            const currentUser = window.globalState.getUser() || {};
+            window.globalState.setUser({
+                ...currentUser,
+                name: displayName
+            });
         }
 
         if (showToastMsg && typeof showToast === 'function') {
@@ -370,12 +412,22 @@ if (!document.getElementById('toggle-switch-styles')) {
 }
 
 // Initialize settings manager
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
+try {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                window.settingsManager = new SettingsManager();
+                console.log('✅ Settings manager initialized');
+            } catch (e) {
+                console.error('Failed to init settings manager:', e);
+            }
+        });
+    } else {
         window.settingsManager = new SettingsManager();
-    });
-} else {
-    window.settingsManager = new SettingsManager();
+        console.log('✅ Settings manager initialized');
+    }
+} catch (e) {
+    console.error('Settings module error:', e);
 }
 
 console.log('✅ Settings module loaded');

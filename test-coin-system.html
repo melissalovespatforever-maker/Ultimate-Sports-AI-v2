@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin System Test Suite</title>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, system-ui, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 { color: #10b981; }
+        h2 { color: #3b82f6; margin-top: 30px; }
+        .test-section {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #334155;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+        }
+        .pass {
+            background: rgba(16, 185, 129, 0.2);
+            border-left: 4px solid #10b981;
+            color: #10b981;
+        }
+        .fail {
+            background: rgba(239, 68, 68, 0.2);
+            border-left: 4px solid #ef4444;
+            color: #ef4444;
+        }
+        .info {
+            background: rgba(59, 130, 246, 0.2);
+            border-left: 4px solid #3b82f6;
+            color: #3b82f6;
+        }
+        button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #059669;
+        }
+        #balance-display {
+            font-size: 32px;
+            font-weight: 800;
+            color: #10b981;
+            margin: 20px 0;
+        }
+        .stat-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .stat-card {
+            background: #334155;
+            padding: 15px;
+            border-radius: 8px;
+            flex: 1;
+            min-width: 200px;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🪙 Coin System Test Suite</h1>
+    <p>Comprehensive testing for unified coin system integration</p>
+
+    <!-- Current Balance Display -->
+    <div class="test-section">
+        <h2>💰 Current Balance</h2>
+        <div id="balance-display">Loading...</div>
+        <button onclick="refreshBalance()">🔄 Refresh Balance</button>
+        <button onclick="resetBalance()">🔁 Reset to 10,000</button>
+    </div>
+
+    <!-- User Stats -->
+    <div class="test-section">
+        <h2>📊 User Stats</h2>
+        <div class="stat-row" id="stats-display">
+            <div class="stat-card">
+                <div class="stat-label">Wins</div>
+                <div class="stat-value" id="stat-wins">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Losses</div>
+                <div class="stat-value" id="stat-losses">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Streak</div>
+                <div class="stat-value" id="stat-streak">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Games</div>
+                <div class="stat-value" id="stat-total">-</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="test-section">
+        <h2>⚡ Quick Actions</h2>
+        <button onclick="addCoins(100)">+100 Coins</button>
+        <button onclick="addCoins(1000)">+1,000 Coins</button>
+        <button onclick="deductCoins(100)">-100 Coins</button>
+        <button onclick="deductCoins(1000)">-1,000 Coins</button>
+        <button onclick="simulateWin()">🎉 Simulate Win</button>
+        <button onclick="simulateLoss()">😞 Simulate Loss</button>
+    </div>
+
+    <!-- Test Results -->
+    <div class="test-section">
+        <h2>🧪 Automated Tests</h2>
+        <button onclick="runAllTests()">▶️ Run All Tests</button>
+        <button onclick="clearResults()">🗑️ Clear Results</button>
+        <div id="test-results"></div>
+    </div>
+
+    <!-- Transaction Queue -->
+    <div class="test-section">
+        <h2>📦 Transaction Queue</h2>
+        <button onclick="viewQueue()">👁️ View Queue</button>
+        <button onclick="processQueue()">⚙️ Process Queue</button>
+        <div id="queue-display"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="global-state-manager.js"></script>
+    <script src="transaction-queue-manager.js"></script>
+    <script>
+        // Initialize display
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                refreshBalance();
+                refreshStats();
+            }, 500);
+        });
+
+        function refreshBalance() {
+            if (!window.globalState) {
+                document.getElementById('balance-display').textContent = 'GlobalState not loaded!';
+                return;
+            }
+            const balance = window.globalState.getBalance();
+            document.getElementById('balance-display').textContent = balance.toLocaleString() + ' coins';
+        }
+
+        function refreshStats() {
+            if (!window.globalState) return;
+            const stats = window.globalState.getStats();
+            document.getElementById('stat-wins').textContent = stats.wins;
+            document.getElementById('stat-losses').textContent = stats.losses;
+            document.getElementById('stat-streak').textContent = stats.streak;
+            document.getElementById('stat-total').textContent = stats.totalGames;
+        }
+
+        function resetBalance() {
+            if (!window.globalState) return;
+            window.globalState.setBalance(10000);
+            refreshBalance();
+            log('info', 'Balance reset to 10,000 coins');
+        }
+
+        function addCoins(amount) {
+            if (!window.globalState) return;
+            const newBalance = window.globalState.addCoins(amount, 'Test credit');
+            refreshBalance();
+            log('pass', `Added ${amount} coins. New balance: ${newBalance.toLocaleString()}`);
+        }
+
+        function deductCoins(amount) {
+            if (!window.globalState) return;
+            const result = window.globalState.deductCoins(amount, 'Test debit');
+            if (result !== false) {
+                refreshBalance();
+                log('pass', `Deducted ${amount} coins. New balance: ${result.toLocaleString()}`);
+            } else {
+                log('fail', `Failed to deduct ${amount} coins - insufficient balance`);
+            }
+        }
+
+        function simulateWin() {
+            if (!window.globalState) return;
+            const amount = 500;
+            window.globalState.addCoins(amount, 'Game win (test)', { type: 'game_win', game: 'Test Game' });
+            refreshBalance();
+            refreshStats();
+            log('pass', `Simulated game win: +${amount} coins`);
+        }
+
+        function simulateLoss() {
+            if (!window.globalState) return;
+            const amount = 100;
+            const result = window.globalState.deductCoins(amount, 'Game loss (test)', { type: 'game_loss', game: 'Test Game' });
+            if (result !== false) {
+                refreshBalance();
+                refreshStats();
+                log('pass', `Simulated game loss: -${amount} coins`);
+            } else {
+                log('fail', 'Failed to simulate loss - insufficient balance');
+            }
+        }
+
+        function viewQueue() {
+            const queueEl = document.getElementById('queue-display');
+            if (!window.transactionQueue) {
+                queueEl.innerHTML = '<div class="test-result fail">Transaction queue not loaded</div>';
+                return;
+            }
+            const queue = window.transactionQueue.queue || [];
+            if (queue.length === 0) {
+                queueEl.innerHTML = '<div class="test-result info">Queue is empty ✨</div>';
+            } else {
+                queueEl.innerHTML = '<div class="test-result info">Queue has ' + queue.length + ' pending transactions</div>';
+                queue.forEach((tx, i) => {
+                    queueEl.innerHTML += `<div class="test-result info">${i + 1}. ${tx.reason} (${tx.amount} coins) - ${tx.status}</div>`;
+                });
+            }
+        }
+
+        function processQueue() {
+            if (!window.transactionQueue) {
+                log('fail', 'Transaction queue not loaded');
+                return;
+            }
+            window.transactionQueue.processQueue();
+            log('info', 'Processing transaction queue...');
+            setTimeout(viewQueue, 1000);
+        }
+
+        function runAllTests() {
+            clearResults();
+            log('info', '========== STARTING TEST SUITE ==========');
+            
+            // Test 1: GlobalState exists
+            if (window.globalState) {
+                log('pass', 'Test 1: GlobalState loaded successfully');
+            } else {
+                log('fail', 'Test 1: GlobalState not found');
+                return;
+            }
+
+            // Test 2: Get balance
+            try {
+                const balance = window.globalState.getBalance();
+                if (typeof balance === 'number') {
+                    log('pass', `Test 2: getBalance() works - returned ${balance.toLocaleString()}`);
+                } else {
+                    log('fail', 'Test 2: getBalance() returned non-number');
+                }
+            } catch (e) {
+                log('fail', 'Test 2: getBalance() threw error - ' + e.message);
+            }
+
+            // Test 3: Add coins
+            try {
+                const before = window.globalState.getBalance();
+                const after = window.globalState.addCoins(100, 'Test');
+                if (after === before + 100) {
+                    log('pass', 'Test 3: addCoins() works correctly');
+                } else {
+                    log('fail', `Test 3: addCoins() math incorrect (expected ${before + 100}, got ${after})`);
+                }
+            } catch (e) {
+                log('fail', 'Test 3: addCoins() threw error - ' + e.message);
+            }
+
+            // Test 4: Deduct coins
+            try {
+                const before = window.globalState.getBalance();
+                const after = window.globalState.deductCoins(50, 'Test');
+                if (after === before - 50) {
+                    log('pass', 'Test 4: deductCoins() works correctly');
+                } else {
+                    log('fail', `Test 4: deductCoins() math incorrect (expected ${before - 50}, got ${after})`);
+                }
+            } catch (e) {
+                log('fail', 'Test 4: deductCoins() threw error - ' + e.message);
+            }
+
+            // Test 5: Insufficient balance prevention
+            try {
+                const balance = window.globalState.getBalance();
+                const result = window.globalState.deductCoins(balance + 1000, 'Test overdraft');
+                if (result === false) {
+                    log('pass', 'Test 5: Insufficient balance correctly prevented');
+                } else {
+                    log('fail', 'Test 5: Overdraft was allowed!');
+                }
+            } catch (e) {
+                log('fail', 'Test 5: Error - ' + e.message);
+            }
+
+            // Test 6: localStorage sync
+            try {
+                const stateBalance = window.globalState.getBalance();
+                const storageBalance = parseInt(localStorage.getItem('unified_balance'));
+                if (stateBalance === storageBalance) {
+                    log('pass', 'Test 6: localStorage sync working');
+                } else {
+                    log('fail', `Test 6: Balance mismatch (state: ${stateBalance}, storage: ${storageBalance})`);
+                }
+            } catch (e) {
+                log('fail', 'Test 6: Error - ' + e.message);
+            }
+
+            // Test 7: Stats tracking
+            try {
+                const stats = window.globalState.getStats();
+                if (stats && typeof stats.wins === 'number' && typeof stats.losses === 'number') {
+                    log('pass', `Test 7: Stats tracking works (${stats.wins}W / ${stats.losses}L)`);
+                } else {
+                    log('fail', 'Test 7: Stats object invalid');
+                }
+            } catch (e) {
+                log('fail', 'Test 7: Error - ' + e.message);
+            }
+
+            // Test 8: Transaction queue
+            if (window.transactionQueue) {
+                log('pass', 'Test 8: Transaction queue loaded');
+            } else {
+                log('fail', 'Test 8: Transaction queue not found');
+            }
+
+            log('info', '========== TEST SUITE COMPLETE ==========');
+            refreshBalance();
+            refreshStats();
+        }
+
+        function log(type, message) {
+            const results = document.getElementById('test-results');
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.textContent = message;
+            results.appendChild(div);
+        }
+
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = '';
+        }
+    </script>
+</body>
+</html>

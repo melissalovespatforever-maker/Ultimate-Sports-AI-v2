@@ -326,7 +326,7 @@ class TwoFactorManager {
                     appState.setUser(loginResponse.user);
                     this.closeModal('2fa-verify-modal');
                     this.showToast('Login successful!', 'success');
-                    navigation.navigateTo('home');
+                    window.appNavigation.navigateTo('home');
                 }
             }
         } catch (error) {
@@ -363,7 +363,7 @@ class TwoFactorManager {
                     appState.setUser(loginResponse.user);
                     this.closeModal('2fa-verify-modal');
                     this.showToast('Login successful! Note: Backup code has been used.', 'success');
-                    navigation.navigateTo('home');
+                    window.appNavigation.navigateTo('home');
                 }
             }
         } catch (error) {

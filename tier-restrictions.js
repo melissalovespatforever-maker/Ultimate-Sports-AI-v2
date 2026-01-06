@@ -111,10 +111,11 @@ class TierRestrictions {
     updateTierFromUser() {
         if (typeof appState !== 'undefined' && appState.user) {
             this.currentTier = appState.user.subscription_tier || 'free';
+        } else if (localStorage.getItem('auth_token')) {
+            // Check localStorage for offline mode only if authenticated
+            this.currentTier = localStorage.getItem('subscription_tier') || 'free';
         } else {
-            // Check localStorage for offline mode
-            const profile = JSON.parse(localStorage.getItem('user_profile') || '{}');
-            this.currentTier = profile.subscriptionTier || 'free';
+            this.currentTier = 'free'; // Default for unauthenticated/new users (who will be prompted to sign in)
         }
         
         console.log(`🔒 Current tier: ${this.currentTier.toUpperCase()}`);

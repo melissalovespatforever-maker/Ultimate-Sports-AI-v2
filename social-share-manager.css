@@ -1,0 +1,300 @@
+/* Social Share Modal Styles */
+.share-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 12000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.share-modal-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.share-modal {
+    background: #1e293b;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 450px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    transform: translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.share-modal-overlay.visible .share-modal {
+    transform: translateY(0);
+}
+
+.share-header {
+    padding: 16px 20px;
+    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.share-header h3 {
+    margin: 0;
+    color: #fff;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.close-share-btn {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px;
+}
+
+.share-preview {
+    padding: 20px;
+    background: #0f172a;
+}
+
+/* Slip Card Preview */
+.slip-share-card {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.slip-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #334155;
+}
+
+.slip-type {
+    color: #10b981;
+    font-weight: 700;
+}
+
+.slip-payout {
+    color: #fbbf24;
+    font-weight: 700;
+}
+
+.slip-legs {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.slip-leg-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: #e2e8f0;
+}
+
+.leg-pick {
+    color: #94a3b8;
+}
+
+.slip-footer {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 10px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Consensus Card Preview */
+.consensus-share-card {
+    background: linear-gradient(135deg, #1e1b4b, #312e81);
+    border: 1px solid #4338ca;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+}
+
+.consensus-header h4 {
+    margin: 0 0 16px 0;
+    color: #818cf8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 12px;
+}
+
+.consensus-match {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+}
+
+.consensus-stat {
+    font-size: 14px;
+    color: #c7d2fe;
+}
+
+.consensus-stat .highlight {
+    font-size: 24px;
+    font-weight: 800;
+    color: #fff;
+    display: block;
+    margin: 8px 0;
+}
+
+.consensus-stat .team-name {
+    color: #fbbf24;
+    font-weight: 700;
+}
+
+.consensus-footer {
+    margin-top: 16px;
+    font-size: 12px;
+    color: #818cf8;
+    font-style: italic;
+}
+
+/* Share Options */
+.share-options {
+    padding: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.share-btn {
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #fff;
+    font-size: 14px;
+    transition: transform 0.2s;
+}
+
+.share-btn:hover {
+    transform: translateY(-2px);
+}
+
+.share-btn.twitter { background: #1da1f2; }
+.share-btn.facebook { background: #1877f2; }
+.share-btn.whatsapp { background: #25d366; }
+.share-btn.copy { background: #475569; }
+
+/* Player & Roster Previews */
+.player-share-card {
+    background: #1e293b;
+    border: 2px solid #334155;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.player-share-card.tier-diamond { border-color: #b9f2ff; box-shadow: 0 0 20px rgba(185, 242, 255, 0.2); }
+.player-share-card.tier-gold { border-color: #ffd700; }
+.player-share-card.tier-silver { border-color: #c0c0c0; }
+.player-share-card.tier-bronze { border-color: #cd7f32; }
+
+.player-share-card.evolved {
+    border-color: #fff;
+    box-shadow: 0 0 25px rgba(255, 255, 255, 0.3), 0 0 50px rgba(255, 215, 0, 0.3);
+}
+
+.share-card-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.share-tier { font-weight: 800; font-size: 10px; color: #fbbf24; text-transform: uppercase; letter-spacing: 1px; }
+.share-level { font-weight: 700; font-size: 10px; color: #94a3b8; }
+
+.share-overall {
+    font-size: 48px;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+    margin-bottom: 5px;
+}
+
+.share-name { font-weight: 700; font-size: 18px; color: #fff; margin-bottom: 2px; }
+.share-pos { font-size: 12px; color: #94a3b8; text-transform: uppercase; font-weight: 600; }
+
+.roster-share-card {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.roster-share-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #1e293b;
+}
+
+.roster-team-info { display: flex; align-items: center; gap: 10px; }
+.roster-logo { width: 30px; height: 30px; object-fit: contain; }
+.roster-team-info h3 { font-size: 14px; margin: 0; color: #fff; }
+
+.roster-stats { font-size: 10px; font-weight: 700; color: #fbbf24; display: flex; gap: 8px; }
+
+.roster-grid-mini {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 15px;
+}
+
+.mini-player-pill {
+    background: #1e293b;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    border-left: 3px solid #334155;
+}
+
+.mini-player-pill.tier-diamond { border-left-color: #b9f2ff; }
+.mini-player-pill.tier-gold { border-left-color: #ffd700; }
+.mini-player-pill.tier-silver { border-left-color: #c0c0c0; }
+
+.mini-pos { font-weight: 800; color: #94a3b8; width: 25px; }
+.mini-name { flex: 1; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px; }
+.mini-ovr { font-weight: 800; color: #fbbf24; }
+
+.share-card-footer {
+    margin-top: 10px;
+    font-size: 9px;
+    color: #475569;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}

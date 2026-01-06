@@ -82,11 +82,7 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   
   // Skip cross-origin requests we don't want to cache
-  if (
-    url.origin !== location.origin &&
-    url.hostname !== 'cdn.nba.com' &&
-    url.hostname !== 'fonts.googleapis.com'
-  ) {
+  if (url.origin !== location.origin && !url.href.includes('cdn.nba.com') && !url.href.includes('fonts.googleapis.com')) {
     return;
   }
 

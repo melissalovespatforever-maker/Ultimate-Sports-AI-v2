@@ -30,6 +30,126 @@ const PayPalShop = {
         }
     },
     
+    // Create PayPal button for a subscription (One-time payment for 1 month)
+    createSubscriptionButton(containerId, tier, price) {
+        if (!this.initialized) {
+            console.warn('⚠️ PayPal SDK not loaded yet');
+            setTimeout(() => this.createSubscriptionButton(containerId, tier, price), 500);
+            return;
+        }
+
+        if (!window.paypal) {
+            console.error('❌ PayPal SDK not available');
+            return;
+        }
+
+        // Clear container
+        const container = document.getElementById(containerId);
+        if (container) container.innerHTML = '';
+
+        window.paypal.Buttons({
+            style: {
+                layout: 'vertical',
+                color: 'blue',
+                shape: 'rect',
+                label: 'pay'
+            },
+
+            createOrder: (data, actions) => {
+                console.log(`💳 Creating PayPal subscription order for: ${tier}`);
+                
+                return actions.order.create({
+                    purchase_units: [{
+                        description: `Ultimate Sports AI - ${tier} Subscription (1 Month)`,
+                        custom_id: `sub-${tier.toLowerCase()}`,
+                        amount: {
+                            currency_code: this.config.currency,
+                            value: price.toString(),
+                            breakdown: {
+                                item_total: {
+                                    currency_code: this.config.currency,
+                                    value: price.toString()
+                                }
+                            }
+                        }
+                    }],
+                    application_context: {
+                        shipping_preference: 'NO_SHIPPING'
+                    }
+                });
+            },
+
+            onApprove: async (data, actions) => {
+                console.log('✅ Subscription payment approved:', data);
+                try {
+                    const order = await actions.order.capture();
+                    console.log('✅ Payment captured:', order);
+                    await this.processSubscription(tier, order);
+                    return order;
+                } catch (error) {
+                    console.error('❌ Payment capture failed:', error);
+                    this.showErrorMessage('Payment processing failed. Please try again.');
+                }
+            },
+
+            onError: (err) => {
+                console.error('❌ PayPal error:', err);
+                this.showErrorMessage('Payment error occurred. Please try again.');
+            }
+        }).render(`#${containerId}`);
+    },
+
+    // Process subscription after payment
+    async processSubscription(tier, paypalOrder) {
+        try {
+            const userId = window.appState?.user?.id || 'guest';
+            
+            // Send to backend
+            const response = await fetch(`${window.CONFIG?.API_BASE_URL || ''}/api/subscriptions/purchase/paypal`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token') || localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    userId,
+                    tier,
+                    paypalOrderId: paypalOrder.id,
+                    amount: paypalOrder.purchase_units[0].amount.value,
+                    timestamp: new Date().toISOString()
+                })
+            });
+
+            if (response.ok) {
+                console.log('✅ Subscription recorded on backend');
+            } else {
+                console.warn('⚠️ Failed to record subscription on backend (continuing with local update)');
+            }
+
+            // Update local state (Immediate Access)
+            if (window.subscriptionManager) {
+                // Manually update the user's tier locally
+                if (window.appState && window.appState.user) {
+                    window.appState.user.subscription_tier = tier.toLowerCase();
+                    window.appState.notify();
+                }
+                window.subscriptionManager.currentTier = tier.toLowerCase();
+                window.subscriptionManager.updateTierUI();
+            }
+
+            // Show success
+            this.showSuccessMessage({ name: `${tier} Subscription` });
+            
+            // Close any open modals
+            const modals = document.querySelectorAll('.modal, .paypal-modal');
+            modals.forEach(m => m.remove());
+
+        } catch (error) {
+            console.error('❌ Error processing subscription:', error);
+            this.showErrorMessage('Error activating subscription. Please contact support.');
+        }
+    },
+
     // Convert coins to USD (10,000 coins = $10 USD for example)
     coinsToUSD(coins) {
         return (coins / 1000).toFixed(2);
@@ -135,7 +255,7 @@ const PayPalShop = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${localStorage.getItem('auth_token') || localStorage.getItem('token')}`
                 },
                 body: JSON.stringify({
                     userId,
@@ -151,19 +271,26 @@ const PayPalShop = {
             if (response.ok) {
                 const data = await response.json();
                 console.log('✅ Purchase recorded:', data);
-                
-                // Update user's inventory
-                if (window.unifiedCurrency) {
-                    window.unifiedCurrency.addToInventory(item);
-                }
-                
-                // Trigger achievement check
-                if (window.achievementsSystem) {
-                    window.achievementsSystem.trackPurchase(item);
-                }
-                
             } else {
-                console.warn('⚠️ Failed to record purchase on backend');
+                console.warn('⚠️ Failed to record purchase on backend (continuing with local update)');
+            }
+            
+            // Complete the purchase locally (works even if backend fails)
+            if (window.ShopSystem && item.coins) {
+                // This is a coin purchase
+                const packageName = item.id.replace('coins-', '');
+                const priceUSD = paypalOrder.purchase_units[0].amount.value;
+                window.ShopSystem.completeCoinPurchase(packageName, item.coins, priceUSD);
+            } else if (window.currencyManager) {
+                // Generic inventory item
+                window.currencyManager.addCoins(item.price || 0, `Purchased ${item.name}`);
+            }
+            
+            // Trigger achievement check
+            if (window.achievementsSystem) {
+                window.achievementsSystem.userStats.itemsPurchased++;
+                window.achievementsSystem.saveStats();
+                window.achievementsSystem.unlockAchievement('shop-first');
             }
             
         } catch (error) {

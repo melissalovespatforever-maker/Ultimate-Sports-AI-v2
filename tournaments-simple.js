@@ -1,21 +1,32 @@
 // ============================================
 // TOURNAMENTS SIMPLE MODULE
-// Display and manage tournaments
+// Dynamic Tournaments powered by Live Sports Data
 // ============================================
 
 console.log('🏆 Loading Tournaments Module');
 
 class TournamentsSimple {
     constructor() {
-        this.init();
+        this.tournaments = [];
+        try {
+            this.init();
+        } catch (e) {
+            console.error('❌ Tournaments init error:', e);
+        }
     }
 
     init() {
-        // Wait for DOM
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => this.setupTournaments());
-        } else {
-            this.setupTournaments();
+        try {
+            // Wait for DOM
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => {
+                    this.setupTournaments();
+                });
+            } else {
+                this.setupTournaments();
+            }
+        } catch (e) {
+            console.error('Tournaments init error:', e);
         }
     }
 
@@ -27,7 +38,7 @@ class TournamentsSimple {
         const observer = new MutationObserver(() => {
             const tournamentsPage = document.getElementById('tournaments-page');
             if (tournamentsPage && tournamentsPage.classList.contains('active')) {
-                this.renderTournaments();
+                this.loadTournaments();
             }
         });
 
@@ -38,16 +49,109 @@ class TournamentsSimple {
 
         // Also render if page is already active
         if (tournamentsPage?.classList.contains('active')) {
-            this.renderTournaments();
+            this.loadTournaments();
         }
     }
 
-    renderTournaments() {
+    async loadTournaments() {
         const container = document.getElementById('tournaments-container');
         if (!container) return;
 
-        // Demo tournaments data
-        const tournaments = [
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px;">
+                <div class="spinner" style="width: 40px; height: 40px; margin: 0 auto 20px;"></div>
+                <p>Loading active tournaments from live schedule...</p>
+            </div>
+        `;
+
+        try {
+            // Generate tournaments based on real data
+            this.tournaments = await this.generateDynamicTournaments();
+            this.renderTournaments();
+        } catch (e) {
+            console.error('Error loading tournaments:', e);
+            container.innerHTML = `<div class="error-state">Failed to load tournaments. Please try again.</div>`;
+        }
+    }
+
+    async generateDynamicTournaments() {
+        const generated = [];
+        const sportsService = window.sportsDataService;
+
+        if (!sportsService) {
+            // Fallback if service not ready
+            return this.getDemoTournaments();
+        }
+
+        // Define tournament types to check
+        const configs = [
+            { type: 'NFL', name: 'Gridiron Gauntlet', entry: 100, prize: 10000, icon: 'fas fa-football-ball', color: '#10b981' },
+            { type: 'NBA', name: 'Hardwood Heroes', entry: 50, prize: 5000, icon: 'fas fa-basketball-ball', color: '#f59e0b' },
+            { type: 'MLB', name: 'Grand Slam Daily', entry: 25, prize: 2500, icon: 'fas fa-baseball-ball', color: '#3b82f6' },
+            { type: 'NHL', name: 'Ice Breaker Cup', entry: 50, prize: 4000, icon: 'fas fa-hockey-puck', color: '#0ea5e9' },
+            { type: 'SOCCER', name: 'Global Striker League', entry: 75, prize: 7500, icon: 'fas fa-futbol', color: '#8b5cf6' }
+        ];
+
+        let idCounter = 1;
+
+        for (const config of configs) {
+            try {
+                // Get games for this sport
+                const games = await sportsService.getGames(config.type);
+                
+                // Only create tournament if there are games (upcoming or live)
+                const validGames = games.filter(g => g.status === 'pre' || g.status === 'in');
+                
+                if (validGames.length >= 2) {
+                    generated.push({
+                        id: idCounter++,
+                        name: config.name,
+                        type: config.type,
+                        entryFee: config.entry,
+                        prizePool: config.prize,
+                        participants: Math.floor(Math.random() * 80) + 20, // Simulated count
+                        maxParticipants: 100,
+                        startTime: validGames[0].statusDisplay, // Time of first game
+                        difficulty: 'Open',
+                        icon: config.icon,
+                        color: config.color,
+                        games: validGames.slice(0, 10) // Limit to 10 games
+                    });
+                }
+            } catch (e) {
+                console.warn(`Skipping ${config.type} tournament:`, e);
+            }
+        }
+
+        // If no real tournaments found, use demo ones
+        if (generated.length === 0) {
+            return this.getDemoTournaments();
+        }
+
+        // Add a "Multi-Sport" Mega Tournament if we have enough total games
+        const allGames = await sportsService.getAllUpcomingGames();
+        if (allGames.length > 5) {
+            generated.push({
+                id: 99,
+                name: 'Mega Sports Parlay',
+                type: 'Multi-Sport',
+                entryFee: 500,
+                prizePool: 50000,
+                participants: Math.floor(Math.random() * 40) + 10,
+                maxParticipants: 200,
+                startTime: 'Today',
+                difficulty: 'Expert',
+                icon: 'fas fa-trophy',
+                color: '#ec4899',
+                games: allGames.slice(0, 12)
+            });
+        }
+
+        return generated;
+    }
+
+    getDemoTournaments() {
+        return [
             {
                 id: 1,
                 name: 'Weekend Warrior Championship',
@@ -59,7 +163,8 @@ class TournamentsSimple {
                 startTime: 'Saturday 1:00 PM',
                 difficulty: 'Intermediate',
                 icon: 'fas fa-football-ball',
-                color: '#10b981'
+                color: '#10b981',
+                games: []
             },
             {
                 id: 2,
@@ -72,22 +177,17 @@ class TournamentsSimple {
                 startTime: 'Friday 7:30 PM',
                 difficulty: 'Beginner',
                 icon: 'fas fa-basketball-ball',
-                color: '#f59e0b'
-            },
-            {
-                id: 3,
-                name: 'Multi-Sport Masters',
-                type: 'Multi-Sport',
-                entryFee: 250,
-                prizePool: 50000,
-                participants: 32,
-                maxParticipants: 50,
-                startTime: 'Sunday 12:00 PM',
-                difficulty: 'Expert',
-                icon: 'fas fa-trophy',
-                color: '#8b5cf6'
+                color: '#f59e0b',
+                games: []
             }
         ];
+    }
+
+    renderTournaments() {
+        const container = document.getElementById('tournaments-container');
+        if (!container) return;
+
+        const tournaments = this.tournaments;
 
         container.innerHTML = `
             <div style="max-width: 1200px; margin: 0 auto;">
@@ -128,43 +228,6 @@ class TournamentsSimple {
                 <div style="display: grid; gap: 24px;">
                     ${tournaments.map(t => this.createTournamentCard(t)).join('')}
                 </div>
-
-                <!-- Info Section -->
-                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; margin-top: 32px;">
-                    <h3 style="margin: 0 0 16px; display: flex; align-items: center; gap: 12px;">
-                        <i class="fas fa-info-circle"></i>
-                        How Tournaments Work
-                    </h3>
-                    <div style="display: grid; gap: 16px;">
-                        <div style="display: flex; gap: 12px;">
-                            <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;">
-                                <i class="fas fa-ticket-alt"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight: 600; margin-bottom: 4px;">1. Join a Tournament</div>
-                                <div style="color: var(--text-secondary); font-size: 14px;">Pay the entry fee using your coins to enter the competition</div>
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 12px;">
-                            <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight: 600; margin-bottom: 4px;">2. Make Your Picks</div>
-                                <div style="color: var(--text-secondary); font-size: 14px;">Choose your predictions for upcoming games in the tournament</div>
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 12px;">
-                            <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;">
-                                <i class="fas fa-crown"></i>
-                            </div>
-                            <div>
-                                <div style="font-weight: 600; margin-bottom: 4px;">3. Win Prizes</div>
-                                <div style="color: var(--text-secondary); font-size: 14px;">Top performers share the prize pool based on accuracy</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         `;
 
@@ -184,6 +247,7 @@ class TournamentsSimple {
 
         return `
             <div style="background: var(--bg-card); border: 2px solid var(--border-color); border-radius: 16px; padding: 24px; transition: all 0.3s ease; cursor: pointer;" 
+                 class="tournament-card"
                  onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 24px rgba(0,0,0,0.1)'; this.style.borderColor='var(--primary)';"
                  onmouseout="this.style.transform=''; this.style.boxShadow=''; this.style.borderColor='var(--border-color)';">
                 
@@ -247,7 +311,7 @@ class TournamentsSimple {
 
                         <!-- Join Button -->
                         <button class="btn btn-primary tournament-join-btn" data-id="${tournament.id}" style="width: 100%;">
-                            <i class="fas fa-plus-circle"></i> Join Tournament
+                            <i class="fas fa-play"></i> Enter Tournament
                         </button>
                     </div>
                 </div>
@@ -256,16 +320,103 @@ class TournamentsSimple {
     }
 
     joinTournament(tournamentId) {
-        // Show modal or confirmation
-        if (typeof showToast === 'function') {
-            showToast('Tournament feature coming soon! 🏆', 'info');
+        const tournament = this.tournaments.find(t => t.id === parseInt(tournamentId));
+        if (!tournament) return;
+
+        // Get current balance
+        const balance = window.globalState?.getBalance?.() || 
+                       parseInt(localStorage.getItem('unified_balance') || '1000');
+
+        if (balance < tournament.entryFee) {
+            this.showNotification(`❌ Insufficient coins! Need ${tournament.entryFee}`, 'error');
+            return;
+        }
+
+        // Confirm dialog
+        if (!confirm(`Join ${tournament.name} for ${tournament.entryFee} coins?`)) return;
+
+        // Deduct coins
+        if (window.globalState?.deductCoins) {
+            window.globalState.deductCoins(tournament.entryFee, `Tournament: ${tournament.name}`);
         } else {
-            alert('Tournament joining will be available soon!');
+            localStorage.setItem('unified_balance', (balance - tournament.entryFee).toString());
+        }
+
+        this.showNotification(`✅ Joined ${tournament.name}! Get ready to make picks!`, 'success');
+
+        // Launch Picks Interface
+        this.openPicksInterface(tournament);
+    }
+
+    openPicksInterface(tournament) {
+        // Create modal for picks
+        const modal = document.createElement('div');
+        modal.className = 'coach-picks-modal active'; // Reusing existing modal styles
+        
+        const gamesList = tournament.games.length > 0 
+            ? tournament.games.map((game, i) => `
+                <div class="pick-card visible" style="display: block;">
+                    <div class="pick-header">
+                        <div class="pick-matchup">
+                            <h4>${game.awayTeam.name} @ ${game.homeTeam.name}</h4>
+                            <span class="pick-time">${game.statusDisplay}</span>
+                        </div>
+                    </div>
+                    <div class="pick-actions" style="margin-top: 15px;">
+                        <button class="pick-action-btn" onclick="this.classList.toggle('active'); this.nextElementSibling.classList.remove('active');">
+                            ${game.awayTeam.shortName} ${game.odds ? game.odds.details.includes(game.awayTeam.shortName) ? game.odds.details.split(' ')[1] : '' : ''}
+                        </button>
+                        <button class="pick-action-btn" onclick="this.classList.toggle('active'); this.previousElementSibling.classList.remove('active');">
+                            ${game.homeTeam.shortName} ${game.odds ? game.odds.details.includes(game.homeTeam.shortName) ? game.odds.details.split(' ')[1] : '' : ''}
+                        </button>
+                    </div>
+                </div>
+            `).join('')
+            : '<div style="padding: 20px; text-align: center;">No games available for picking right now. Check back later!</div>';
+
+        modal.innerHTML = `
+            <div class="coach-picks-overlay" onclick="this.parentElement.remove()"></div>
+            <div class="coach-picks-container">
+                <div class="coach-picks-header" style="background: ${tournament.color};">
+                    <div class="picks-header-left">
+                        <div style="background: rgba(255,255,255,0.2); width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white;">
+                            <i class="${tournament.icon}"></i>
+                        </div>
+                        <div class="picks-coach-info">
+                            <h3 style="color: white;">${tournament.name}</h3>
+                            <p style="color: rgba(255,255,255,0.8);">Make your predictions to win the ${tournament.prizePool.toLocaleString()} coin pool!</p>
+                        </div>
+                    </div>
+                    <button class="picks-close-btn" onclick="this.closest('.coach-picks-modal').remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="coach-picks-list" style="max-height: 60vh; overflow-y: auto; padding: 20px;">
+                    ${gamesList}
+                </div>
+
+                <div class="picks-footer">
+                    <button class="btn-primary" style="width: 100%;" onclick="alert('✅ Picks submitted! Good luck!'); this.closest('.coach-picks-modal').remove();">
+                        Submit Picks
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+    }
+
+    showNotification(msg, type) {
+        if (window.showToast) {
+            window.showToast(msg, type);
+        } else {
+            alert(msg);
         }
     }
 }
 
-// Initialize tournaments manager
+// Initialize
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         window.tournamentsManager = new TournamentsSimple();
@@ -273,5 +424,3 @@ if (document.readyState === 'loading') {
 } else {
     window.tournamentsManager = new TournamentsSimple();
 }
-
-console.log('✅ Tournaments module loaded');

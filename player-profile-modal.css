@@ -1,0 +1,715 @@
+/* ==========================================
+   PLAYER PROFILE MODAL STYLES
+   Professional athlete profile interface
+   ========================================== */
+
+.player-profile-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.player-profile-modal.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.player-profile-modal .modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+}
+
+.player-profile-modal .modal-container {
+    position: relative;
+    width: 90%;
+    max-width: 1000px;
+    max-height: 90vh;
+    background: var(--card-bg, #1a1d29);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+    transform: scale(0.9);
+    transition: transform 0.3s ease;
+}
+
+.player-profile-modal.active .modal-container {
+    transform: scale(1);
+}
+
+.player-profile-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 90vh;
+}
+
+/* ==========================================
+   HEADER SECTION
+   ========================================== */
+
+.player-header {
+    background: linear-gradient(135deg, var(--primary, #6366f1) 0%, #9333ea 100%);
+    padding: 32px 24px 24px;
+    position: relative;
+    color: white;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.player-hero {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.player-jersey {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    flex-shrink: 0;
+}
+
+.jersey-number {
+    font-size: 36px;
+    font-weight: 900;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.player-hero-info {
+    flex: 1;
+}
+
+.player-name {
+    font-size: 32px;
+    font-weight: 900;
+    margin: 0 0 8px 0;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.player-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 16px;
+    opacity: 0.95;
+}
+
+.player-position {
+    background: rgba(255, 255, 255, 0.25);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.meta-separator {
+    opacity: 0.5;
+}
+
+.player-quick-stats {
+    display: flex;
+    gap: 16px;
+    justify-content: space-around;
+}
+
+.quick-stat {
+    text-align: center;
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 900;
+    margin-bottom: 4px;
+}
+
+.stat-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    opacity: 0.8;
+    font-weight: 600;
+}
+
+/* ==========================================
+   TABS NAVIGATION
+   ========================================== */
+
+.profile-tabs {
+    display: flex;
+    background: var(--bg-secondary, #0f1117);
+    border-bottom: 1px solid var(--border-color, #2a2d3a);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.profile-tabs::-webkit-scrollbar {
+    height: 2px;
+}
+
+.tab-btn {
+    flex: 1;
+    min-width: 140px;
+    padding: 16px 24px;
+    background: none;
+    border: none;
+    color: var(--text-secondary, #a0a0a0);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.tab-btn:hover {
+    color: var(--text-primary, #ffffff);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.tab-btn.active {
+    color: var(--primary, #6366f1);
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--primary, #6366f1);
+    border-radius: 3px 3px 0 0;
+}
+
+/* ==========================================
+   TAB CONTENT
+   ========================================== */
+
+.profile-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    background: var(--bg-primary, #0a0c12);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeInUp 0.3s ease;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.content-grid .full-width {
+    grid-column: 1 / -1;
+}
+
+/* ==========================================
+   PROFILE CARDS
+   ========================================== */
+
+.profile-card {
+    background: var(--card-bg, #1a1d29);
+    border-radius: 12px;
+    border: 1px solid var(--border-color, #2a2d3a);
+    overflow: hidden;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: rgba(99, 102, 241, 0.1);
+    border-bottom: 1px solid var(--border-color, #2a2d3a);
+}
+
+.card-header i {
+    color: var(--primary, #6366f1);
+    font-size: 18px;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary, #ffffff);
+}
+
+.card-body {
+    padding: 20px;
+}
+
+/* ==========================================
+   BIO GRID
+   ========================================== */
+
+.bio-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.bio-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.bio-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary, #a0a0a0);
+    font-weight: 600;
+}
+
+.bio-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-primary, #ffffff);
+}
+
+/* ==========================================
+   STATS BARS
+   ========================================== */
+
+.stats-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.stat-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 60px;
+    gap: 12px;
+    align-items: center;
+}
+
+.stat-name {
+    font-size: 13px;
+    color: var(--text-secondary, #a0a0a0);
+    font-weight: 600;
+}
+
+.stat-bar-container {
+    height: 8px;
+    background: var(--bg-secondary, #0f1117);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.stat-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary, #6366f1), #9333ea);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.stat-number {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--text-primary, #ffffff);
+    text-align: right;
+}
+
+/* ==========================================
+   STATS TABLE
+   ========================================== */
+
+.stats-table-container {
+    overflow-x: auto;
+}
+
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.stats-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary, #a0a0a0);
+    font-weight: 700;
+    background: var(--bg-secondary, #0f1117);
+}
+
+.stats-table td {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color, #2a2d3a);
+    font-size: 14px;
+    color: var(--text-primary, #ffffff);
+}
+
+.stats-table tr:last-child td {
+    border-bottom: none;
+}
+
+.rank-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.rank-elite {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: #000;
+}
+
+.rank-good {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+    border: 1px solid #22c55e;
+}
+
+.rank-average {
+    background: rgba(148, 163, 184, 0.2);
+    color: #94a3b8;
+    border: 1px solid #94a3b8;
+}
+
+/* ==========================================
+   GAMES LIST
+   ========================================== */
+
+.games-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.game-item {
+    padding: 16px;
+    background: var(--bg-secondary, #0f1117);
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #2a2d3a);
+}
+
+.game-date {
+    font-size: 12px;
+    color: var(--text-secondary, #a0a0a0);
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.game-matchup {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.game-teams {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary, #ffffff);
+}
+
+.game-result {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.game-result.win {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+}
+
+.game-result.loss {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.game-stats {
+    font-size: 13px;
+    color: var(--text-secondary, #a0a0a0);
+    font-weight: 600;
+}
+
+/* ==========================================
+   ACHIEVEMENTS
+   ========================================== */
+
+.achievements-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.achievement-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background: var(--bg-secondary, #0f1117);
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #2a2d3a);
+}
+
+.achievement-icon {
+    font-size: 32px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.achievement-info {
+    flex: 1;
+}
+
+.achievement-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary, #ffffff);
+    margin-bottom: 4px;
+}
+
+.achievement-desc {
+    font-size: 13px;
+    color: var(--text-secondary, #a0a0a0);
+}
+
+.awards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.award-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    background: var(--bg-secondary, #0f1117);
+    border-radius: 8px;
+    border: 1px solid var(--border-color, #2a2d3a);
+    text-align: center;
+}
+
+.award-badge i {
+    font-size: 24px;
+    color: var(--primary, #6366f1);
+}
+
+.award-badge span {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary, #ffffff);
+}
+
+/* ==========================================
+   PERFORMANCE CHART
+   ========================================== */
+
+.performance-chart {
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chart-placeholder {
+    text-align: center;
+    padding: 40px;
+}
+
+/* ==========================================
+   FOOTER ACTIONS
+   ========================================== */
+
+.profile-footer {
+    display: flex;
+    gap: 12px;
+    padding: 20px 24px;
+    background: var(--bg-secondary, #0f1117);
+    border-top: 1px solid var(--border-color, #2a2d3a);
+}
+
+.action-btn {
+    flex: 1;
+    padding: 14px 20px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: var(--primary, #6366f1);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #5558e3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.btn-secondary {
+    background: var(--card-bg, #1a1d29);
+    color: var(--text-primary, #ffffff);
+    border: 1px solid var(--border-color, #2a2d3a);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-secondary, #0f1117);
+}
+
+/* ==========================================
+   RESPONSIVE DESIGN
+   ========================================== */
+
+@media (max-width: 768px) {
+    .player-profile-modal .modal-container {
+        width: 100%;
+        max-width: 100%;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+    }
+
+    .player-name {
+        font-size: 24px;
+    }
+
+    .player-hero {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .player-quick-stats {
+        flex-wrap: wrap;
+    }
+
+    .profile-tabs {
+        flex-wrap: nowrap;
+    }
+
+    .tab-btn {
+        min-width: 100px;
+        padding: 12px 16px;
+        font-size: 13px;
+    }
+
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .bio-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-row {
+        grid-template-columns: 100px 1fr 50px;
+        gap: 8px;
+    }
+
+    .profile-footer {
+        flex-direction: column;
+    }
+
+    .action-btn {
+        width: 100%;
+    }
+}
+
+/* ==========================================
+   DARK MODE ADJUSTMENTS
+   ========================================== */
+
+@media (prefers-color-scheme: dark) {
+    .player-profile-modal .modal-backdrop {
+        background: rgba(0, 0, 0, 0.9);
+    }
+}

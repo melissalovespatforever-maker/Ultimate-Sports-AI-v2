@@ -23,12 +23,17 @@ class SportsWebSocketClient {
      */
     detectServerUrl() {
         if (typeof window !== 'undefined') {
+            // Priority 1: Window Config (Production Backend)
+            if (window.CONFIG?.API_BASE_URL) return window.CONFIG.API_BASE_URL;
+
+            // Priority 2: Standard Production Railway URL
+            const RAILWAY_URL = 'https://ultimate-sports-ai-backend-production.up.railway.app';
+            
             const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             if (isDev) {
                 return 'http://localhost:3001';
             } else {
-                // Production: use current origin
-                return window.location.origin;
+                return RAILWAY_URL;
             }
         }
         return 'http://localhost:3001';

@@ -11,6 +11,9 @@ const ShopSystem = {
         this.loadActiveBoosters();
         this.updateBoosterTimers();
         
+        // Export to window for global access (including from iframes)
+        window.ShopSystem = this;
+        
         // Update balance display when shop tab is opened
         this.setupShopTabListener();
     },
@@ -27,33 +30,45 @@ const ShopSystem = {
 
     // Get user balance (use unified currency system)
     getUserBalance() {
+        // If in iframe, get from parent
+        if (window.parent && window.parent !== window && window.parent.globalState) {
+            return window.parent.globalState.getBalance();
+        }
+        // Use local global state
+        if (window.globalState) {
+            return window.globalState.getBalance();
+        }
+        // Use currency manager if available
         if (window.currencyManager) {
             return window.currencyManager.getBalance();
         }
         // Fallback
-        return parseInt(localStorage.getItem('ultimateCoins') || '1000');
+        return parseInt(localStorage.getItem('unified_balance') || localStorage.getItem('ultimateCoins') || '1000');
     },
 
     // Set user balance (use unified currency system)
     setUserBalance(amount) {
-        if (window.currencyManager) {
+        // If in iframe, update parent
+        if (window.parent && window.parent !== window && window.parent.globalState) {
+            window.parent.globalState.setBalance(amount);
+        } else if (window.globalState) {
+            window.globalState.setBalance(amount);
+        } else if (window.currencyManager) {
             window.currencyManager.setBalance(amount);
         } else {
-            localStorage.setItem('ultimateCoins', amount.toString());
+            localStorage.setItem('unified_balance', amount.toString());
         }
         this.updateBalanceDisplay();
     },
 
-    // Update balance display
+    // Update balance display (delegates to global state - single source of truth)
     updateBalanceDisplay() {
-        if (window.currencyManager) {
-            window.currencyManager.updateAllDisplays();
-        } else {
-            const balance = this.getUserBalance();
-            const balanceElements = document.querySelectorAll('.profile-coins, .balance-amount');
-            balanceElements.forEach(el => {
-                el.textContent = balance.toLocaleString();
-            });
+        // Balance is managed exclusively by globalState -> header display
+        // No local balance displays should exist
+        if (window.globalState) {
+            window.globalState.updateAllDisplays();
+        } else if (window.parent && window.parent.globalState) {
+            window.parent.globalState.updateAllDisplays();
         }
     },
 
@@ -95,75 +110,144 @@ const ShopSystem = {
 
     // Purchase item
     purchase(itemId, price) {
-        // Use unified currency system
-        if (window.currencyManager) {
-            const result = window.currencyManager.deductCoins(price, `Purchased ${this.getItemName(itemId)}`);
-            if (result === false) {
-                this.showNotification(`❌ Insufficient balance! You need ${price.toLocaleString()} Ultimate Coins.`, 'error');
-                return;
-            }
-        } else {
-            const balance = this.getUserBalance();
-            if (balance < price) {
-                this.showNotification(`❌ Insufficient balance! You need ${price.toLocaleString()} coins.`, 'error');
-                return;
-            }
-            this.setUserBalance(balance - price);
+        console.log(`🛍️ Attempting to purchase ${itemId} for ${price}`);
+        
+        // Get global state manager (local or parent)
+        const globalState = window.globalState || (window.parent && window.parent.globalState);
+        
+        if (!globalState) {
+            console.error('❌ GlobalStateManager not found! Cannot process purchase.');
+            this.showNotification('❌ System error: Please refresh the page', 'error');
+            return false;
         }
 
-        // Apply item effect
-        this.applyItemEffect(itemId);
+        // Check balance first
+        const currentBalance = globalState.getBalance();
+        if (currentBalance < price) {
+            this.showNotification(`❌ Insufficient balance! You need ${price.toLocaleString()} coins but have ${currentBalance.toLocaleString()}.`, 'error');
+            console.warn(`Purchase failed: Need ${price}, have ${currentBalance}`);
+            return false;
+        }
+        
+        // Deduct coins through GlobalStateManager
+        const result = globalState.deductCoins(price, `Purchased ${this.getItemName(itemId)}`, {
+            type: 'shop_purchase',
+            itemId: itemId,
+            itemName: this.getItemName(itemId),
+            category: 'booster',
+            timestamp: Date.now()
+        });
+        
+        if (result === false) {
+            console.error('❌ Failed to deduct coins');
+            this.showNotification('❌ Purchase failed. Please try again.', 'error');
+            return false;
+        }
 
-        // Add to profile inventory if available
-        if (window.ProfileInventory) {
-            window.ProfileInventory.addItem('boosters', {
-                id: itemId,
-                name: this.getItemName(itemId),
+        console.log(`✅ Coins deducted. New balance: ${result}`);
+
+        // Get complete item data from asset mappings
+        const assetData = window.getAssetData ? window.getAssetData(itemId) : null;
+        
+        // Determine correct category for inventory
+        let inventoryType = 'booster';
+        if (itemId === 'streak-shield' || itemId === '1000-coins') {
+            inventoryType = 'consumable';
+        } else if (assetData && assetData.category) {
+            inventoryType = assetData.category.replace(/s$/, ''); // Convert plural to singular
+        }
+
+        // Add to inventory through GlobalStateManager (single source of truth)
+        const itemAdded = globalState.addItem({
+            item_id: itemId,
+            item_name: assetData ? assetData.name : this.getItemName(itemId),
+            item_type: inventoryType,
+            quantity: 1,
+            metadata: { 
                 price: price,
-                purchaseDate: Date.now()
-            });
+                purchasedAt: Date.now(),
+                imageUrl: assetData ? assetData.imageUrl : null,
+                description: assetData ? assetData.description : '',
+                duration: assetData ? assetData.duration : null
+            }
+        });
+
+        if (!itemAdded) {
+            console.warn('⚠️ Item not added to inventory (possibly failed)');
+        } else {
+            console.log(`✅ Item added to inventory: ${itemId} (${inventoryType})`);
         }
+
+        // Apply item effect (activates booster if applicable)
+        this.applyItemEffect(itemId);
 
         // Show success
         this.showNotification(`✅ Purchase successful! ${this.getItemName(itemId)} activated!`, 'success');
 
-        // Log purchase
-        this.logPurchase(itemId, price);
-
         // Update balance display
         this.updateBalanceDisplay();
+        
+        // Force refresh inventory display if on that tab
+        if (window.profileInventory && typeof window.profileInventory.renderInventorySection === 'function') {
+            setTimeout(() => window.profileInventory.renderInventorySection(), 100);
+        }
+
+        return true;
     },
 
     // Purchase avatar
     purchaseAvatar(itemId, price, tier) {
-        // Use unified currency system
-        if (window.currencyManager) {
-            const result = window.currencyManager.deductCoins(price, `Purchased ${this.getItemName(itemId)}`);
-            if (result === false) {
-                this.showNotification(`❌ Insufficient balance! You need ${price.toLocaleString()} Ultimate Coins.`, 'error');
-                return;
-            }
-        } else {
-            const balance = this.getUserBalance();
-            if (balance < price) {
-                this.showNotification(`❌ Insufficient balance! You need ${price.toLocaleString()} coins.`, 'error');
-                return;
-            }
-            this.setUserBalance(balance - price);
+        console.log(`🛍️ Attempting to purchase avatar ${itemId} for ${price}`);
+        
+        // Get global state manager (local or parent)
+        const globalState = window.globalState || (window.parent && window.parent.globalState);
+
+        if (!globalState) {
+            console.error('❌ GlobalStateManager not found!');
+            this.showNotification('❌ System error: Please refresh the page', 'error');
+            return false;
         }
 
-        // Save avatar to inventory
-        this.addToInventory('avatar', itemId, tier);
+        // Check balance first
+        const currentBalance = globalState.getBalance();
+        if (currentBalance < price) {
+            this.showNotification(`❌ Insufficient balance! You need ${price.toLocaleString()} coins but have ${currentBalance.toLocaleString()}.`, 'error');
+            return false;
+        }
 
-        // Add to profile inventory if available
-        if (window.ProfileInventory) {
-            window.ProfileInventory.addItem('avatars', {
-                id: itemId,
-                name: this.getItemName(itemId),
-                price: price,
+        // Deduct coins through GlobalStateManager
+        const result = globalState.deductCoins(price, `Purchased ${this.getItemName(itemId)}`, {
+            type: 'shop_purchase',
+            itemId: itemId,
+            itemName: this.getItemName(itemId),
+            category: 'avatar',
+            tier: tier
+        });
+            
+        if (result === false) {
+            console.error('❌ Failed to deduct coins for avatar');
+            return false;
+        }
+
+        console.log(`✅ Coins deducted for avatar. New balance: ${result}`);
+
+        // Add to inventory through GlobalStateManager (single source of truth)
+        const itemAdded = globalState.addItem({
+            item_id: itemId,
+            item_name: this.getItemName(itemId),
+            item_type: 'avatar',
+            quantity: 1,
+            metadata: { 
                 tier: tier,
-                purchaseDate: Date.now()
-            });
+                price: price,
+                purchasedAt: Date.now()
+            }
+        });
+
+        if (!itemAdded) {
+            console.warn('⚠️ Avatar not added to inventory (possibly failed)');
+        } else {
+            console.log(`✅ Avatar added to inventory: ${itemId}`);
         }
 
         // Show success with option to equip
@@ -271,11 +355,15 @@ const ShopSystem = {
 
         // Handle Blue Diamond Ring (permanent XP boost)
         if (effect.type === 'permanent-xp') {
-            if (window.achievementsSystem) {
+            const globalState = window.globalState || (window.parent && window.parent.globalState);
+            if (globalState && typeof globalState.addPermanentBonus === 'function') {
+                globalState.addPermanentBonus('xp', effect.bonus);
+                this.showNotification(`💎 You now have a permanent +${effect.bonus * 100}% XP boost!`, 'success');
+            } else if (window.achievementsSystem) {
                 window.achievementsSystem.addPermanentXPBoost(effect.bonus * 100); // Convert to percentage
                 this.showNotification(`💎 You now have a permanent +${effect.bonus * 100}% XP boost!`, 'success');
             } else {
-                console.warn('Achievements system not loaded');
+                console.warn('Global state or Achievements system not loaded');
             }
         }
 
@@ -297,9 +385,16 @@ const ShopSystem = {
 
         // Save permanent bonuses
         if (effect.type === 'permanent') {
-            const permanentBonuses = JSON.parse(localStorage.getItem('permanentBonuses') || '{}');
-            permanentBonuses[effect.stat] = (permanentBonuses[effect.stat] || 0) + effect.bonus;
-            localStorage.setItem('permanentBonuses', JSON.stringify(permanentBonuses));
+            const globalState = window.globalState || (window.parent && window.parent.globalState);
+            if (globalState && typeof globalState.addPermanentBonus === 'function') {
+                globalState.addPermanentBonus('coins', effect.bonus);
+                this.showNotification(`💰 You now have a permanent +${effect.bonus * 100}% Coin boost!`, 'success');
+            } else {
+                const permanentBonuses = JSON.parse(localStorage.getItem('permanentBonuses') || '{}');
+                permanentBonuses[effect.stat] = (permanentBonuses[effect.stat] || 0) + effect.bonus;
+                localStorage.setItem('permanentBonuses', JSON.stringify(permanentBonuses));
+                this.showNotification(`💰 You now have a permanent +${effect.bonus * 100}% Coin boost!`, 'success');
+            }
         }
     },
 
@@ -307,33 +402,45 @@ const ShopSystem = {
     purchaseCoins(packageName, coins, priceUSD) {
         console.log(`💳 Initiating coin purchase: ${packageName} - ${coins} coins for $${priceUSD}`);
 
-        // Check if PayPal integration is available
-        if (window.PayPalShop && window.PayPalShop.initialized) {
+        // Wait for PayPal shop if not ready
+        if (!window.PayPalShop) {
+            this.showNotification('⏳ Loading payment system...', 'info');
+            setTimeout(() => this.purchaseCoins(packageName, coins, priceUSD), 1000);
+            return;
+        }
+
+        // Check if PayPal integration is available and initialized
+        if (window.PayPalShop) {
             // Use PayPal integration
             const item = {
                 id: `coins-${packageName}`,
                 name: `${coins.toLocaleString()} Ultimate Coins`,
                 description: `${packageName} coin bundle`,
-                price: coins,
+                price: coins, // Used for logging
                 coins: coins
             };
             
             this.showNotification('💳 Opening PayPal checkout...', 'info');
             
             // Create PayPal button dynamically
+            const modalId = `paypal-modal-${Date.now()}`;
+            const containerId = `paypal-btn-${Date.now()}`;
+            
             const modalHtml = `
-                <div class="paypal-modal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 999999; display: flex; align-items: center; justify-content: center;">
-                    <div style="background: var(--bg-card); border-radius: 16px; padding: 32px; max-width: 500px; width: 90%;">
+                <div class="paypal-modal" id="${modalId}" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 999999; display: flex; align-items: center; justify-content: center;">
+                    <div style="background: var(--bg-card); border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; border: 1px solid var(--border-color); box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                            <h2 style="margin: 0;">Purchase Coins</h2>
-                            <button onclick="this.closest('.paypal-modal').remove()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);">×</button>
+                            <h2 style="margin: 0; color: var(--text-primary);">Purchase Coins</h2>
+                            <button onclick="document.getElementById('${modalId}').remove()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary);">×</button>
                         </div>
                         <div style="text-align: center; margin-bottom: 24px;">
                             <div style="font-size: 48px; margin-bottom: 16px;">💰</div>
-                            <h3 style="margin: 0 0 8px;">${coins.toLocaleString()} Ultimate Coins</h3>
+                            <h3 style="margin: 0 0 8px; color: var(--text-primary);">${coins.toLocaleString()} Ultimate Coins</h3>
                             <p style="color: var(--text-secondary); margin: 0;">$${priceUSD} USD</p>
                         </div>
-                        <div id="paypal-button-container-${packageName}"></div>
+                        <div id="${containerId}" style="min-height: 150px; display: flex; justify-content: center; align-items: center;">
+                            <div class="spinner"></div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -341,7 +448,19 @@ const ShopSystem = {
             document.body.insertAdjacentHTML('beforeend', modalHtml);
             
             // Render PayPal button in modal
-            window.PayPalShop.createPayPalButton(`paypal-button-container-${packageName}`, item);
+            // We pass the actual USD price here
+            const payPalItem = { ...item, price: priceUSD * 1000, dealPrice: priceUSD * 1000 }; // Hack: coinsToUSD divides by 1000
+            
+            // Initialize button
+            setTimeout(() => {
+                const container = document.getElementById(containerId);
+                if (container) container.innerHTML = ''; // Clear spinner
+                window.PayPalShop.createPayPalButton(containerId, {
+                    ...item,
+                    price: priceUSD * 1000 // Ensure logic in PayPalShop converts back to correct USD
+                });
+            }, 500);
+            
         } else {
             // Fallback: simulate purchase for testing
             this.showNotification('⚠️ PayPal not configured. Using test mode...', 'info');
@@ -354,17 +473,26 @@ const ShopSystem = {
 
     // Complete coin purchase (called after PayPal success)
     completeCoinPurchase(packageName, coins, priceUSD) {
+        // Get global state manager (local or parent)
+        const globalState = window.globalState || (window.parent && window.parent.globalState);
+
         // Add coins using unified currency manager
-        if (window.currencyManager) {
-            window.currencyManager.addCoins(coins, `Purchased ${packageName} bundle`);
+        if (globalState && typeof globalState.addCoins === 'function') {
+            globalState.addCoins(coins, `Purchased ${packageName} bundle`, {
+                type: 'purchase',
+                package: packageName,
+                priceUSD: priceUSD
+            });
         } else {
+            // Fallback for legacy/disconnected state
             const balance = this.getUserBalance();
             this.setUserBalance(balance + coins);
         }
 
         // Add to profile inventory
-        if (window.ProfileInventory) {
-            window.ProfileInventory.addItem('purchaseHistory', {
+        const profileInventory = window.profileInventory || (window.parent && window.parent.profileInventory);
+        if (profileInventory) {
+            profileInventory.addItem('purchaseHistory', {
                 type: 'coins',
                 package: packageName,
                 coins: coins,
@@ -374,10 +502,14 @@ const ShopSystem = {
         }
 
         // Track purchase for achievements
-        if (window.achievementsSystem) {
-            window.achievementsSystem.userStats.itemsPurchased++;
-            window.achievementsSystem.saveStats();
-            window.achievementsSystem.unlockAchievement('shop-first');
+        const achievementsSystem = window.achievementsSystem || (window.parent && window.parent.achievementsSystem);
+        if (achievementsSystem) {
+            // Check if stats object exists, if not initialize it (simple fallback)
+            if (!achievementsSystem.userStats) achievementsSystem.userStats = { itemsPurchased: 0 };
+            
+            achievementsSystem.userStats.itemsPurchased++;
+            if (achievementsSystem.saveStats) achievementsSystem.saveStats();
+            if (achievementsSystem.unlockAchievement) achievementsSystem.unlockAchievement('shop-first');
         }
 
         // Log purchase
@@ -543,6 +675,25 @@ const ShopSystem = {
         return false;
     }
 };
+
+// Expose ShopSystem globally
+window.ShopSystem = ShopSystem;
+
+// Auto-initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (typeof ShopSystem.init === 'function') {
+            ShopSystem.init();
+        }
+    });
+} else {
+    // DOM already loaded
+    if (typeof ShopSystem.init === 'function') {
+        ShopSystem.init();
+    }
+}
+
+console.log('✅ ShopSystem loaded and available globally');
 
 // Add CSS animations
 const style = document.createElement('style');

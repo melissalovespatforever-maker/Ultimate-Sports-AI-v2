@@ -1,0 +1,205 @@
+/* 
+ * TROPHY NOTIFICATION STYLES
+ * A prestigious, high-impact notification for unlocking trophies and rings.
+ */
+
+.trophy-notification-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.trophy-notification-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.trophy-card {
+    background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+    width: 90%;
+    max-width: 450px;
+    padding: 40px;
+    border-radius: 30px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), 
+                0 0 30px rgba(33, 150, 243, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    transform: translateY(50px) scale(0.9);
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.trophy-notification-overlay.active .trophy-card {
+    transform: translateY(0) scale(1);
+}
+
+.trophy-card::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 30px;
+    padding: 2px;
+    background: linear-gradient(45deg, #ffd700, #ffa000, #ffecb3, #ffd700);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    background-size: 400% 400%;
+    animation: borderRotate 4s linear infinite;
+}
+
+@keyframes borderRotate {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.trophy-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.2) 0%, transparent 70%);
+    z-index: 0;
+    pointer-events: none;
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
+}
+
+.trophy-content {
+    position: relative;
+    z-index: 1;
+}
+
+.trophy-unlocked-text {
+    color: #ffd700;
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-size: 14px;
+    font-weight: 800;
+    margin-bottom: 20px;
+    display: block;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.trophy-image-container {
+    width: 180px;
+    height: 180px;
+    margin: 0 auto 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.4));
+    animation: floatTrophy 3s ease-in-out infinite;
+}
+
+@keyframes floatTrophy {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+.trophy-image-large {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.trophy-name-large {
+    font-size: 32px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 10px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.trophy-desc-large {
+    color: #90caf9;
+    font-size: 16px;
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+
+.trophy-rewards {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 35px;
+}
+
+.reward-pill {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.reward-pill .icon {
+    font-size: 18px;
+}
+
+.reward-pill .value {
+    color: white;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.trophy-close-btn {
+    background: linear-gradient(135deg, #ffd700 0%, #ffa000 100%);
+    color: #000;
+    border: none;
+    padding: 15px 40px;
+    border-radius: 50px;
+    font-weight: 800;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 160, 0, 0.4);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.trophy-close-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(255, 160, 0, 0.6);
+}
+
+.trophy-close-btn:active {
+    transform: scale(0.98);
+}
+
+/* Sparkles animation */
+.sparkle {
+    position: absolute;
+    pointer-events: none;
+    background: white;
+    border-radius: 50%;
+    animation: sparkleAnim 1s linear forwards;
+}
+
+@keyframes sparkleAnim {
+    0% { transform: scale(0); opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0; }
+}

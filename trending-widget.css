@@ -1,0 +1,341 @@
+/* Trending Widget Styles */
+
+.trending-widget {
+    margin-top: 32px;
+    padding: 0 4px;
+    animation: fadeIn 0.6s ease-out;
+}
+
+.trending-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.trending-header h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: white;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.trending-header .live-indicator {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.trending-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.trending-card {
+    background: var(--bg-card, #1e293b);
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    border-radius: 16px;
+    padding: 20px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.trending-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    border-color: var(--primary, #10b981);
+}
+
+.card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary, #94a3b8);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.match-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.trending-match-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.trending-match-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.match-logos-combined {
+    display: flex;
+    align-items: center;
+    position: relative;
+    width: 48px;
+    height: 32px;
+}
+
+.match-logo {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+    z-index: 2;
+    background: var(--bg-card);
+    border-radius: 50%;
+}
+
+.match-logo.secondary-logo {
+    position: absolute;
+    right: 0;
+    z-index: 1;
+    opacity: 0.7;
+    width: 28px;
+    height: 28px;
+}
+
+.match-info {
+    flex: 1;
+}
+
+.match-teams {
+    font-weight: 600;
+    color: white;
+    font-size: 14px;
+}
+
+.match-status {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.hype-badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.minigame-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.trending-game-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    height: 80px;
+    cursor: pointer;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.game-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.4;
+    transition: transform 0.5s ease;
+}
+
+.trending-game-item:hover .game-bg {
+    transform: scale(1.1);
+    opacity: 0.6;
+}
+
+.game-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 10px;
+}
+
+.game-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: white;
+}
+
+.game-players {
+    font-size: 10px;
+    color: #10b981;
+    font-weight: 600;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-row:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+}
+
+.stat-trend {
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 6px;
+}
+
+.trend-up { color: #10b981; }
+
+/* Consensus Styles */
+.consensus-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.consensus-item {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.consensus-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.consensus-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.consensus-matchup {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    gap: 4px;
+}
+
+.consensus-matchup .vs {
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
+.consensus-badge {
+    font-size: 11px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.consensus-bar-container {
+    height: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 4px;
+    display: flex;
+    overflow: hidden;
+    margin-bottom: 8px;
+    position: relative;
+}
+
+.consensus-bar-fill {
+    height: 100%;
+    transition: width 1s ease-in-out;
+}
+
+.consensus-bar-split {
+    width: 2px;
+    background: #0f172a;
+    z-index: 10;
+}
+
+.consensus-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.team-side {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.team-side.right {
+    flex-direction: row-reverse;
+}
+
+.team-side .mini-logo {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+.consensus-share-btn {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    cursor: pointer;
+    padding: 4px;
+    transition: all 0.2s;
+    font-size: 12px;
+}
+
+.consensus-share-btn:hover {
+    color: #fff;
+    transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+    .trending-grid {
+        grid-template-columns: 1fr;
+    }
+}

@@ -5,6 +5,8 @@
 // ============================================
 
 const PayPalService = {
+    // PayPal Credentials (Production)
+    clientId: 'AfDrg9eBmnAW6_1kcSSjcioghBzKmDTPQ6BZDVRf',
     paypalEmail: 'mikewill898@icloud.com',
     paypalMeUsername: 'mikewill898',
     
@@ -30,7 +32,8 @@ const PayPalService = {
             id: 'pro',
             name: 'PRO',
             price: 49.99,
-            paypalMeUrl: 'https://www.paypal.com/paypalme/mikewill898/49.99?utm_source=ultimatesportsai&utm_medium=upgrade',
+            interval: 'month',
+            paypalMeUrl: 'https://www.paypal.com/paypalme/mikewill898/49.99',
             features: [
                 'Unlimited picks',
                 '10+ AI Coaches',
@@ -51,7 +54,8 @@ const PayPalService = {
             id: 'vip',
             name: 'VIP',
             price: 99.99,
-            paypalMeUrl: 'https://www.paypal.com/paypalme/mikewill898/99.99?utm_source=ultimatesportsai&utm_medium=upgrade',
+            interval: 'month',
+            paypalMeUrl: 'https://www.paypal.com/paypalme/mikewill898/99.99',
             features: [
                 'Everything in PRO',
                 'Exclusive AI models',

@@ -1,0 +1,169 @@
+/* Tutorial System Styles */
+:root {
+    --tutorial-overlay-z: 10000;
+    --tutorial-tooltip-z: 10001;
+    --tutorial-spotlight-transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* The dark overlay with the "hole" */
+#tutorial-spotlight {
+    position: fixed;
+    border-radius: 12px;
+    box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.85); /* Dark blue-ish overlay */
+    z-index: var(--tutorial-overlay-z);
+    pointer-events: none; /* Let clicks pass through to the highlighted element if needed, though usually we block interaction during tutorial */
+    transition: var(--tutorial-spotlight-transition);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    animation: pulse-border 2s infinite;
+    display: none; /* Hidden by default to prevent black tint on load */
+}
+
+/* Block interaction outside the spotlight */
+#tutorial-click-blocker {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: calc(var(--tutorial-overlay-z) - 1);
+    background: transparent; /* Spotlight does the visual work */
+    display: none;
+}
+
+#tutorial-click-blocker.active {
+    display: block;
+}
+
+/* The Tooltip Card */
+#tutorial-tooltip {
+    position: fixed;
+    width: 300px;
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 20px;
+    z-index: var(--tutorial-tooltip-z);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+    color: white;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none; /* Don't block clicks when hidden */
+    visibility: hidden; /* Hide completely when opacity is 0 */
+}
+
+#tutorial-tooltip.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto; /* Re-enable clicks */
+    visibility: visible;
+}
+
+#tutorial-tooltip h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#tutorial-tooltip h3 i {
+    color: #10b981; /* Primary brand color */
+}
+
+#tutorial-tooltip p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #94a3b8;
+}
+
+/* Progress Indicators */
+.tutorial-progress {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.tutorial-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #334155;
+    transition: all 0.3s ease;
+}
+
+.tutorial-dot.active {
+    background: #10b981;
+    width: 20px;
+    border-radius: 4px;
+}
+
+/* Buttons */
+.tutorial-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tutorial-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.tutorial-btn-skip {
+    background: transparent;
+    color: #64748b;
+}
+
+.tutorial-btn-skip:hover {
+    color: #94a3b8;
+}
+
+.tutorial-btn-next {
+    background: #10b981;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.tutorial-btn-next:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+/* Animations */
+@keyframes pulse-border {
+    0% { border-color: rgba(16, 185, 129, 0.3); }
+    50% { border-color: rgba(16, 185, 129, 0.8); }
+    100% { border-color: rgba(16, 185, 129, 0.3); }
+}
+
+/* Floating mascot/icon option */
+.tutorial-mascot {
+    position: absolute;
+    top: -20px;
+    right: 20px;
+    font-size: 40px;
+    animation: bounce 2s infinite;
+}
+
+@media (max-width: 480px) {
+    #tutorial-tooltip {
+        width: 280px;
+    }
+}

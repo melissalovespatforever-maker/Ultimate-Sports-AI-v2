@@ -60,37 +60,38 @@
 .shop-categories {
     display: flex;
     gap: 12px;
-    margin-bottom: 40px;
-    flex-wrap: wrap;
+    margin-bottom: 32px;
+    padding: 0 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.shop-categories::-webkit-scrollbar {
+    display: none;
 }
 
 .shop-cat-btn {
-    padding: 14px 24px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    padding: 12px 24px;
     border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
     color: rgba(255, 255, 255, 0.7);
-    font-size: 15px;
-    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
+    font-weight: 600;
     transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    white-space: nowrap;
 }
 
 .shop-cat-btn:hover {
     background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
     color: white;
-    transform: translateY(-2px);
 }
 
 .shop-cat-btn.active {
-    background: linear-gradient(135deg, #10b981, #059669);
-    border-color: #10b981;
+    background: var(--primary-color) !important;
+    border-color: var(--primary-color);
     color: white;
-    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
 
 /* Shop Sections */
@@ -162,6 +163,26 @@
 
 .exclusive-badge {
     background: linear-gradient(135deg, #a855f7, #9333ea);
+}
+
+.popular-badge {
+    background: linear-gradient(135deg, #ec4899, #db2777);
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.ultimate-badge {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    animation: shine 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.9; }
+}
+
+@keyframes shine {
+    0%, 100% { box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4); }
+    50% { box-shadow: 0 4px 20px rgba(251, 191, 36, 0.8); }
 }
 
 /* Item Icon */

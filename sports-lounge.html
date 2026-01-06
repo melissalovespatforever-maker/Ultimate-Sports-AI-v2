@@ -14,10 +14,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=20250107003">
-    <link rel="stylesheet" href="sports-lounge-styles.css?v=20250107003">
-    <link rel="stylesheet" href="shop-styles.css?v=20250107003">
-    <link rel="stylesheet" href="daily-deals-styles.css?v=20250107003">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="sports-lounge-styles.css">
+    <link rel="stylesheet" href="shop-styles.css">
+    <link rel="stylesheet" href="trophy-notification.css">
 </head>
 <body>
 
@@ -55,947 +55,464 @@
         </div>
 
         <!-- Tab Navigation -->
-        <div class="lounge-tabs">
-            <button class="lounge-tab active" data-tab="chat-room">
-                <i class="fas fa-comments"></i>
-                <span>Chat Room</span>
-            </button>
-            <button class="lounge-tab" data-tab="game-room">
+        <div class="lounge-tabs" id="lounge-tabs">
+            <button class="lounge-tab active" data-tab="game-room">
                 <i class="fas fa-gamepad"></i>
                 <span>Game Room</span>
+            </button>
+            <button class="lounge-tab" data-tab="chat-room">
+                <i class="fas fa-comments"></i>
+                <span>Chat Room</span>
             </button>
             <button class="lounge-tab" data-tab="shop">
                 <i class="fas fa-store"></i>
                 <span>Shop</span>
-                <span class="tab-badge">NEW</span>
             </button>
-            <button class="lounge-tab" data-tab="leaderboard" onclick="window.location.href='leaderboards.html'">
-                <i class="fas fa-ranking-star"></i>
-                <span>Leaderboard</span>
+            <button class="lounge-tab" data-tab="inventory">
+                <i class="fas fa-box-open"></i>
+                <span>Inventory</span>
             </button>
             <button class="lounge-tab" data-tab="trophy-room">
                 <i class="fas fa-trophy"></i>
-                <span>Trophy Room</span>
+                <span>Trophies</span>
             </button>
         </div>
 
-        <!-- ============================================
-             CHAT ROOM TAB
-             ============================================ -->
-        <div class="tab-content active" id="chat-room">
-            <div class="lounge-grid two-column">
-                
-                <!-- Main Chat -->
-                <div class="lounge-card chat-container-full">
-                    <div class="card-header">
-                        <h2><i class="fas fa-comments"></i> Main Lounge Chat</h2>
-                        <div class="chat-actions">
-                            <span class="online-users"><i class="fas fa-circle" style="color: #10b981; font-size: 8px;"></i> 1,247 online</span>
-                            <button class="btn-icon" title="Emoji"><i class="fas fa-smile"></i></button>
-                            <button class="btn-icon" title="Settings"><i class="fas fa-cog"></i></button>
+        <!-- Tab Content Container -->
+        <div class="tab-content-wrapper">
+
+            <!-- ============================================
+                 GAME ROOM TAB
+                 ============================================ -->
+            <div class="tab-content active" id="game-room">
+                <div class="game-room-grid">
+                    
+                    <!-- Featured Game -->
+                    <div class="lounge-card featured-game">
+                        <div class="game-badge">🔥 HOT</div>
+                        <div class="game-content">
+                            <h2>⚔️ 1v1 Parlay Battle</h2>
+                            <p>Challenge another player to head-to-head parlay duel</p>
+                            <div class="game-stats">
+                                <div class="stat"><i class="fas fa-users"></i> 45 Active Battles</div>
+                                <div class="stat"><i class="fas fa-coins"></i> Win up to 1,000 coins</div>
+                            </div>
+                            <button class="btn-game-launch" data-game="minigame-parlay-battle.html">
+                                <i class="fas fa-play"></i>
+                                Start Battle
+                            </button>
                         </div>
                     </div>
-                    <div class="chat-messages" id="chat-messages">
-                        <!-- Dynamic messages loaded by JS -->
-                    </div>
-                    <div class="chat-input-container">
-                        <input 
-                            type="text" 
-                            id="chat-input" 
-                            placeholder="Type a message... (Be respectful!)" 
-                            maxlength="500"
-                        />
-                        <button class="btn-send" onclick="window.SportsLounge.sendMessage()">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
+
+                    <!-- Game Cards Grid -->
+                    <div class="games-grid">
+                        
+                        <!-- Sports Trivia -->
+                        <div class="game-card">
+                            <div class="game-icon-large">🧠</div>
+                            <h3>Sports Trivia</h3>
+                            <p>Test your sports knowledge across all leagues</p>
+                            <div class="game-meta">
+                                <span><i class="fas fa-clock"></i> 5 min</span>
+                                <span><i class="fas fa-coins"></i> 50-500</span>
+                            </div>
+                            <button class="btn-game-play" data-game="minigame-trivia.html">Play Now</button>
+                        </div>
+
+                        <!-- Ultimate Football Sim -->
+                        <div class="game-card">
+                            <div class="game-icon-large">🏈</div>
+                            <h3>Ultimate Football Sim</h3>
+                            <p>Elite football simulation - manage teams & strategies</p>
+                            <div class="game-meta">
+                                <span><i class="fas fa-clock"></i> 10-15 min</span>
+                                <span><i class="fas fa-coins"></i> 300-1,500</span>
+                            </div>
+                            <button class="btn-game-play" data-game="minigame-tecmo-sim.html">Play Now</button>
+                        </div>
+
+                        <!-- Slots Game -->
+                        <div class="game-card">
+                            <div class="game-icon-large">🎰</div>
+                            <h3>Lucky Slots</h3>
+                            <p>Spin to win coins and prizes</p>
+                            <div class="game-meta">
+                                <span><i class="fas fa-clock"></i> 1 min</span>
+                                <span><i class="fas fa-coins"></i> 10-1000</span>
+                            </div>
+                            <button class="btn-game-play" data-game="minigame-slots.html">Play Now</button>
+                        </div>
+
+                        <!-- Wheel of Fortune -->
+                        <div class="game-card">
+                            <div class="game-icon-large">🎡</div>
+                            <h3>Prize Wheel</h3>
+                            <p>Spin the wheel for instant rewards</p>
+                            <div class="game-meta">
+                                <span><i class="fas fa-clock"></i> 30 sec</span>
+                                <span><i class="fas fa-coins"></i> 25-750</span>
+                            </div>
+                            <button class="btn-game-play" data-game="minigame-wheel.html">Play Now</button>
+                        </div>
+
+                        <!-- Coin Flip -->
+                        <div class="game-card">
+                            <div class="game-icon-large">🪙</div>
+                            <h3>Coin Flip</h3>
+                            <p>Double or nothing - test your luck!</p>
+                            <div class="game-meta">
+                                <span><i class="fas fa-clock"></i> 10 sec</span>
+                                <span><i class="fas fa-coins"></i> 2x Bet</span>
+                            </div>
+                            <button class="btn-game-play" data-game="minigame-coinflip.html">Play Now</button>
+                        </div>
+
+                        <!-- Penalty Plinko -->
+                        <div class="game-card">
+                            <div class="game-icon-large">⚽</div>
+                            <h3>Penalty Plinko</h3>
+                            <p>Drop the ball through defenders for big goals!</p>
+                            <div class="game-meta">
+                                <span><i class="fas fa-clock"></i> Instant</span>
+                                <span><i class="fas fa-coins"></i> Up to 10x</span>
+                            </div>
+                            <button class="btn-game-play" data-game="minigame-plinko.html">Play Now</button>
+                        </div>
+
                     </div>
                 </div>
+            </div>
 
-                <!-- Activity Sidebar -->
-                <div class="lounge-column">
-                    <!-- Live Activity Feed -->
-                    <div class="lounge-card activity-feed">
+            <!-- ============================================
+                 CHAT ROOM TAB
+                 ============================================ -->
+            <div class="tab-content" id="chat-room">
+                <div class="lounge-grid two-column">
+                    
+                    <!-- Main Chat -->
+                    <div class="lounge-card chat-container-full">
                         <div class="card-header">
-                            <h2><i class="fas fa-bolt"></i> Live Activity</h2>
-                            <span class="pulse-indicator"></span>
+                            <h2><i class="fas fa-comments"></i> Lounge Chat</h2>
+                            <div class="chat-actions">
+                                <span class="chat-connection-status" id="chat-status">Connected</span>
+                                <span class="online-users">
+                                    <i class="fas fa-circle" style="color: #10b981; font-size: 8px;"></i> 
+                                    <span id="chat-online-count">247</span> online
+                                </span>
+                            </div>
                         </div>
-                        <div class="activity-list" id="activity-feed">
-                            <!-- Dynamic content -->
-                            <div class="activity-item win">
-                                <div class="activity-avatar">🔥</div>
-                                <div class="activity-content">
-                                    <strong>@SportsFanatic</strong> just won a 5-leg parlay!
-                                    <span class="activity-time">2m ago</span>
-                                </div>
-                                <div class="activity-badge">+$250</div>
-                            </div>
+                        
+                        <!-- Chat Categories -->
+                        <div class="chat-categories">
+                            <button class="chat-category-btn active" data-channel="general"># General</button>
+                            <button class="chat-category-btn" data-channel="nfl"># NFL</button>
+                            <button class="chat-category-btn" data-channel="nba"># NBA</button>
+                            <button class="chat-category-btn" data-channel="live"># Live Games</button>
+                            <button class="chat-category-btn" data-channel="strategy"># Strategy</button>
+                        </div>
 
-                            <div class="activity-item challenge">
-                                <div class="activity-avatar">⚔️</div>
-                                <div class="activity-content">
-                                    <strong>@ParlayKing</strong> challenged <strong>@BetMaster</strong>
-                                    <span class="activity-time">5m ago</span>
-                                </div>
-                            </div>
-
-                            <div class="activity-item trivia">
-                                <div class="activity-avatar">🧠</div>
-                                <div class="activity-content">
-                                    <strong>@TriviaGuru</strong> answered 20 questions in a row!
-                                    <span class="activity-time">8m ago</span>
-                                </div>
-                            </div>
+                        <div class="chat-messages" id="chat-messages"></div>
+                        
+                        <div class="chat-input-container">
+                            <input 
+                                type="text" 
+                                id="chat-input" 
+                                placeholder="Type a message... (Be respectful!)" 
+                                maxlength="500"
+                            />
+                            <button class="btn-send" id="btn-send-chat">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- User Profile Card -->
-                    <div class="lounge-card user-profile-card">
-                        <div class="profile-header">
-                            <div class="profile-avatar" id="user-avatar">🎮</div>
-                            <div class="profile-status online"></div>
-                        </div>
-                        <h3 class="profile-name" id="user-name">Loading...</h3>
-                        <div class="profile-title">🔥 On Fire</div>
-                        <div class="profile-stats-grid">
-                            <div class="profile-stat">
-                                <div class="stat-value profile-coins">0</div>
-                                <div class="stat-label">Coins</div>
+                    <!-- Activity Sidebar -->
+                    <div class="lounge-column">
+                        <!-- Live ESPN Scores Widget -->
+                        <div class="lounge-card live-scores-widget">
+                            <div class="card-header">
+                                <h2><i class="fas fa-basketball-ball"></i> Live Scores</h2>
+                                <div class="score-leagues">
+                                    <span class="active" data-league="NFL">NFL</span>
+                                    <span data-league="NBA">NBA</span>
+                                    <span data-league="MLB">MLB</span>
+                                </div>
                             </div>
-                            <div class="profile-stat">
-                                <div class="stat-value profile-wins">0</div>
-                                <div class="stat-label">Wins</div>
-                            </div>
-                            <div class="profile-stat">
-                                <div class="stat-value profile-streak">0</div>
-                                <div class="stat-label">Streak</div>
+                            <div class="scores-list" id="live-scores-container">
+                                <div class="score-loading">
+                                    <i class="fas fa-spinner fa-spin"></i> Fetching ESPN data...
+                                </div>
                             </div>
                         </div>
-                        <div class="profile-actions">
-                            <button class="btn-profile-view" onclick="window.parent.postMessage({type: 'navigate', page: 'profile'}, '*')">
-                                <i class="fas fa-user"></i> View Profile
-                            </button>
-                            <button class="btn-profile-edit" onclick="window.parent.postMessage({type: 'navigate', page: 'settings'}, '*')">
-                                <i class="fas fa-cog"></i> Settings
-                            </button>
+
+                        <!-- Live Activity Feed -->
+                        <div class="lounge-card activity-feed">
+                            <div class="card-header">
+                                <h2><i class="fas fa-bolt"></i> Live Activity</h2>
+                                <span class="pulse-indicator"></span>
+                            </div>
+                            <div class="activity-list" id="activity-feed"></div>
+                        </div>
+
+                        <!-- User Profile Card -->
+                        <div class="lounge-card user-profile-card">
+                            <div class="profile-header">
+                                <div class="profile-avatar" id="user-avatar">🎮</div>
+                                <div class="profile-status online"></div>
+                            </div>
+                            <h3 class="profile-name" id="user-name">Loading...</h3>
+                            <div class="profile-title">🔥 Active Player</div>
+                            <div class="profile-stats-grid">
+                                <div class="profile-stat">
+                                    <div class="stat-value" id="profile-wins">0</div>
+                                    <div class="stat-label">Wins</div>
+                                </div>
+                                <div class="profile-stat">
+                                    <div class="stat-value" id="profile-streak">0</div>
+                                    <div class="stat-label">Streak</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- ============================================
-             GAME ROOM TAB
-             ============================================ -->
-        <div class="tab-content" id="game-room">
-            <div class="game-room-grid">
-                
-                <!-- Featured Game -->
-                <div class="lounge-card featured-game">
-                    <div class="game-badge">🔥 HOT</div>
-                    <div class="game-content">
-                        <h2>⚔️ 1v1 Parlay Battle</h2>
-                        <p>Challenge another player to head-to-head parlay duel</p>
-                        <div class="game-stats">
-                            <div class="stat"><i class="fas fa-users"></i> 45 Active Battles</div>
-                            <div class="stat"><i class="fas fa-coins"></i> Win up to 1,000 coins</div>
-                        </div>
-                        <button class="btn-game-launch">
-                            <i class="fas fa-play"></i>
-                            Start Battle
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Game Cards Grid -->
-                <div class="games-grid">
+            <!-- ============================================
+                 SHOP TAB
+                 ============================================ -->
+            <div class="tab-content" id="shop">
+                <div class="shop-grid">
                     
-                    <!-- Sports Trivia -->
-                    <div class="game-card">
-                        <div class="game-icon-large">🧠</div>
-                        <h3>Sports Trivia</h3>
-                        <p>Test your knowledge across all sports</p>
-                        <div class="game-meta">
-                            <span><i class="fas fa-clock"></i> 5 min</span>
-                            <span><i class="fas fa-coins"></i> 50-500</span>
+                    <!-- Shop Header -->
+                    <div class="shop-header">
+                        <div>
+                            <h1><i class="fas fa-store"></i> Ultimate Shop</h1>
+                            <p>Level up your game with premium items & power-ups!</p>
                         </div>
-                        <button class="btn-game-play">Play Now</button>
                     </div>
 
-                    <!-- Slots Game -->
-                    <div class="game-card">
-                        <div class="game-icon-large">🎰</div>
-                        <h3>Lucky Slots</h3>
-                        <p>Spin to win coins and prizes</p>
-                        <div class="game-meta">
-                            <span><i class="fas fa-clock"></i> 1 min</span>
-                            <span><i class="fas fa-coins"></i> 10-1000</span>
-                        </div>
-                        <button class="btn-game-play">Play Now</button>
+                    <!-- Category Filters -->
+                    <div class="shop-categories">
+                        <button class="shop-cat-btn active" data-category="all">All</button>
+                        <button class="shop-cat-btn" data-category="boosters">Boosters</button>
+                        <button class="shop-cat-btn" data-category="avatars">Avatars</button>
+                        <button class="shop-cat-btn" data-category="special">Special</button>
                     </div>
 
-                    <!-- Wheel of Fortune -->
-                    <div class="game-card">
-                        <div class="game-icon-large">🎡</div>
-                        <h3>Prize Wheel</h3>
-                        <p>Spin the wheel for instant rewards</p>
-                        <div class="game-meta">
-                            <span><i class="fas fa-clock"></i> 30 sec</span>
-                            <span><i class="fas fa-coins"></i> 25-750</span>
+                    <!-- Boosters Section -->
+                    <div class="shop-section" data-category="boosters">
+                        <h2 class="section-title"><i class="fas fa-rocket"></i> Power-Up Boosters</h2>
+                        <div class="shop-items-grid">
+                            <!-- Coin Booster 2x -->
+                            <div class="shop-item">
+                                <div class="item-badge">POPULAR</div>
+                                <div class="item-icon">💰</div>
+                                <h3>2x Coin Booster</h3>
+                                <p>Double all coin earnings for 1 hour</p>
+                                <div class="item-price">
+                                    <span class="price-amount">500</span>
+                                    <span class="price-currency">🪙</span>
+                                </div>
+                                <button class="btn-buy" data-item="coin-2x" data-price="500">Buy Now</button>
+                            </div>
+
+                            <!-- 3x Coin Booster -->
+                            <div class="shop-item">
+                                <div class="item-badge gold">ELITE</div>
+                                <div class="item-icon">🤑</div>
+                                <h3>3x Coin Booster</h3>
+                                <p>Triple all coin earnings for 1 hour</p>
+                                <div class="item-price">
+                                    <span class="price-amount">1,200</span>
+                                    <span class="price-currency">🪙</span>
+                                </div>
+                                <button class="btn-buy" data-item="coin-3x" data-price="1200">Buy Now</button>
+                            </div>
+
+                            <!-- XP Booster -->
+                            <div class="shop-item">
+                                <div class="item-icon">📈</div>
+                                <h3>2x XP Booster</h3>
+                                <p>Double experience gains for 2 hours</p>
+                                <div class="item-price">
+                                    <span class="price-amount">400</span>
+                                    <span class="price-currency">🪙</span>
+                                </div>
+                                <button class="btn-buy" data-item="xp-2x" data-price="400">Buy Now</button>
+                            </div>
+
+                            <!-- Streak Shield -->
+                            <div class="shop-item">
+                                <div class="item-icon">🛡️</div>
+                                <h3>Streak Shield</h3>
+                                <p>Protect your win streak from one loss</p>
+                                <div class="item-price">
+                                    <span class="price-amount">600</span>
+                                    <span class="price-currency">🪙</span>
+                                </div>
+                                <button class="btn-buy" data-item="streak-shield" data-price="600">Buy Now</button>
+                            </div>
                         </div>
-                        <button class="btn-game-play">Play Now</button>
                     </div>
 
-                    <!-- Coin Flip -->
-                    <div class="game-card">
-                        <div class="game-icon-large">🪙</div>
-                        <h3>Coin Flip</h3>
-                        <p>Double or nothing - test your luck!</p>
-                        <div class="game-meta">
-                            <span><i class="fas fa-clock"></i> 10 sec</span>
-                            <span><i class="fas fa-coins"></i> 2x Bet</span>
+                    <!-- Avatars Section -->
+                    <div class="shop-section" data-category="avatars">
+                        <h2 class="section-title"><i class="fas fa-user-circle"></i> Exclusive Avatars</h2>
+                        <div class="shop-items-grid">
+                            <div class="shop-item">
+                                <div class="item-icon">👑</div>
+                                <h3>King Chess Piece</h3>
+                                <p>Show them who is the ruler of the lounge</p>
+                                <div class="item-price">
+                                    <span class="price-amount">2,500</span>
+                                    <span class="price-currency">🪙</span>
+                                </div>
+                                <button class="btn-buy" data-item="king-chess" data-price="2500">Buy Now</button>
+                            </div>
+                            <div class="shop-item">
+                                <div class="item-icon">👟</div>
+                                <h3>Jordan 1 Icon</h3>
+                                <p>Classic kicks for the ultimate athlete</p>
+                                <div class="item-price">
+                                    <span class="price-amount">1,500</span>
+                                    <span class="price-currency">🪙</span>
+                                </div>
+                                <button class="btn-buy" data-item="jordan-1" data-price="1500">Buy Now</button>
+                            </div>
+                            <div class="shop-item">
+                                <div class="item-icon">🏀</div>
+                                <h3>Gotrich Baller</h3>
+                                <p>The ultimate flex for basketball fans</p>
+                                <div class="item-price">
+                                    <span class="price-amount">3,000</span>
+                                    <span class="price-currency">🪙</span>
+                                </div>
+                                <button class="btn-buy" data-item="gotrich" data-price="3000">Buy Now</button>
+                            </div>
+                            <div class="shop-item">
+                                <div class="item-icon">🎰</div>
+                                <h3>High Roller</h3>
+                                <p>Animated slots avatar for lucky players</p>
+                                <div class="item-price">
+                                    <span class="price-amount">5,000</span>
+                                    <span class="price-currency">🪙</span>
+                                </div>
+                                <button class="btn-buy" data-item="scrooge" data-price="5000">Buy Now</button>
+                            </div>
                         </div>
-                        <button class="btn-game-play">Play Now</button>
                     </div>
 
-                    <!-- Arcade Basketball -->
-                    <div class="game-card">
-                        <div class="game-badge">🔥 NEW</div>
-                        <div class="game-icon-large">🏀</div>
-                        <h3>Arcade Basketball</h3>
-                        <p>Shoot hoops in this addictive arcade game!</p>
-                        <div class="game-meta">
-                            <span><i class="fas fa-clock"></i> 60 sec</span>
-                            <span><i class="fas fa-coins"></i> 50-1,000</span>
+                    <!-- Special Items Section -->
+                    <div class="shop-section" data-category="special">
+                        <h2 class="section-title"><i class="fas fa-gem"></i> Legendary Artifacts</h2>
+                        <div class="shop-items-grid">
+                            <div class="shop-item">
+                                <div class="item-badge gold">LEGENDARY</div>
+                                <div class="item-icon">💍</div>
+                                <h3>Blue Diamond Ring</h3>
+                                <p>+3% Permanent XP Boost globally</p>
+                                <div class="item-price">
+                                    <span class="price-amount">25,000</span>
+                                    <span class="price-currency">🪙</span>
+                                </div>
+                                <button class="btn-buy" data-item="blue-diamond-ring" data-price="25000">Buy Now</button>
+                            </div>
+                            <div class="shop-item">
+                                <div class="item-badge gold">LEGENDARY</div>
+                                <div class="item-icon">💰</div>
+                                <h3>Golden Diamond Coin</h3>
+                                <p>+5% Permanent Coin Bonus from wins</p>
+                                <div class="item-price">
+                                    <span class="price-amount">50,000</span>
+                                    <span class="price-currency">🪙</span>
+                                </div>
+                                <button class="btn-buy" data-item="golden-coin" data-price="50000">Buy Now</button>
+                            </div>
+                            <div class="shop-item">
+                                <div class="item-icon">💼</div>
+                                <h3>Guccii Duffel</h3>
+                                <p>Exclusive cosmetic carry-all</p>
+                                <div class="item-price">
+                                    <span class="price-amount">10,000</span>
+                                    <span class="price-currency">🪙</span>
+                                </div>
+                                <button class="btn-buy" data-item="guccii-duffel" data-price="10000">Buy Now</button>
+                            </div>
                         </div>
-                        <button class="btn-game-play">Play Now</button>
-                    </div>
-
-                    <!-- Beat the Streak -->
-                    <div class="game-card">
-                        <div class="game-icon-large">📈</div>
-                        <h3>Beat the Streak</h3>
-                        <p>Pick winners daily - build epic win streaks!</p>
-                        <div class="game-meta">
-                            <span><i class="fas fa-clock"></i> Daily</span>
-                            <span><i class="fas fa-fire"></i> Streak: 0</span>
-                        </div>
-                        <button class="btn-game-play">Play Now</button>
                     </div>
 
                 </div>
             </div>
-        </div>
 
-        <!-- ============================================
-             LEADERBOARD TAB
-             ============================================ -->
-        <div class="tab-content" id="leaderboard">
-            <div class="leaderboard-container">
-                
-                <!-- Leaderboard Filters -->
-                <div class="leaderboard-filters">
-                    <button class="filter-btn active" data-filter="today">Today</button>
-                    <button class="filter-btn" data-filter="week">This Week</button>
-                    <button class="filter-btn" data-filter="month">This Month</button>
-                    <button class="filter-btn" data-filter="alltime">All Time</button>
-                </div>
-
-                <!-- Top 3 Podium -->
-                <div class="podium">
-                    <!-- 2nd Place -->
-                    <div class="podium-place podium-2">
-                        <div class="podium-rank">2nd</div>
-                        <div class="podium-avatar">🥈</div>
-                        <div class="podium-name">BetMaster</div>
-                        <div class="podium-score">2,120 pts</div>
-                        <div class="podium-stats">10-3 Record</div>
-                    </div>
-
-                    <!-- 1st Place -->
-                    <div class="podium-place podium-1">
-                        <div class="podium-crown">👑</div>
-                        <div class="podium-rank">1st</div>
-                        <div class="podium-avatar">🏆</div>
-                        <div class="podium-name">ParlayKing</div>
-                        <div class="podium-score">2,450 pts</div>
-                        <div class="podium-stats">12-2 Record • 85% WR</div>
-                    </div>
-
-                    <!-- 3rd Place -->
-                    <div class="podium-place podium-3">
-                        <div class="podium-rank">3rd</div>
-                        <div class="podium-avatar">🥉</div>
-                        <div class="podium-name">SportsFanatic</div>
-                        <div class="podium-score">1,980 pts</div>
-                        <div class="podium-stats">11-4 Record</div>
-                    </div>
-                </div>
-
-                <!-- Full Leaderboard List -->
-                <div class="lounge-card leaderboard-full">
+            <!-- ============================================
+                 INVENTORY TAB
+                 ============================================ -->
+            <div class="tab-content" id="inventory">
+                <div class="lounge-card">
                     <div class="card-header">
-                        <h2><i class="fas fa-ranking-star"></i> Full Rankings</h2>
-                        <div class="search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Find player..." />
-                        </div>
+                        <h2><i class="fas fa-box-open"></i> My Inventory</h2>
+                        <p style="margin: 4px 0 0; color: var(--text-secondary); font-size: 13px;">Your collected items and boosters</p>
                     </div>
-                    <div class="leaderboard-list">
-                        <!-- Top 3 already shown in podium -->
-                        
-                        <!-- Rank 4-20 -->
-                        <div class="leaderboard-item">
-                            <div class="rank-number">4</div>
-                            <div class="player-avatar">🔥</div>
-                            <div class="player-info">
-                                <div class="player-name">HotStreak</div>
-                                <div class="player-stats">9-3 Record • 75% Win Rate</div>
-                            </div>
-                            <div class="player-score">1,850 pts</div>
-                        </div>
-
-                        <div class="leaderboard-item">
-                            <div class="rank-number">5</div>
-                            <div class="player-avatar">⚡</div>
-                            <div class="player-info">
-                                <div class="player-name">QuickPick</div>
-                                <div class="player-stats">8-2 Record • 80% Win Rate</div>
-                            </div>
-                            <div class="player-score">1,720 pts</div>
-                        </div>
-
-                        <div class="leaderboard-item">
-                            <div class="rank-number">6</div>
-                            <div class="player-avatar">💎</div>
-                            <div class="player-info">
-                                <div class="player-name">DiamondHands</div>
-                                <div class="player-stats">10-5 Record • 67% Win Rate</div>
-                            </div>
-                            <div class="player-score">1,650 pts</div>
-                        </div>
-
-                        <div class="leaderboard-item">
-                            <div class="rank-number">7</div>
-                            <div class="player-avatar">🎯</div>
-                            <div class="player-info">
-                                <div class="player-name">Bullseye</div>
-                                <div class="player-stats">7-2 Record • 78% Win Rate</div>
-                            </div>
-                            <div class="player-score">1,580 pts</div>
-                        </div>
-
-                        <div class="leaderboard-item">
-                            <div class="rank-number">8</div>
-                            <div class="player-avatar">🌟</div>
-                            <div class="player-info">
-                                <div class="player-name">StarPlayer</div>
-                                <div class="player-stats">9-4 Record • 69% Win Rate</div>
-                            </div>
-                            <div class="player-score">1,520 pts</div>
-                        </div>
-
-                        <div class="leaderboard-item you">
-                            <div class="rank-number">15</div>
-                            <div class="player-avatar">🎮</div>
-                            <div class="player-info">
-                                <div class="player-name">You (SportsFan2024)</div>
-                                <div class="player-stats">6-2 Record • 75% Win Rate</div>
-                            </div>
-                            <div class="player-score">1,240 pts</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ============================================
-             SHOP TAB
-             ============================================ -->
-        <div class="tab-content" id="shop">
-            <div class="shop-grid">
-                
-                <!-- Shop Header -->
-                <div class="shop-header">
-                    <div>
-                        <h1><i class="fas fa-store"></i> Ultimate Shop</h1>
-                        <p>Level up your game with premium items & power-ups!</p>
-                    </div>
-                    <div class="shop-balance">
-                        <div class="balance-label">Your Balance</div>
-                        <div class="balance-amount"><span class="profile-coins">0</span> 🪙</div>
-                    </div>
-                </div>
-
-                <!-- Shop Categories -->
-                <div class="shop-categories">
-                    <button class="shop-cat-btn active" data-category="all">
-                        <i class="fas fa-th"></i> All Items
-                    </button>
-                    <button class="shop-cat-btn" data-category="coins">
-                        <i class="fas fa-coins"></i> Coin Packages
-                    </button>
-                    <button class="shop-cat-btn" data-category="boosters">
-                        <i class="fas fa-rocket"></i> Boosters
-                    </button>
-                    <button class="shop-cat-btn" data-category="avatars">
-                        <i class="fas fa-user-circle"></i> Avatars
-                    </button>
-                    <button class="shop-cat-btn" data-category="exclusive">
-                        <i class="fas fa-crown"></i> Exclusive
-                    </button>
-                </div>
-
-                <!-- Boosters Section -->
-                <div class="shop-section" data-category="boosters">
-                    <h2 class="section-title"><i class="fas fa-rocket"></i> Power-Up Boosters</h2>
-                    <div class="shop-items-grid">
-                        
-                        <!-- Coin Booster - 2x -->
-                        <div class="shop-item" data-item-id="coin-2x">
-                            <div class="item-badge">POPULAR</div>
-                            <div class="item-icon">💰</div>
-                            <h3>2x Coin Booster</h3>
-                            <p>Double all coin earnings for 1 hour</p>
-                            <div class="item-duration">⏰ Duration: 1 hour</div>
-                            <div class="item-price">
-                                <span class="price-amount">500</span>
-                                <span class="price-currency">🪙</span>
-                            </div>
-                            <button class="btn-buy" onclick="ShopSystem.purchase('coin-2x', 500)">
-                                <i class="fas fa-shopping-cart"></i> Buy Now
-                            </button>
-                        </div>
-
-                        <!-- Coin Booster - 3x -->
-                        <div class="shop-item vip-item" data-item-id="coin-3x">
-                            <div class="item-badge vip-badge">VIP</div>
-                            <div class="item-icon">💎</div>
-                            <h3>3x Coin Booster</h3>
-                            <p>Triple all coin earnings for 1 hour</p>
-                            <div class="item-duration">⏰ Duration: 1 hour</div>
-                            <div class="item-price">
-                                <span class="price-amount">1,200</span>
-                                <span class="price-currency">🪙</span>
-                            </div>
-                            <button class="btn-buy vip-btn" onclick="ShopSystem.purchase('coin-3x', 1200)">
-                                <i class="fas fa-crown"></i> VIP Purchase
-                            </button>
-                        </div>
-
-                        <!-- XP Booster -->
-                        <div class="shop-item" data-item-id="xp-2x">
-                            <div class="item-icon">📈</div>
-                            <h3>2x XP Booster</h3>
-                            <p>Double experience gains for 2 hours</p>
-                            <div class="item-duration">⏰ Duration: 2 hours</div>
-                            <div class="item-price">
-                                <span class="price-amount">400</span>
-                                <span class="price-currency">🪙</span>
-                            </div>
-                            <button class="btn-buy" onclick="ShopSystem.purchase('xp-2x', 400)">
-                                <i class="fas fa-shopping-cart"></i> Buy Now
-                            </button>
-                        </div>
-
-                        <!-- Mega Pack -->
-                        <div class="shop-item pro-item" data-item-id="mega-pack">
-                            <div class="item-badge pro-badge">PRO</div>
-                            <div class="item-icon">🎁</div>
-                            <h3>Mega Booster Pack</h3>
-                            <p>2x Coins + 2x XP for 3 hours</p>
-                            <div class="item-duration">⏰ Duration: 3 hours</div>
-                            <div class="item-price">
-                                <span class="price-amount">800</span>
-                                <span class="price-currency">🪙</span>
-                                <span class="price-discount">Save 15%!</span>
-                            </div>
-                            <button class="btn-buy pro-btn" onclick="ShopSystem.purchase('mega-pack', 800)">
-                                <i class="fas fa-gift"></i> PRO Deal
-                            </button>
-                        </div>
-
-                        <!-- Streak Shield -->
-                        <div class="shop-item" data-item-id="streak-shield">
-                            <div class="item-icon">🛡️</div>
-                            <h3>Streak Shield</h3>
-                            <p>Protect your win streak from one loss</p>
-                            <div class="item-duration">⏰ Single Use</div>
-                            <div class="item-price">
-                                <span class="price-amount">600</span>
-                                <span class="price-currency">🪙</span>
-                            </div>
-                            <button class="btn-buy" onclick="ShopSystem.purchase('streak-shield', 600)">
-                                <i class="fas fa-shopping-cart"></i> Buy Now
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Avatars Section -->
-                <div class="shop-section" data-category="avatars">
-                    <h2 class="section-title"><i class="fas fa-user-circle"></i> Premium Avatars</h2>
-                    <div class="shop-items-grid avatars-grid">
-                        
-                        <!-- PRO Avatars -->
-                        <div class="shop-item avatar-item pro-item" data-item-id="jordan-1">
-                            <div class="item-badge pro-badge">PRO</div>
-                            <img src="https://play.rosebud.ai/assets/Jordan 1 icon.png?xjeN" alt="Jordan 1" class="avatar-preview">
-                            <h3>Jordan 1 Icon</h3>
-                            <p>Legendary sneaker avatar</p>
-                            <div class="item-price">
-                                <span class="price-amount">1,500</span>
-                                <span class="price-currency">🪙</span>
-                            </div>
-                            <button class="btn-buy pro-btn" onclick="ShopSystem.purchaseAvatar('jordan-1', 1500, 'PRO')">
-                                <i class="fas fa-unlock"></i> Unlock PRO
-                            </button>
-                        </div>
-
-                        <div class="shop-item avatar-item pro-item" data-item-id="js-4">
-                            <div class="item-badge pro-badge">PRO</div>
-                            <img src="https://play.rosebud.ai/assets/J's 4 avatar (pro).png?p1Kf" alt="J's 4" class="avatar-preview">
-                            <h3>J's 4 Avatar</h3>
-                            <p>Classic kicks collection</p>
-                            <div class="item-price">
-                                <span class="price-amount">1,500</span>
-                                <span class="price-currency">🪙</span>
-                            </div>
-                            <button class="btn-buy pro-btn" onclick="ShopSystem.purchaseAvatar('js-4', 1500, 'PRO')">
-                                <i class="fas fa-unlock"></i> Unlock PRO
-                            </button>
-                        </div>
-
-                        <div class="shop-item avatar-item pro-item" data-item-id="king-chess">
-                            <div class="item-badge pro-badge">PRO</div>
-                            <img src="https://play.rosebud.ai/assets/King chess (pro).png?DAxj" alt="King Chess" class="avatar-preview">
-                            <h3>King Chess Piece</h3>
-                            <p>Strategic mastermind</p>
-                            <div class="item-price">
-                                <span class="price-amount">1,800</span>
-                                <span class="price-currency">🪙</span>
-                            </div>
-                            <button class="btn-buy pro-btn" onclick="ShopSystem.purchaseAvatar('king-chess', 1800, 'PRO')">
-                                <i class="fas fa-unlock"></i> Unlock PRO
-                            </button>
-                        </div>
-
-                        <div class="shop-item avatar-item pro-item" data-item-id="lucky-charm">
-                            <div class="item-badge pro-badge">PRO</div>
-                            <img src="https://play.rosebud.ai/assets/Lucky charm avatar (pro).png?ekNh" alt="Lucky Charm" class="avatar-preview">
-                            <h3>Lucky Charm</h3>
-                            <p>Fortune favors the bold</p>
-                            <div class="item-price">
-                                <span class="price-amount">2,000</span>
-                                <span class="price-currency">🪙</span>
-                            </div>
-                            <button class="btn-buy pro-btn" onclick="ShopSystem.purchaseAvatar('lucky-charm', 2000, 'PRO')">
-                                <i class="fas fa-unlock"></i> Unlock PRO
-                            </button>
-                        </div>
-
-                        <div class="shop-item avatar-item pro-item" data-item-id="crown">
-                            <div class="item-badge pro-badge">PRO</div>
-                            <img src="https://play.rosebud.ai/assets/Ultimate sports crown 👑 (pro).png?ktnj" alt="Crown" class="avatar-preview">
-                            <h3>Ultimate Crown</h3>
-                            <p>Royalty in the game</p>
-                            <div class="item-price">
-                                <span class="price-amount">2,500</span>
-                                <span class="price-currency">🪙</span>
-                            </div>
-                            <button class="btn-buy pro-btn" onclick="ShopSystem.purchaseAvatar('crown', 2500, 'PRO')">
-                                <i class="fas fa-unlock"></i> Unlock PRO
-                            </button>
-                        </div>
-
-                        <!-- VIP Avatars -->
-                        <div class="shop-item avatar-item vip-item" data-item-id="money-tree">
-                            <div class="item-badge vip-badge">VIP</div>
-                            <img src="https://play.rosebud.ai/assets/Money tree avatar VIP.png?EHQP" alt="Money Tree" class="avatar-preview">
-                            <h3>Money Tree</h3>
-                            <p>Wealth and prosperity</p>
-                            <div class="item-price">
-                                <span class="price-amount">5,000</span>
-                                <span class="price-currency">🪙</span>
-                            </div>
-                            <button class="btn-buy vip-btn" onclick="ShopSystem.purchaseAvatar('money-tree', 5000, 'VIP')">
-                                <i class="fas fa-crown"></i> Unlock VIP
-                            </button>
-                        </div>
-
-                        <div class="shop-item avatar-item vip-item" data-item-id="scrooge">
-                            <div class="item-badge vip-badge">VIP</div>
-                            <img src="https://play.rosebud.ai/assets/Scrooge (VIP).png?up5M" alt="Scrooge" class="avatar-preview">
-                            <h3>Scrooge McDuck</h3>
-                            <p>Swimming in wealth</p>
-                            <div class="item-price">
-                                <span class="price-amount">6,000</span>
-                                <span class="price-currency">🪙</span>
-                            </div>
-                            <button class="btn-buy vip-btn" onclick="ShopSystem.purchaseAvatar('scrooge', 6000, 'VIP')">
-                                <i class="fas fa-crown"></i> Unlock VIP
-                            </button>
-                        </div>
-
-                        <div class="shop-item avatar-item vip-item" data-item-id="game-boys">
-                            <div class="item-badge vip-badge">VIP</div>
-                            <img src="https://play.rosebud.ai/assets/Game boys avatar (VIP).png?Yjjl" alt="Game Boys" class="avatar-preview">
-                            <h3>Game Boys Stack</h3>
-                            <p>Retro gaming legend</p>
-                            <div class="item-price">
-                                <span class="price-amount">7,500</span>
-                                <span class="price-currency">🪙</span>
-                            </div>
-                            <button class="btn-buy vip-btn" onclick="ShopSystem.purchaseAvatar('game-boys', 7500, 'VIP')">
-                                <i class="fas fa-crown"></i> Unlock VIP
-                            </button>
-                        </div>
-
-                        <div class="shop-item avatar-item vip-item" data-item-id="gotrich">
-                            <div class="item-badge vip-badge">VIP</div>
-                            <img src="https://play.rosebud.ai/assets/Gotrich off sports betting avatar (VIP).png?Idcs" alt="Gotrich" class="avatar-preview">
-                            <h3>Gotrich Baller</h3>
-                            <p>Living the dream</p>
-                            <div class="item-price">
-                                <span class="price-amount">8,000</span>
-                                <span class="price-currency">🪙</span>
-                            </div>
-                            <button class="btn-buy vip-btn" onclick="ShopSystem.purchaseAvatar('gotrich', 8000, 'VIP')">
-                                <i class="fas fa-crown"></i> Unlock VIP
-                            </button>
-                        </div>
-
-                        <div class="shop-item avatar-item vip-item" data-item-id="guccii-duffel">
-                            <div class="item-badge vip-badge">VIP</div>
-                            <img src="https://play.rosebud.ai/assets/Guccii duffel avatar (vip).png?7z2L" alt="Guccii Duffel" class="avatar-preview">
-                            <h3>Guccii Duffel</h3>
-                            <p>Ultimate luxury flex</p>
-                            <div class="item-price">
-                                <span class="price-amount">10,000</span>
-                                <span class="price-currency">🪙</span>
-                            </div>
-                            <button class="btn-buy vip-btn" onclick="ShopSystem.purchaseAvatar('guccii-duffel', 10000, 'VIP')">
-                                <i class="fas fa-crown"></i> Unlock VIP
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Exclusive Section -->
-                <div class="shop-section" data-category="exclusive">
-                    <h2 class="section-title"><i class="fas fa-gem"></i> Exclusive Items</h2>
-                    <div class="shop-items-grid">
-                        
-                        <!-- XP Booster Coin -->
-                        <div class="shop-item exclusive-item" data-item-id="xp-booster-coin">
-                            <div class="item-badge exclusive-badge">NEW</div>
-                            <img src="https://play.rosebud.ai/assets/XP booster coin.png?BrOk" alt="XP Booster" class="avatar-preview">
-                            <h3>XP Booster Coin</h3>
-                            <p>Double XP for 1 hour</p>
-                            <div class="item-note">⚡ Temporary 2x XP Boost</div>
-                            <div class="item-price">
-                                <span class="price-amount">5,000</span>
-                                <span class="price-currency">🪙</span>
-                            </div>
-                            <button class="btn-buy exclusive-btn" onclick="ShopSystem.purchase('xp-booster-coin', 5000)">
-                                <i class="fas fa-bolt"></i> Buy Booster
-                            </button>
-                        </div>
-
-                        <!-- Blue Diamond Ring -->
-                        <div class="shop-item exclusive-item" data-item-id="blue-diamond-ring">
-                            <div class="item-badge exclusive-badge">EXCLUSIVE</div>
-                            <img src="https://play.rosebud.ai/assets/Ultimate sports championship diamond ring.png?1Esq" alt="Blue Diamond Ring" class="avatar-preview">
-                            <h3>Blue Diamond Ring</h3>
-                            <p>Flex your wealth with this big diamond ring</p>
-                            <div class="item-note">♾️ +3% Permanent XP Boost</div>
-                            <div class="item-price">
-                                <span class="price-amount">25,000</span>
-                                <span class="price-currency">🪙</span>
-                            </div>
-                            <button class="btn-buy exclusive-btn" onclick="ShopSystem.purchase('blue-diamond-ring', 25000)">
-                                <i class="fas fa-gem"></i> Buy Exclusive
-                            </button>
-                        </div>
-
-                        <!-- Golden Coin -->
-                        <div class="shop-item exclusive-item" data-item-id="golden-coin">
-                            <div class="item-badge exclusive-badge">EXCLUSIVE</div>
-                            <img src="https://play.rosebud.ai/assets/Gold coin with ultimate sports logo in diamonds.png?BD5X" alt="Golden Coin" class="avatar-preview">
-                            <h3>Golden Diamond Coin</h3>
-                            <p>Permanent +5% coin earnings</p>
-                            <div class="item-note">♾️ Permanent Bonus</div>
-                            <div class="item-price">
-                                <span class="price-amount">50,000</span>
-                                <span class="price-currency">🪙</span>
-                            </div>
-                            <button class="btn-buy exclusive-btn" onclick="ShopSystem.purchase('golden-coin', 50000)">
-                                <i class="fas fa-gem"></i> Buy Exclusive
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Coin Packages -->
-                <div class="shop-section" data-category="coins">
-                    <h2 class="section-title"><i class="fas fa-coins"></i> Coin Packages</h2>
-                    <div class="shop-items-grid">
-                        
-                        <!-- Starter Package -->
-                        <div class="shop-item" data-item-id="coins-starter">
-                            <div class="item-badge">STARTER</div>
-                            <img src="https://play.rosebud.ai/assets/1000 ultimate coins.png?FRoU" alt="500 Coins" class="avatar-preview">
-                            <h3>Starter Bundle</h3>
-                            <p>500 Ultimate Coins</p>
-                            <div class="item-price">
-                                <span class="price-amount">$4.99</span>
-                            </div>
-                            <button class="btn-buy" onclick="ShopSystem.purchaseCoins('starter', 500, 4.99)">
-                                <i class="fas fa-shopping-cart"></i> Purchase
-                            </button>
-                        </div>
-
-                        <!-- Small Package -->
-                        <div class="shop-item" data-item-id="coins-small">
-                            <div class="item-badge">+10% BONUS</div>
-                            <img src="https://play.rosebud.ai/assets/1000 ultimate coins.png?FRoU" alt="1000 Coins" class="avatar-preview">
-                            <h3>Small Bundle</h3>
-                            <p>1,000 + 100 Bonus Coins</p>
-                            <div class="item-price">
-                                <span class="price-amount">$9.99</span>
-                            </div>
-                            <button class="btn-buy" onclick="ShopSystem.purchaseCoins('small', 1100, 9.99)">
-                                <i class="fas fa-shopping-cart"></i> Purchase
-                            </button>
-                        </div>
-
-                        <!-- Medium Package -->
-                        <div class="shop-item pro-item" data-item-id="coins-medium">
-                            <div class="item-badge popular-badge">⭐ POPULAR</div>
-                            <img src="https://play.rosebud.ai/assets/1000 ultimate coins.png?FRoU" alt="2500 Coins" class="avatar-preview">
-                            <h3>Medium Bundle</h3>
-                            <p>2,500 + 500 Bonus Coins</p>
-                            <div class="item-price">
-                                <span class="price-amount">$19.99</span>
-                            </div>
-                            <button class="btn-buy pro-btn" onclick="ShopSystem.purchaseCoins('medium', 3000, 19.99)">
-                                <i class="fas fa-shopping-cart"></i> Purchase
-                            </button>
-                        </div>
-
-                        <!-- Large Package -->
-                        <div class="shop-item pro-item" data-item-id="coins-large">
-                            <div class="item-badge">+30% BONUS</div>
-                            <img src="https://play.rosebud.ai/assets/1000 ultimate coins.png?FRoU" alt="5000 Coins" class="avatar-preview">
-                            <h3>Large Bundle</h3>
-                            <p>5,000 + 1,500 Bonus Coins</p>
-                            <div class="item-price">
-                                <span class="price-amount">$39.99</span>
-                            </div>
-                            <button class="btn-buy pro-btn" onclick="ShopSystem.purchaseCoins('large', 6500, 39.99)">
-                                <i class="fas fa-shopping-cart"></i> Purchase
-                            </button>
-                        </div>
-
-                        <!-- Mega Package -->
-                        <div class="shop-item vip-item" data-item-id="coins-mega">
-                            <div class="item-badge vip-badge">+40% BONUS</div>
-                            <img src="https://play.rosebud.ai/assets/1000 ultimate coins.png?FRoU" alt="10000 Coins" class="avatar-preview">
-                            <h3>Mega Bundle</h3>
-                            <p>10,000 + 4,000 Bonus Coins</p>
-                            <div class="item-price">
-                                <span class="price-amount">$69.99</span>
-                            </div>
-                            <button class="btn-buy vip-btn" onclick="ShopSystem.purchaseCoins('mega', 14000, 69.99)">
-                                <i class="fas fa-gem"></i> Purchase
-                            </button>
-                        </div>
-
-                        <!-- Ultimate Package -->
-                        <div class="shop-item vip-item" data-item-id="coins-ultimate">
-                            <div class="item-badge ultimate-badge">🔥 BEST VALUE</div>
-                            <img src="https://play.rosebud.ai/assets/1000 ultimate coins.png?FRoU" alt="25000 Coins" class="avatar-preview">
-                            <h3>Ultimate Bundle</h3>
-                            <p>25,000 + 15,000 Bonus Coins</p>
-                            <div class="item-price">
-                                <span class="price-amount">$149.99</span>
-                            </div>
-                            <button class="btn-buy vip-btn" onclick="ShopSystem.purchaseCoins('ultimate', 40000, 149.99)">
-                                <i class="fas fa-crown"></i> Purchase
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- ============================================
-             TROPHY ROOM TAB
-             ============================================ -->
-        <div class="tab-content" id="trophy-room">
-            <div class="trophy-room-grid">
-                
-                <!-- Achievements Progress -->
-                <div class="lounge-card achievements-progress">
-                    <div class="card-header">
-                        <h2><i class="fas fa-award"></i> Your Progress</h2>
-                        <div class="achievement-score">
-                            <span class="score-value">23</span>
-                            <span class="score-label">/ 50 Achievements</span>
-                        </div>
-                    </div>
-                    <div class="progress-bar-large">
-                        <div class="progress-fill" style="width: 46%"></div>
-                    </div>
-                    <p class="progress-text">46% Complete • 27 more to unlock!</p>
-                </div>
-
-                <!-- Achievements Grid -->
-                <div class="achievements-grid">
                     
-                    <!-- Unlocked Achievements -->
-                    <div class="achievement-card unlocked new">
-                        <div class="achievement-badge">NEW!</div>
-                        <div class="achievement-icon-big">🏆</div>
-                        <h3>First Victory</h3>
-                        <p>Win your first battle</p>
-                        <div class="achievement-date">Unlocked 2 hours ago</div>
-                        <div class="achievement-reward">+100 🪙</div>
-                    </div>
-
-                    <div class="achievement-card unlocked">
-                        <div class="achievement-icon-big">💬</div>
-                        <h3>Social Butterfly</h3>
-                        <p>Send 100 chat messages</p>
-                        <div class="achievement-date">Unlocked 1 day ago</div>
-                        <div class="achievement-reward">+200 🪙</div>
-                    </div>
-
-                    <div class="achievement-card unlocked">
-                        <div class="achievement-icon-big">🔥</div>
-                        <h3>Hot Streak</h3>
-                        <p>Win 5 battles in a row</p>
-                        <div class="achievement-date">Unlocked 2 days ago</div>
-                        <div class="achievement-reward">+300 🪙</div>
-                    </div>
-
-                    <div class="achievement-card unlocked">
-                        <div class="achievement-icon-big">🧠</div>
-                        <h3>Trivia Master</h3>
-                        <p>Answer 100 trivia questions correctly</p>
-                        <div class="achievement-date">Unlocked 3 days ago</div>
-                        <div class="achievement-reward">+250 🪙</div>
-                    </div>
-
-                    <!-- In Progress -->
-                    <div class="achievement-card in-progress">
-                        <div class="achievement-icon-big">⚔️</div>
-                        <h3>Battle Veteran</h3>
-                        <p>Win 50 battles</p>
-                        <div class="achievement-progress-bar">
-                            <div class="progress-fill" style="width: 46%"></div>
-                        </div>
-                        <div class="achievement-progress-text">23 / 50</div>
-                        <div class="achievement-reward">+500 🪙</div>
-                    </div>
-
-                    <div class="achievement-card in-progress">
-                        <div class="achievement-icon-big">💰</div>
-                        <h3>Coin Collector</h3>
-                        <p>Earn 10,000 total coins</p>
-                        <div class="achievement-progress-bar">
-                            <div class="progress-fill" style="width: 65%"></div>
-                        </div>
-                        <div class="achievement-progress-text">6,500 / 10,000</div>
-                        <div class="achievement-reward">+750 🪙</div>
-                    </div>
-
-                    <!-- Locked Achievements -->
-                    <div class="achievement-card locked">
-                        <div class="achievement-icon-big">🔒</div>
-                        <h3>Parlay Legend</h3>
-                        <p>Win 100 battles</p>
-                        <div class="achievement-progress-text">0 / 100</div>
-                        <div class="achievement-reward">+1,000 🪙</div>
-                    </div>
-
-                    <div class="achievement-card locked">
-                        <div class="achievement-icon-big">🔒</div>
-                        <h3>Tournament Champion</h3>
-                        <p>Win a tournament</p>
-                        <div class="achievement-progress-text">0 / 1</div>
-                        <div class="achievement-reward">+2,000 🪙</div>
-                    </div>
-
-                    <div class="achievement-card locked">
-                        <div class="achievement-icon-big">🔒</div>
-                        <h3>Perfect Week</h3>
-                        <p>Win every battle for 7 days straight</p>
-                        <div class="achievement-progress-text">0 / 7 days</div>
-                        <div class="achievement-reward">+5,000 🪙</div>
-                    </div>
-
-                </div>
-
-                <!-- Daily Challenges -->
-                <div class="lounge-card daily-challenges-full">
-                    <div class="card-header">
-                        <h2><i class="fas fa-bullseye"></i> Today's Challenges</h2>
-                        <div class="challenges-timer">
-                            <i class="fas fa-clock"></i>
-                            <span>Resets in 8h 23m</span>
-                        </div>
-                    </div>
-                    <div class="challenges-list">
-                        <div class="challenge-item">
-                            <div class="challenge-icon">⚔️</div>
-                            <div class="challenge-info">
-                                <h4>Win 3 Parlay Battles</h4>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 66%"></div>
-                                </div>
-                                <span class="progress-text">2 / 3 Complete</span>
-                            </div>
-                            <div class="challenge-reward">+500 🪙</div>
-                        </div>
-
-                        <div class="challenge-item">
-                            <div class="challenge-icon">🧠</div>
-                            <div class="challenge-info">
-                                <h4>Answer 50 Trivia Questions</h4>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 32%"></div>
-                                </div>
-                                <span class="progress-text">16 / 50 Complete</span>
-                            </div>
-                            <div class="challenge-reward">+300 🪙</div>
-                        </div>
-
-                        <div class="challenge-item completed">
-                            <div class="challenge-icon">💬</div>
-                            <div class="challenge-info">
-                                <h4>Chat 20 Times in Lounge</h4>
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 100%"></div>
-                                </div>
-                                <span class="progress-text">✓ Complete</span>
-                            </div>
-                            <div class="challenge-reward">+200 🪙</div>
+                    <div id="inventory-content" style="padding: 24px;">
+                        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                            <i class="fas fa-box-open" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
+                            <p>Your inventory is empty</p>
+                            <p style="font-size: 14px;">Purchase items from the Shop to see them here!</p>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
+            <!-- ============================================
+                 TROPHY ROOM TAB
+                 ============================================ -->
+            <div class="tab-content" id="trophy-room">
+                <div class="trophy-case-container">
+                    
+                    <!-- Trophy Case Header -->
+                    <div class="trophy-case-header">
+                        <div class="header-content">
+                            <h1><i class="fas fa-trophy"></i> Trophy Case</h1>
+                            <p>Your championship achievements & tournament victories</p>
+                        </div>
+                        <div class="case-stats">
+                            <div class="stat-item">
+                                <span class="stat-number" id="trophy-count">5</span>
+                                <span class="stat-label">Trophies</span>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="stat-item">
+                                <span class="stat-number" id="ring-count">2</span>
+                                <span class="stat-label">Championship Rings</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trophies Grid -->
+                    <div class="lounge-card trophies-showcase">
+                        <div class="card-header">
+                            <h2><i class="fas fa-trophy"></i> Tournament Trophies</h2>
+                        </div>
+                        <div id="trophies-grid" class="trophies-grid">
+                            <!-- Trophies will be loaded dynamically -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <!-- Scripts -->
-    <script src="sports-lounge.js?v=20250107002"></script>
-    <script src="shop-system.js?v=20250107003"></script>
-    <script src="daily-deals-system.js?v=20250107003"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js" crossorigin="anonymous"></script>
+    <script src="config.js"></script>
+    <script src="global-state-manager.js"></script>
+    <script src="sports-data-service.js"></script>
+    <script src="shop-system.js"></script>
+    <script src="sports-lounge-inventory.js"></script>
+    <script src="sports-lounge-new.js"></script>
+    
 </body>
 </html>

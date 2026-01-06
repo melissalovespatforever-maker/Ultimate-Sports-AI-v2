@@ -1,0 +1,83 @@
+/* GLOBAL SHOUTBOX STYLES */
+
+.global-shoutbox {
+    background: #111827;
+    border-bottom: 1px solid rgba(99, 102, 241, 0.3);
+    height: 36px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    position: sticky;
+    top: 60px; /* Below app bar */
+    z-index: 900;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.shoutbox-label {
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    color: white;
+    height: 100%;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    white-space: nowrap;
+    position: relative;
+    z-index: 2;
+}
+
+.shoutbox-label::after {
+    content: '';
+    position: absolute;
+    right: -10px;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 36px 10px 0 0;
+    border-color: #8b5cf6 transparent transparent transparent;
+}
+
+.shoutbox-content {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding-left: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.shoutbox-ticker {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e5e7eb;
+    white-space: nowrap;
+    transition: all 0.5s ease;
+}
+
+.shoutbox-ticker.fade-out {
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+.shoutbox-ticker.fade-in {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+/* Animations */
+@keyframes slideTicker {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+
+/* For mobile responsiveness */
+@media (max-width: 600px) {
+    .shoutbox-label {
+        padding: 0 10px;
+        font-size: 10px;
+    }
+}

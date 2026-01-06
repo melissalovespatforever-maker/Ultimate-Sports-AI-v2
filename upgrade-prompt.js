@@ -358,8 +358,8 @@ function handleTierSelection(tier) {
     if (typeof appState !== 'undefined' && !appState.isAuthenticated) {
         closeUpgradeModal();
         alert('Please sign in to upgrade your membership.');
-        if (typeof navigation !== 'undefined') {
-            navigation.navigateTo('auth');
+        if (window.appNavigation) {
+            window.appNavigation.navigateTo('auth');
         }
         return;
     }
@@ -382,11 +382,28 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// Alias function for backward compatibility
+function showUpgradePrompt(feature, customMessage) {
+    // Determine required tier based on feature
+    let requiredTier = 'pro';
+    let message = customMessage || 'This feature requires a premium membership.';
+    
+    // Map features to tiers
+    const vipFeatures = ['analytics', 'meeting-room', 'advanced-ai'];
+    if (vipFeatures.includes(feature)) {
+        requiredTier = 'vip';
+    }
+    
+    // Show the upgrade modal
+    showUpgradeModal(requiredTier, message);
+}
+
 console.log('✅ Upgrade Prompt Module Loaded');
 
 // Export functions
 if (typeof window !== 'undefined') {
     window.showUpgradeModal = showUpgradeModal;
+    window.showUpgradePrompt = showUpgradePrompt; // Backward compatibility
     window.closeUpgradeModal = closeUpgradeModal;
     window.handleTierSelection = handleTierSelection;
 }
