@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Coin Bundles | Ultimate Sports AI</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    
+    <!-- PayPal SDK - Production Configuration with Error Handling -->
+    <script>
+        // PayPal SDK Error Handler with improved reliability
+        window.paypalLoadAttempts = 0;
+        window.paypalMaxAttempts = 3;
+        window.paypalSDKLoaded = false;
+        
+        function loadPayPalSDK() {
+            return new Promise((resolve, reject) => {
+                // Check if already loaded
+                if (window.paypal && window.paypal.Buttons) {
+                    console.log('✅ PayPal SDK already loaded');
+                    window.paypalSDKLoaded = true;
+                    resolve();
+                    return;
+                }
+                
+                // Remove any existing PayPal script tags
+                const existingScripts = document.querySelectorAll('script[src*="paypal.com"]');
+                existingScripts.forEach(s => s.remove());
+                
+                const script = document.createElement('script');
+                script.src = 'https://www.paypal.com/sdk/js?client-id=AY8wzPPT8jprCoc4NhICcYnBXBUFCGP0Fy0NL6eCz94UtfcSugDU8e991IPOwZtYYC1VxqyZ4-fD5MGOv&currency=USD&intent=capture&disable-funding=credit,card';
+                script.async = true;
+                script.setAttribute('data-sdk-integration-source', 'button-factory');
+                
+                let loadTimeout = setTimeout(() => {
+                    console.error('❌ PayPal SDK load timeout');
+                    script.onerror();
+                }, 15000); // 15 second timeout
+                
+                script.onload = () => {
+                    clearTimeout(loadTimeout);
+                    // Wait a bit for PayPal to fully initialize
+                    setTimeout(() => {
+                        if (window.paypal && window.paypal.Buttons) {
+                            console.log('✅ PayPal SDK loaded and verified successfully');
+                            window.paypalSDKLoaded = true;
+                            resolve();
+                        } else {
+                            console.error('❌ PayPal SDK loaded but API not available');
+                            script.onerror();
+                        }
+                    }, 500);
+                };
+                
+                script.onerror = () => {
+                    clearTimeout(loadTimeout);
+                    window.paypalLoadAttempts++;
+                    console.error(`❌ PayPal SDK failed to load (attempt ${window.paypalLoadAttempts}/${window.paypalMaxAttempts})`);
+                    
+                    if (window.paypalLoadAttempts < window.paypalMaxAttempts) {
+                        console.log('🔄 Retrying PayPal SDK load in 3 seconds...');
+                        script.remove(); // Clean up failed script
+                        setTimeout(() => {
+                            loadPayPalSDK().then(resolve).catch(reject);
+                        }, 3000);
+                    } else {
+                        reject(new Error('PayPal SDK failed to load after multiple attempts'));
+                    }
+                };
+                
+                document.head.appendChild(script);
+            });
+        }
+        
+        // Load PayPal SDK with error handling
+        loadPayPalSDK().catch(error => {
+            console.error('💥 PayPal SDK Error:', error);
+            window.paypalSDKLoaded = false;
+            
+            // Show user-friendly error
+            document.addEventListener('DOMContentLoaded', () => {
+                const errorDiv = document.createElement('div');
+                errorDiv.id = 'paypal-error-banner';
+                errorDiv.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 16px 24px; border-radius: 12px; z-index: 10000; box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-width: 90%; text-align: center;';
+                errorDiv.innerHTML = `
+                    <strong>⚠️ Payment System Error</strong><br>
+                    <small>PayPal SDK failed to load. This might be due to network issues or ad blockers.</small><br>
+                    <button onclick="location.reload()" style="margin-top: 12px; background: white; color: #ef4444; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">🔄 Refresh Page</button>
+                    <button onclick="document.getElementById('paypal-error-banner').remove()" style="margin-top: 12px; margin-left: 8px; background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Dismiss</button>
+                `;
+                document.body.appendChild(errorDiv);
+            });
+        });
+    </script>
+    
+    <!-- Confetti for celebration effects -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .bundles-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .bundles-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .bundles-header h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+
+        .bundles-header p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .bundles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+            margin-bottom: 48px;
+        }
+
+        .bundle-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bundle-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .bundle-card:hover {
+            transform: translateY(-8px);
+            border-color: #fbbf24;
+            box-shadow: 0 20px 60px rgba(251, 191, 36, 0.3);
+        }
+
+        .bundle-card:hover::before {
+            opacity: 1;
+        }
+
+        .bundle-card.featured {
+            border-color: #fbbf24;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%);
+        }
+
+        .bundle-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            z-index: 1;
+        }
+
+        .bundle-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .bundle-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .bundle-coins {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #fbbf24;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .bundle-bonus {
+            font-size: 0.9rem;
+            color: #10b981;
+            font-weight: 600;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .bundle-price {
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .bundle-buy-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border: none;
+            color: white;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .bundle-buy-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5);
+        }
+
+        .bundle-buy-btn:active {
+            transform: scale(0.98);
+        }
+
+        .featured .bundle-buy-btn {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #0f172a;
+        }
+
+        .paypal-button-container {
+            margin-top: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .security-badge {
+            text-align: center;
+            padding: 32px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            margin-top: 48px;
+        }
+
+        .security-badge h3 {
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            color: #10b981;
+        }
+
+        .security-features {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+
+        .security-feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .security-feature i {
+            color: #10b981;
+            font-size: 1.2rem;
+        }
+
+        @media (max-width: 768px) {
+            .bundles-header h1 {
+                font-size: 2rem;
+            }
+
+            .bundles-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bundles-container">
+        <div class="bundles-header">
+            <h1>💰 Ultimate Coin Bundles</h1>
+            <p>Power up your betting experience with instant coin top-ups</p>
+        </div>
+
+        <div class="bundles-grid" id="bundles-grid">
+            <!-- Bundles will be loaded here -->
+        </div>
+
+        <div class="security-badge">
+            <h3><i class="fas fa-shield-alt"></i> Secure Payment Guaranteed</h3>
+            <div class="security-features">
+                <div class="security-feature">
+                    <i class="fas fa-lock"></i>
+                    <span>256-bit SSL Encryption</span>
+                </div>
+                <div class="security-feature">
+                    <i class="fab fa-paypal"></i>
+                    <span>PayPal Buyer Protection</span>
+                </div>
+                <div class="security-feature">
+                    <i class="fas fa-bolt"></i>
+                    <span>Instant Delivery</span>
+                </div>
+                <div class="security-feature">
+                    <i class="fas fa-undo"></i>
+                    <span>Money-Back Guarantee</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { logger } from './logger.js';
+        import { creditCoinsAfterPurchase, showPurchaseSuccess } from './paypal-config.js';
+
+        const COIN_BUNDLES = [
+            {
+                id: 'starter',
+                name: 'Starter Pack',
+                icon: '🪙',
+                coins: 10000,
+                bonus: 0,
+                price: 4.99,
+                popular: false
+            },
+            {
+                id: 'pro',
+                name: 'Pro Pack',
+                icon: '💎',
+                coins: 25000,
+                bonus: 2500,
+                price: 9.99,
+                popular: true
+            },
+            {
+                id: 'elite',
+                name: 'Elite Pack',
+                icon: '🏆',
+                coins: 50000,
+                bonus: 7500,
+                price: 19.99,
+                popular: false
+            },
+            {
+                id: 'ultimate',
+                name: 'Ultimate Pack',
+                icon: '👑',
+                coins: 100000,
+                bonus: 20000,
+                price: 34.99,
+                popular: false
+            },
+            {
+                id: 'mega',
+                name: 'Mega Pack',
+                icon: '💰',
+                coins: 250000,
+                bonus: 62500,
+                price: 74.99,
+                popular: false
+            },
+            {
+                id: 'legend',
+                name: 'Legend Pack',
+                icon: '🔥',
+                coins: 500000,
+                bonus: 150000,
+                price: 129.99,
+                popular: false
+            }
+        ];
+
+        function renderBundles() {
+            const grid = document.getElementById('bundles-grid');
+            
+            grid.innerHTML = COIN_BUNDLES.map(bundle => {
+                const totalCoins = bundle.coins + bundle.bonus;
+                const bonusText = bundle.bonus > 0 ? `+${bundle.bonus.toLocaleString()} BONUS!` : 'Great Value';
+                
+                return `
+                    <div class="bundle-card ${bundle.popular ? 'featured' : ''}" data-bundle-id="${bundle.id}">
+                        ${bundle.popular ? '<div class="bundle-badge">BEST VALUE</div>' : ''}
+                        <div class="bundle-icon">${bundle.icon}</div>
+                        <div class="bundle-name">${bundle.name}</div>
+                        <div class="bundle-coins">${totalCoins.toLocaleString()}</div>
+                        <div class="bundle-bonus">${bonusText}</div>
+                        <div class="bundle-price">$${bundle.price.toFixed(2)}</div>
+                        <button class="bundle-buy-btn" onclick="window.handleBundlePurchase('${bundle.id}', ${bundle.price}, ${totalCoins})">
+                            <i class="fas fa-shopping-cart"></i> Buy Now
+                        </button>
+                        <div class="paypal-button-container" id="paypal-button-${bundle.id}" style="margin-top: 12px;"></div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.initPayPalForBundle = function(bundleId, price) {
+            const bundle = COIN_BUNDLES.find(b => b.id === bundleId);
+            if (!bundle) return;
+
+            const container = document.getElementById(`paypal-button-${bundleId}`);
+            container.innerHTML = ''; // Clear existing buttons
+
+            paypal.Buttons({
+                style: {
+                    layout: 'horizontal',
+                    color: 'gold',
+                    shape: 'rect',
+                    label: 'paypal'
+                },
+                createOrder: function(data, actions) {
+                    return actions.order.create({
+                        purchase_units: [{
+                            description: `${bundle.name} - ${(bundle.coins + bundle.bonus).toLocaleString()} Coins`,
+                            amount: {
+                                value: price.toFixed(2)
+                            }
+                        }]
+                    });
+                },
+                onApprove: function(data, actions) {
+                    return actions.order.capture().then(function(details) {
+                        logger.info('PayPal', 'Payment completed:', details);
+                        
+                        // Log Transaction
+                        import('./transaction-manager.js').then(module => {
+                            module.transactionManager.logTransaction({
+                                type: 'COIN_PURCHASE',
+                                amount: parseFloat(details.purchase_units[0].amount.value),
+                                item: `${bundle.name} (${(bundle.coins + bundle.bonus).toLocaleString()} Coins)`,
+                                metadata: { paypalOrderId: data.orderID, paypalCaptureId: details.id }
+                            });
+                        });
+                        
+                        // Credit the coins with transaction ID
+                        const totalCoins = bundle.coins + bundle.bonus;
+                        const transactionId = details.id || data.orderID;
+                        
+                        const success = creditCoinsAfterPurchase(totalCoins, bundle.name, transactionId);
+                        
+                        if (success) {
+                            // Show success with confetti
+                            showPurchaseSuccess(totalCoins, bundle.name);
+                            
+                            // Notify parent window if in iframe
+                            if (window.opener) {
+                                window.opener.postMessage({
+                                    action: 'coins_purchased',
+                                    coins: totalCoins,
+                                    bundle: bundle.name
+                                }, '*');
+                            }
+                        } else {
+                            alert('Payment completed but there was an error crediting coins. Please contact support with transaction ID: ' + transactionId);
+                        }
+                    });
+                },
+                onError: function(err) {
+                    logger.error('PayPal', 'Payment error:', err);
+                    alert('Payment failed. Please try again.');
+                }
+            }).render(`#paypal-button-${bundleId}`);
+        };
+
+        // Handle bundle purchase - shows PayPal or demo mode
+        window.handleBundlePurchase = function(bundleId, price, totalCoins) {
+            const bundle = COIN_BUNDLES.find(b => b.id === bundleId);
+            if (!bundle) return;
+
+            // Initialize PayPal payment
+            if (typeof paypal !== 'undefined') {
+                window.initPayPalForBundle(bundleId, price);
+            } else {
+                console.error('PayPal SDK failed to load');
+                alert('Payment system unavailable. Please refresh and try again.');
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderBundles();
+            
+            // Verify PayPal SDK loaded
+            if (typeof paypal === 'undefined') {
+                console.error('PayPal SDK failed to load');
+            } else {
+                console.log('✅ PayPal SDK loaded successfully');
+            }
+        });
+    </script>
+</body>
+</html>

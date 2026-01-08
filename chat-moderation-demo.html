@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Moderation System - Demo</title>
+    <link rel="stylesheet" href="chat-moderation-styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f3460 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .demo-header h1 {
+            font-size: 36px;
+            color: #FFD700;
+            margin-bottom: 12px;
+        }
+
+        .demo-header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .demo-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .demo-card h3 {
+            color: #FFD700;
+            margin-bottom: 16px;
+            font-size: 20px;
+        }
+
+        .demo-input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .demo-input:focus {
+            outline: none;
+            border-color: #FFD700;
+        }
+
+        .demo-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            border: none;
+            border-radius: 8px;
+            color: #1a1a2e;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .demo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+        }
+
+        .result-box {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            min-height: 100px;
+        }
+
+        .result-box pre {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🛡️ Chat Moderation System</h1>
+            <p>Real-time filtering, spam detection, and comprehensive admin controls</p>
+        </div>
+
+        <div class="demo-grid">
+            <div class="demo-card">
+                <h3>📝 Test Message Filter</h3>
+                <input 
+                    type="text" 
+                    id="test-message" 
+                    class="demo-input" 
+                    placeholder="Type a message to test filters..."
+                    value="Check out this badword1 and visit https://example.com"
+                >
+                <button class="demo-btn" onclick="testMessage()">🔍 Test Filter</button>
+                <div class="result-box" id="filter-result">
+                    <pre>Results will appear here...</pre>
+                </div>
+            </div>
+
+            <div class="demo-card">
+                <h3>🎯 Features</h3>
+                <ul class="feature-list">
+                    <li>Profanity filtering with customizable word list</li>
+                    <li>Spam detection (rate limiting, duplicates)</li>
+                    <li>URL filtering with domain whitelist</li>
+                    <li>Caps lock & repeated character detection</li>
+                    <li>Personal info filtering (emails, phones)</li>
+                    <li>Auto-mute after warnings threshold</li>
+                    <li>User muting & banning system</li>
+                    <li>Warning system with history</li>
+                    <li>Admin & moderator roles</li>
+                    <li>Real-time statistics</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="demo-card">
+            <h3>🎮 Try It Out</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                <button class="demo-btn" onclick="openModerationPanel()">🛡️ Open Moderation Panel</button>
+                <button class="demo-btn" onclick="testProfanity()">🤬 Test Profanity Filter</button>
+                <button class="demo-btn" onclick="testSpam()">⚡ Test Spam Detection</button>
+                <button class="demo-btn" onclick="testLinks()">🔗 Test Link Filter</button>
+                <button class="demo-btn" onclick="showStats()">📊 View Stats</button>
+            </div>
+        </div>
+
+        <div class="demo-card">
+            <h3>📚 Quick Start Guide</h3>
+            <pre style="color: rgba(255, 255, 255, 0.8); font-size: 13px; line-height: 1.6;">
+// 1. Import the moderation system
+import './chat-moderation-system.js';
+import './chat-moderation-panel.js';
+
+// 2. Validate messages before sending
+const userId = 'user123';
+const username = 'JohnDoe';
+const message = 'Hello world!';
+
+const result = window.chatModeration.validateMessage(message, userId, username);
+
+if (result.allowed) {
+    // Send the filtered message
+    sendToChat(result.message);
+} else {
+    // Show error to user
+    showError(result.reason);
+}
+
+// 3. Open moderation panel (admin/moderator only)
+window.moderationPanel.open();
+
+// 4. Listen to moderation events
+window.addEventListener('userMuted', (e) => {
+    console.log('User muted:', e.detail);
+});
+            </pre>
+        </div>
+    </div>
+
+    <!-- Load moderation system -->
+    <script type="module">
+        import './chat-moderation-system.js';
+        import './chat-moderation-panel.js';
+
+        // Test functions
+        window.testMessage = function() {
+            const message = document.getElementById('test-message').value;
+            const userId = 'demo-user';
+            const username = 'DemoUser';
+            
+            const result = window.chatModeration.validateMessage(message, userId, username);
+            
+            document.getElementById('filter-result').innerHTML = `
+                <pre>${JSON.stringify(result, null, 2)}</pre>
+            `;
+        };
+
+        window.openModerationPanel = function() {
+            window.moderationPanel.open();
+        };
+
+        window.testProfanity = function() {
+            const testMessages = [
+                'This is a clean message',
+                'This has badword1 in it',
+                'Multiple badword1 and badword2 here',
+                'L33t speak: b@dw0rd1'
+            ];
+            
+            let results = 'Profanity Filter Tests:\n\n';
+            testMessages.forEach((msg, i) => {
+                const result = window.chatModeration.filterProfanity(msg);
+                results += `Test ${i + 1}: "${msg}"\n`;
+                results += `Filtered: "${result.message}"\n`;
+                results += `Detected: ${result.filtered ? 'Yes' : 'No'}\n\n`;
+            });
+            
+            alert(results);
+        };
+
+        window.testSpam = function() {
+            const userId = 'spam-tester';
+            const username = 'SpamTester';
+            
+            // Simulate rapid messages
+            for (let i = 0; i < 12; i++) {
+                const result = window.chatModeration.validateMessage('Test message', userId, username);
+                if (!result.allowed) {
+                    alert(`Spam detected after ${i} messages!\nReason: ${result.reason}`);
+                    return;
+                }
+            }
+            
+            alert('Spam test completed - 12 messages sent without blocking (threshold: 10/min)');
+        };
+
+        window.testLinks = function() {
+            const testMessages = [
+                'Check out https://youtube.com/watch?v=123',
+                'Visit https://suspicious-site.com for prizes',
+                'Multiple links: https://example.com and https://test.com',
+                'Safe link: https://espn.com/nfl'
+            ];
+            
+            let results = 'Link Filter Tests:\n\n';
+            testMessages.forEach((msg, i) => {
+                const result = window.chatModeration.filterLinks(msg);
+                results += `Test ${i + 1}: "${msg}"\n`;
+                results += `Allowed: ${result.allowed ? 'Yes' : 'No'}\n`;
+                results += `Filtered: "${result.message}"\n\n`;
+            });
+            
+            alert(results);
+        };
+
+        window.showStats = function() {
+            const stats = window.chatModeration.getStats();
+            const statsText = `
+Moderation Statistics:
+
+📊 Muted Users: ${stats.mutedUsers}
+🚫 Banned Users: ${stats.bannedUsers}
+⚠️ Total Warnings: ${stats.totalWarnings}
+👥 Users with Warnings: ${stats.usersWithWarnings}
+🛡️ Moderators: ${stats.moderators}
+👑 Admins: ${stats.admins}
+            `;
+            alert(statsText);
+        };
+
+        // Auto-test on load
+        console.log('✅ Chat Moderation System loaded and ready!');
+        console.log('📝 Try the demo above or open the moderation panel');
+    </script>
+</body>
+</html>

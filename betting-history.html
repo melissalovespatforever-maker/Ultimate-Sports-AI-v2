@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betting History - Ultimate Sports AI</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="betting-history.css">
+</head>
+<body>
+    <div class="betting-history-container">
+        <!-- Header -->
+        <header class="history-header">
+            <div class="header-left">
+                <button class="btn-back" onclick="window.close()">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div>
+                    <h1><i class="fas fa-history"></i> Betting History</h1>
+                    <p class="subtitle">Track all your bets, wins, and performance</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-export" id="export-btn">
+                    <i class="fas fa-download"></i>
+                    <span>Export</span>
+                </button>
+                <button class="btn-refresh" id="refresh-btn">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Statistics Dashboard -->
+        <section class="stats-dashboard">
+            <div class="stat-card stat-total">
+                <div class="stat-icon">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="total-bets">0</div>
+                    <div class="stat-label">Total Bets</div>
+                </div>
+            </div>
+
+            <div class="stat-card stat-pending">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="pending-bets">0</div>
+                    <div class="stat-label">Pending</div>
+                    <div class="stat-sublabel" id="pending-amount">0 coins at risk</div>
+                </div>
+            </div>
+
+            <div class="stat-card stat-won">
+                <div class="stat-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="won-bets">0</div>
+                    <div class="stat-label">Won</div>
+                    <div class="stat-sublabel" id="win-rate">0% Win Rate</div>
+                </div>
+            </div>
+
+            <div class="stat-card stat-lost">
+                <div class="stat-icon">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="lost-bets">0</div>
+                    <div class="stat-label">Lost</div>
+                </div>
+            </div>
+
+            <div class="stat-card stat-profit">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="profit-amount">0</div>
+                    <div class="stat-label">Net Profit</div>
+                    <div class="stat-sublabel" id="roi">0% ROI</div>
+                </div>
+            </div>
+
+            <div class="stat-card stat-live">
+                <div class="stat-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="stat-content">
+                    <div class="stat-value" id="live-bets">0</div>
+                    <div class="stat-label">Live Bets</div>
+                    <div class="stat-sublabel">Active tracking</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Filters & Search -->
+        <section class="filters-section">
+            <div class="filter-group">
+                <button class="filter-btn active" data-filter="all">
+                    <i class="fas fa-layer-group"></i> All Bets
+                </button>
+                <button class="filter-btn" data-filter="live">
+                    <i class="fas fa-bolt"></i> Live Bets
+                </button>
+                <button class="filter-btn" data-filter="pending">
+                    <i class="fas fa-clock"></i> Pending
+                </button>
+                <button class="filter-btn" data-filter="won">
+                    <i class="fas fa-trophy"></i> Won
+                </button>
+                <button class="filter-btn" data-filter="lost">
+                    <i class="fas fa-times-circle"></i> Lost
+                </button>
+            </div>
+
+            <div class="search-sort-group">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Search bets...">
+                </div>
+                <select class="sort-select" id="sort-select">
+                    <option value="date-desc">Newest First</option>
+                    <option value="date-asc">Oldest First</option>
+                    <option value="stake-desc">Highest Stake</option>
+                    <option value="stake-asc">Lowest Stake</option>
+                    <option value="payout-desc">Highest Payout</option>
+                    <option value="payout-asc">Lowest Payout</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Betting History List -->
+        <section class="history-list-section">
+            <div id="bets-list" class="bets-list">
+                <!-- Bets will be dynamically loaded here -->
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Loading your betting history...</p>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="pagination">
+                <!-- Pagination buttons will be added dynamically -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Bet Details Modal -->
+    <div class="modal" id="bet-details-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-info-circle"></i> Bet Details</h2>
+                <button class="btn-close" onclick="document.getElementById('bet-details-modal').classList.remove('active')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="bet-details-content">
+                <!-- Details will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal" id="export-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-download"></i> Export Betting History</h2>
+                <button class="btn-close" onclick="document.getElementById('export-modal').classList.remove('active')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="export-options">
+                    <div class="export-option" onclick="window.bettingHistory.exportData('csv')">
+                        <i class="fas fa-file-csv"></i>
+                        <span>CSV</span>
+                        <small>Excel compatible</small>
+                    </div>
+                    <div class="export-option" onclick="window.bettingHistory.exportData('json')">
+                        <i class="fas fa-file-code"></i>
+                        <span>JSON</span>
+                        <small>Raw data format</small>
+                    </div>
+                    <div class="export-option" onclick="window.bettingHistory.exportData('pdf')">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>PDF</span>
+                        <small>Printable report</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="global-state-manager.js"></script>
+    <script src="betting-history.js"></script>
+</body>
+</html>

@@ -78,7 +78,11 @@ class DailySummaryCard {
             this.calculateAndRender(transactions);
 
         } catch (error) {
-            console.error('Error refreshing daily summary:', error);
+            if (error.message && error.message.includes('500')) {
+                console.warn('⚠️ Backend history unavailable (500) - using local cache');
+            } else {
+                console.error('Error refreshing daily summary:', error);
+            }
             // Fallback: use local data if network is down
             const transactions = this.getLocalTransactionsFallback();
             this.calculateAndRender(transactions);

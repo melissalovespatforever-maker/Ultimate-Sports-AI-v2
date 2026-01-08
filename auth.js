@@ -126,126 +126,76 @@ class AuthFormHandler {
     }
 
     setupFormToggle() {
-        console.log('🔄 setupFormToggle called at', new Date().toISOString());
-        
         // Don't reinit if already setup (prevents duplicate listeners)
-        if (this.toggleSetup) {
-            console.log('⏭️ Toggle already setup, skipping...');
-            return;
-        }
+        if (this.toggleSetup) return;
         
         const showSignupBtn = document.getElementById('show-signup');
         const showLoginBtn = document.getElementById('show-login');
         const forgotPasswordLink = document.getElementById('forgot-password-link');
 
-        console.log('🔄 Form toggle elements:', { 
-            showSignupBtn: !!showSignupBtn, 
-            showLoginBtn: !!showLoginBtn, 
-            forgotPasswordLink: !!forgotPasswordLink
-        });
-
         if (showSignupBtn) {
             showSignupBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('✅ SIGN UP CLICKED - Switching to signup form');
                 this.toggleForms('signup');
             });
-            console.log('✅ Sign up button listener attached');
         }
 
         if (showLoginBtn) {
             showLoginBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('✅ SIGN IN CLICKED - Switching to login form');
                 this.toggleForms('login');
             });
-            console.log('✅ Sign in button listener attached');
         }
 
         if (forgotPasswordLink) {
             forgotPasswordLink.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('🔐 FORGOT PASSWORD CLICKED - Opening password reset flow');
                 if (typeof window.openPasswordReset === 'function') {
                     window.openPasswordReset();
-                } else {
-                    console.error('❌ window.openPasswordReset not found!');
                 }
             });
-            console.log('✅ Forgot password link listener attached');
         }
         
         this.toggleSetup = true;
     }
 
     toggleForms(formType) {
-        console.log('🔄 toggleForms called with:', formType);
-        
         const loginForm = document.getElementById('login-form');
         const signupForm = document.getElementById('signup-form');
 
-        console.log('📋 Current state:', { 
-            loginFormExists: !!loginForm, 
-            signupFormExists: !!signupForm,
-            loginFormDisplay: loginForm?.style.display,
-            signupFormDisplay: signupForm?.style.display
-        });
-
-        if (!loginForm || !signupForm) {
-            console.error('❌ Form elements not found!');
-            return;
-        }
+        if (!loginForm || !signupForm) return;
 
         if (formType === 'signup') {
-            console.log('➡️ Switching to SIGNUP form...');
             loginForm.style.display = 'none';
             signupForm.style.display = 'block';
-            console.log('✅ Signup form visible, login form hidden');
-            
             setTimeout(() => {
                 document.getElementById('signup-username')?.focus();
             }, 100);
         } else {
-            console.log('➡️ Switching to LOGIN form...');
             signupForm.style.display = 'none';
             loginForm.style.display = 'block';
-            console.log('✅ Login form visible, signup form hidden');
-            
             setTimeout(() => {
                 document.getElementById('login-email')?.focus();
             }, 100);
         }
-        
-        // Double-check after a moment
-        setTimeout(() => {
-            console.log('🔍 Verifying form states:', {
-                loginDisplay: document.getElementById('login-form')?.style.display,
-                signupDisplay: document.getElementById('signup-form')?.style.display
-            });
-        }, 150);
     }
 
     async handleLoginSubmit(e) {
         e.preventDefault();
-        console.log('🔐 Login form submitted');
 
         const email = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-password').value;
 
-        console.log('📊 Login attempt:', { email, passwordLength: password.length });
-
         // Validate
         if (!FormValidator.validateEmail(email)) {
-            console.warn('⚠️ Invalid email format');
             showToast('Please enter a valid email', 'error');
             return;
         }
 
         if (!FormValidator.validatePassword(password)) {
-            console.warn('⚠️ Password too short');
             showToast('Password must be at least 8 characters', 'error');
             return;
         }
@@ -258,50 +208,37 @@ class AuthFormHandler {
         this.setFormSubmitting(false, 'login-form-element');
 
         if (success) {
-            console.log('✅ Login successful, navigating to home...');
             // Wait a moment for state update, then navigate
             setTimeout(() => {
                 if (window.appNavigation) {
                     window.appNavigation.navigateTo('home');
-                } else {
-                    console.error('❌ Navigation system not ready');
                 }
             }, 500);
-        } else {
-            console.warn('❌ Login failed');
         }
     }
 
     async handleSignupSubmit(e) {
         e.preventDefault();
-        console.log('📝 Signup form submitted');
 
         const username = document.getElementById('signup-username').value.trim();
         const email = document.getElementById('signup-email').value.trim();
         const password = document.getElementById('signup-password').value;
 
-        console.log('📊 Form data:', { username, email, passwordLength: password.length });
-
         // Validate
         if (!FormValidator.validateName(username)) {
-            console.warn('⚠️ Invalid username');
             showToast('Username must be at least 3 characters (letters & numbers only)', 'error');
             return;
         }
 
         if (!FormValidator.validateEmail(email)) {
-            console.warn('⚠️ Invalid email');
             showToast('Please enter a valid email', 'error');
             return;
         }
 
         if (!FormValidator.validatePassword(password)) {
-            console.warn('⚠️ Invalid password');
             showToast('Password must be at least 8 characters', 'error');
             return;
         }
-
-        console.log('✅ Validation passed, submitting to API...');
 
         // Submit
         this.setFormSubmitting(true, 'signup-form-element');
@@ -318,8 +255,6 @@ class AuthFormHandler {
             setTimeout(() => {
                 if (window.appNavigation) {
                     window.appNavigation.navigateTo('home');
-                } else {
-                    console.error('❌ Navigation system not ready');
                 }
             }, 500);
         }

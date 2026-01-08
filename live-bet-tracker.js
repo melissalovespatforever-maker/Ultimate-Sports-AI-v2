@@ -3,7 +3,9 @@
 // Real-time bet monitoring with auto-grading
 // ============================================
 
-console.log('🎯 Loading Live Bet Tracker');
+import { logger } from './logger.js';
+
+logger.info('Live Bet Tracker', 'Loading');
 
 class LiveBetTracker {
     constructor(apiBaseUrl = '/api') {
@@ -23,7 +25,7 @@ class LiveBetTracker {
     // ============================================
 
     async init() {
-        console.log('🎯 Initializing Live Bet Tracker');
+        logger.info('Live Bet Tracker', 'Initializing');
         
         try {
             // Load user's bets
@@ -35,9 +37,9 @@ class LiveBetTracker {
             // Update stats display every 5 seconds
             setInterval(() => this.updateStatsDisplay(), 5000);
             
-            console.log(`✅ Live Bet Tracker ready (${this.bets.length} bets)`);
+            logger.info('Live Bet Tracker', `Ready (${this.bets.length} bets)`);
         } catch (error) {
-            console.error('❌ Failed to initialize tracker:', error);
+            logger.error('Live Bet Tracker', `Failed to initialize: ${error.message}`);
         }
     }
 
@@ -62,7 +64,7 @@ class LiveBetTracker {
             this.bets = data.bets || [];
             this.stats = data.stats || {};
 
-            console.log(`📊 Loaded ${this.bets.length} bets, stats:`, this.stats);
+            logger.debug('Live Bet Tracker', `Loaded ${this.bets.length} bets`);
             this.renderBets();
             
             return this.bets;
@@ -91,7 +93,7 @@ class LiveBetTracker {
             const data = await response.json();
             this.bets.unshift(data.bet);
             
-            console.log('✅ Bet created:', data.bet);
+            logger.debug('Live Bet Tracker', 'Bet created');
             this.showNotification('✅ Bet tracked!', `${betData.pick} on ${betData.match}`);
             this.renderBets();
             
@@ -118,7 +120,7 @@ class LiveBetTracker {
             if (!response.ok) throw new Error('Failed to delete bet');
 
             this.bets = this.bets.filter(b => b.id !== betId);
-            console.log('🗑️ Bet deleted:', betId);
+            logger.debug('Live Bet Tracker', `Bet deleted: ${betId}`);
             this.renderBets();
             
             return true;
@@ -139,7 +141,7 @@ class LiveBetTracker {
         if (this.isTracking) return;
         
         this.isTracking = true;
-        console.log('🎯 Starting live bet tracking');
+        logger.info('Live Bet Tracker', 'Starting live tracking');
         
         // Check for updates every 30 seconds
         this.scoreCheckInterval = setInterval(() => this.checkPendingBets(), this.refreshInterval);
@@ -157,7 +159,7 @@ class LiveBetTracker {
             this.scoreCheckInterval = null;
         }
         this.isTracking = false;
-        console.log('⏹️ Stopped live bet tracking');
+        logger.info('Live Bet Tracker', 'Stopped tracking');
     }
 
     /**
@@ -167,17 +169,17 @@ class LiveBetTracker {
         const pendingBets = this.bets.filter(b => b.status === 'pending');
         
         if (pendingBets.length === 0) {
-            console.log('✅ No pending bets to check');
+            logger.debug('Live Bet Tracker', 'No pending bets to check');
             return;
         }
 
-        console.log(`🔍 Checking ${pendingBets.length} pending bets for completion...`);
+        logger.debug('Live Bet Tracker', `Checking ${pendingBets.length} pending bets...`);
 
         for (const bet of pendingBets) {
             try {
                 await this.checkBetCompletion(bet);
             } catch (error) {
-                console.error(`Error checking bet ${bet.id}:`, error);
+                logger.error('Live Bet Tracker', `Error checking bet ${bet.id}: ${error.message}`);
             }
         }
     }
@@ -197,20 +199,20 @@ class LiveBetTracker {
             // Find matching game
             const matchedEvent = this.findMatchingEvent(bet, data.events);
             if (!matchedEvent) {
-                console.log(`⏳ Game not found yet: ${bet.match}`);
+                logger.debug('Live Bet Tracker', `Game not found yet: ${bet.match}`);
                 return;
             }
 
             // Check if game is complete
             if (matchedEvent.status === 'completed' || matchedEvent.status === 'final') {
-                console.log(`🎯 Game complete: ${bet.match}`);
+                logger.info('Live Bet Tracker', `Game complete: ${bet.match}`);
                 await this.gradeBet(bet, matchedEvent);
             } else {
-                console.log(`⏳ Game in progress: ${bet.match} (${matchedEvent.status})`);
+                logger.debug('Live Bet Tracker', `Game in progress: ${bet.match}`);
                 this.updateBetProgress(bet, matchedEvent);
             }
         } catch (error) {
-            console.error(`Error checking bet completion for ${bet.id}:`, error);
+            logger.error('Live Bet Tracker', `Error checking bet ${bet.id}: ${error.message}`);
         }
     }
 
@@ -268,12 +270,12 @@ class LiveBetTracker {
                 `${bet.pick} on ${bet.match}\n${scores.finalTeam1Score} - ${scores.finalTeam2Score}`
             );
 
-            console.log(`${icon} Bet graded as ${data.gradeResult.status}`);
+            logger.info('Live Bet Tracker', `Bet graded as ${data.gradeResult.status}`);
             this.renderBets();
 
             return data;
         } catch (error) {
-            console.error('Error grading bet:', error);
+            logger.error('Live Bet Tracker', `Error grading bet: ${error.message}`);
             return null;
         }
     }
@@ -493,8 +495,8 @@ class LiveBetTracker {
             return;
         }
 
-        // Fallback: console + simple alert
-        console.log(`${title}: ${message}`);
+        // Fallback: simple alert
+        logger.debug('Live Bet Tracker', `${title}: ${message}`);
         
         // Show toast notification
         const toast = document.createElement('div');
@@ -520,5 +522,3 @@ class LiveBetTracker {
 
 // Initialize global instance
 window.liveBetTracker = new LiveBetTracker();
-
-console.log('✅ Live Bet Tracker ready');

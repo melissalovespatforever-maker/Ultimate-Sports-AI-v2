@@ -247,7 +247,7 @@ export class BettingOddsTracker {
               <img src="${window.resolveSportsLogo(this.currentGame.awayTeamId || this.currentGame.awayTeam, this.currentGame.sport)}" 
                    alt="${this.currentGame.awayTeam}" 
                    class="betting-team-logo"
-                   onerror="this.src='https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN'">
+                   onerror="this.src='https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN'">
               <div class="betting-team-info">
                 <div class="betting-team-name">${this.currentGame.awayTeam}</div>
                 <div class="betting-team-score">${this.currentGame.awayScore || '-'}</div>
@@ -265,7 +265,7 @@ export class BettingOddsTracker {
               <img src="${window.resolveSportsLogo(this.currentGame.homeTeamId || this.currentGame.homeTeam, this.currentGame.sport)}" 
                    alt="${this.currentGame.homeTeam}" 
                    class="betting-team-logo"
-                   onerror="this.src='https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN'">
+                   onerror="this.src='https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN'">
             </div>
           </div>
           <button class="betting-close-btn" onclick="window.bettingOddsTracker?.close()">✕</button>

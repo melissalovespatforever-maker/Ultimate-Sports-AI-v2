@@ -159,37 +159,43 @@ class AICoachesState {
     constructor() {
         this.coaches = [];
         this.hiredCoaches = new Map();
-        this.userCoins = 0;
-        this.userTier = 'FREE';
+        // REMOVED: this.userCoins - use globalState directly via getter
+        // REMOVED: this.userTier - use globalState directly via getter
+    }
+    
+    // LIVE ACCESSORS: Always fetch from GlobalStateManager (no caching)
+    get userCoins() {
+        return window.globalState ? window.globalState.getBalance() : 10000;
+    }
+    
+    get userTier() {
+        const user = window.globalState?.getUser();
+        return user?.subscription_tier?.toUpperCase() || 'FREE';
     }
 
     async init() {
         await this.loadUserData();
         await this.loadHiredCoaches();
         await this.loadCoachesPerformance();
+        
+        // Subscribe to globalState changes to keep UI in sync
+        if (window.globalState) {
+            window.globalState.subscribe(() => {
+                this.refreshBalanceDisplay();
+            });
+        }
     }
 
     async loadUserData() {
-        try {
-            if (window.globalState) {
-                // Use the unified balance from GlobalStateManager
-                this.userCoins = window.globalState.getBalance();
-                
-                const user = window.globalState.getUser();
-                if (user) {
-                    this.userTier = user.subscription_tier || 'FREE';
-                    return;
-                }
-            }
-            
-            // Fallback to localStorage unified balance
-            this.userCoins = parseInt(localStorage.getItem('unified_balance')) || 10000;
-            this.userTier = localStorage.getItem('subscription_tier') || 'FREE';
-        } catch (error) {
-            console.error('Error loading user data:', error);
-            this.userCoins = 10000; // Default starting balance
-            this.userTier = 'FREE';
-        }
+        // REMOVED: No longer caches balance locally
+        // All balance queries now go through globalState getters above
+        console.log('✅ AI Coaches synced with GlobalState (balance:', this.userCoins, ')');
+    }
+    
+    refreshBalanceDisplay() {
+        // This will be called when globalState balance changes
+        // UI will auto-update via re-render in AICoachesManager
+        console.log('💰 Balance updated in AI Coaches:', this.userCoins);
     }
 
     async loadHiredCoaches() {
@@ -317,7 +323,11 @@ class AICoachesState {
         const coach = this.coaches.find(c => c.id === coachId);
         if (!coach) return false;
         
-        if (this.userCoins < coach.hireCost) return false;
+        // Check balance (getter always returns live balance from globalState)
+        if (this.userCoins < coach.hireCost) {
+            console.warn(`Cannot hire ${coach.name}: need ${coach.hireCost}, have ${this.userCoins}`);
+            return false;
+        }
         
         // Use GlobalStateManager to deduct coins (this will trigger transaction queue)
         if (window.globalState) {
@@ -334,12 +344,10 @@ class AICoachesState {
                 return false;
             }
             
-            // Update local state to match
-            this.userCoins = window.globalState.getBalance();
+            // NO LONGER NEEDED: Balance sync happens automatically via getter
         } else {
-            // Fallback for direct deduction
-            this.userCoins -= coach.hireCost;
-            localStorage.setItem('unified_balance', this.userCoins.toString());
+            console.error('GlobalState not available - cannot process hire');
+            return false;
         }
         
         // Add hire
@@ -537,10 +545,7 @@ class AICoachesUI {
                     <p>Live Market • Dynamic Pricing based on Performance</p>
                 </div>
                 <div class="user-stats-header">
-                    <div class="coin-balance">
-                        <img src="https://rosebud.ai/assets/Gold coin with ultimate sports logo in diamonds.png?BD5X" alt="Coins" class="coin-icon">
-                        <span id="user-coin-display">${this.state.userCoins.toLocaleString()}</span>
-                    </div>
+                    <!-- Balance display removed - using unified header balance only -->
                     <div class="tier-badge tier-${this.state.userTier.toLowerCase()}">
                         ${this.state.userTier}
                     </div>
@@ -1134,7 +1139,7 @@ class AICoachesUI {
         
         if (success) {
             this.showToast(`${coach.name} hired! Contract active.`, 'success');
-            document.getElementById('user-coin-display').textContent = this.state.userCoins.toLocaleString();
+            // Balance display removed - using header balance only
             await this.loadAndRenderCoaches();
         } else {
             this.showToast('Not enough coins to hire this coach', 'error');

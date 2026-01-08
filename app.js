@@ -102,11 +102,11 @@ class APIService {
     }
 
     async request(endpoint, options = {}) {
-        try {
-            // Implement timeout using AbortController
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT);
+        // Implement timeout using AbortController
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), CONFIG.REQUEST_TIMEOUT);
 
+        try {
             const response = await fetch(`${this.baseURL}${endpoint}`, {
                 ...options,
                 headers: this.getHeaders(),
@@ -115,12 +115,32 @@ class APIService {
             });
 
             clearTimeout(timeoutId);
+
+            // Handle 500 errors gracefully
+            if (response.status >= 500) {
+                try { await response.text(); } catch (e) {} // Consume
+                const error = new Error(`Server Error ${response.status}`);
+                error.status = response.status;
+                throw error;
+            }
+
             const data = await response.json().catch(() => ({}));
 
             if (!response.ok) throw new Error(data.message || 'Request failed');
             return data;
         } catch (error) {
-            console.warn(`API Error [${endpoint}]:`, error.message);
+            clearTimeout(timeoutId);
+            
+            // Check if it's a 500 and should be suppressed
+            if (window.errorHandler && typeof window.errorHandler.handleError === 'function') {
+                window.errorHandler.handleError(error, `API Error [${endpoint}]`, { 
+                    logToConsole: true,
+                    category: 'network'
+                });
+            } else {
+                console.warn(`API Error [${endpoint}]:`, error.message);
+            }
+            
             throw error;
         }
     }
@@ -316,7 +336,7 @@ class Navigation {
         this.setupBottomNav();
         this.setupMenuLinks();
         
-        console.log('✅ Navigation initialized');
+
     }
 
     setupDrawer() {
@@ -376,8 +396,6 @@ class Navigation {
     }
 
     navigateTo(page) {
-        console.log(`📍 Navigating to: ${page}`);
-        
         // Hide all pages
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         
@@ -390,14 +408,11 @@ class Navigation {
             
             // Trigger Module Lifecycle Event
             this.triggerPageLoad(page);
-        } else {
-            console.warn(`Page not found: ${page}`);
         }
     }
     
     triggerPageLoad(page) {
         // Notify modules that their view is now active
-        console.log(`🎯 Lifecycle: ${page} loaded`);
         
         switch(page) {
             case 'live-scores':

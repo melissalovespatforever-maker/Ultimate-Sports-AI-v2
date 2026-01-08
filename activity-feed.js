@@ -30,13 +30,9 @@ const ActivityFeed = {
 
     // Initialize
     init() {
-        console.log('📰 Initializing Activity Feed');
-        this.loadActivities();
-        this.renderFeed();
-        this.updateNotificationBadge();
-        this.updateFilterCounts();
-        this.startAutoUpdate();
-        this.setupEventListeners();
+        console.log('📰 Activity Feed disabled - notifications removed');
+        // Activity feed system disabled
+        return;
     },
 
     // Load activities from localStorage

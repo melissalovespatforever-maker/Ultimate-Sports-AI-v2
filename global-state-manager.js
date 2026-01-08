@@ -67,7 +67,7 @@ class GlobalStateManager {
         if (this.boosterTicker) clearInterval(this.boosterTicker);
         
         this.boosterTicker = setInterval(() => {
-            if (!this.state.inventory || !this.state.inventory.boosters) return;
+            if (!this.state.inventory || !this.state.inventory.boosters || this.state.inventory.boosters.length === 0) return;
             
             const now = Date.now();
             const originalLength = this.state.inventory.boosters.length;
@@ -77,7 +77,6 @@ class GlobalStateManager {
             
             // If any were removed, save and notify
             if (this.state.inventory.boosters.length < originalLength) {
-                console.log(`🧹 Cleaned up ${originalLength - this.state.inventory.boosters.length} expired boosters`);
                 this.saveToStorage();
                 this.notifyListeners();
                 this.updateAllDisplays();
@@ -86,12 +85,33 @@ class GlobalStateManager {
                     detail: { inventory: this.state.inventory }
                 }));
             }
-        }, 10000); // Check every 10 seconds
+        }, 30000); // Check every 30 seconds (reduced frequency)
     }
 
     // Migrate all old localStorage keys to unified system
     migrateOldData() {
-        // Migrate balance from all possible old keys
+        // Check if unified_balance already exists - if so, preserve it!
+        const existingBalance = parseInt(localStorage.getItem('unified_balance'));
+        
+        if (existingBalance && !isNaN(existingBalance)) {
+            // Already migrated, don't overwrite!
+            console.log('✅ Using existing unified balance:', existingBalance);
+            this.state.balance = existingBalance;
+            
+            // Still clean up any old keys that might exist
+            const oldKeys = [
+                'ultimateCoins',
+                'sportsLoungeBalance', 
+                'gameCoins', 
+                'userBalance', 
+                'balance'
+            ];
+            oldKeys.forEach(key => localStorage.removeItem(key));
+            
+            return; // Exit early - no migration needed
+        }
+        
+        // First time migration - check old keys
         const balanceKeys = [
             'ultimateCoins',
             'sportsLoungeBalance', 
@@ -108,15 +128,14 @@ class GlobalStateManager {
             }
         });
 
-        // Set unified balance
+        // Set unified balance only on first migration
         this.state.balance = highestBalance;
         localStorage.setItem('unified_balance', highestBalance.toString());
+        console.log('🔄 Migrated balance to unified system:', highestBalance);
 
         // Clean up old keys
         balanceKeys.forEach(key => {
-            if (key !== 'unified_balance') {
-                localStorage.removeItem(key);
-            }
+            localStorage.removeItem(key);
         });
 
         // Migrate username
@@ -225,25 +244,30 @@ class GlobalStateManager {
             clearTimeout(this.saveDebounceTimer);
         }
 
-        // Debounce rapid saves (wait 100ms for more changes)
+        // Debounce rapid saves (wait 250ms for more changes)
         this.saveDebounceTimer = setTimeout(() => {
             this.performSave();
-        }, 100);
+        }, 250);
     }
 
     // Actually perform the save operation with verification
     performSave() {
         if (this.saveInProgress) {
             console.warn('⚠️ Save already in progress, queuing...');
+            // Don't queue infinitely - max 3 attempts
+            if (!this._saveRetryCount) this._saveRetryCount = 0;
+            if (this._saveRetryCount >= 3) {
+                console.error('❌ Max save retries exceeded, aborting');
+                this._saveRetryCount = 0;
+                return;
+            }
+            this._saveRetryCount++;
             setTimeout(() => this.performSave(), 50);
             return;
         }
 
         this.saveInProgress = true;
-        console.log('💾 Saving state to storage...', {
-            balance: this.state.balance,
-            timestamp: Date.now()
-        });
+        this._saveRetryCount = 0;
 
         try {
             // Primary storage: localStorage
@@ -285,15 +309,12 @@ class GlobalStateManager {
             const verification = this.verifySave();
             if (verification.success) {
                 this.lastSaveTimestamp = Date.now();
-                console.log('✅ State saved and verified successfully');
                 this.showSaveIndicator();
             } else {
-                console.error('❌ Save verification failed:', verification.errors);
                 this.retrySave();
             }
 
         } catch (error) {
-            console.error('❌ Save error:', error);
             this.retrySave();
         } finally {
             this.saveInProgress = false;
@@ -329,7 +350,6 @@ class GlobalStateManager {
 
     // Retry save on failure
     retrySave() {
-        console.warn('⚠️ Retrying save in 1 second...');
         setTimeout(() => {
             this.saveInProgress = false;
             this.performSave();
@@ -370,6 +390,12 @@ class GlobalStateManager {
     // Get total multiplier
     getMultiplier(type = 'coins') {
         try {
+            // Delegate to InventorySystem if available
+            if (window.inventorySystem && typeof window.inventorySystem.getMultiplier === 'function') {
+                return window.inventorySystem.getMultiplier(type);
+            }
+
+            // Fallback calculation
             let multiplier = 1.0;
             
             // Add permanent bonuses
@@ -656,34 +682,27 @@ class GlobalStateManager {
 
     // Check and use a streak shield if available
     checkAndUseStreakShield() {
-        // 1. Check for manually activated shield (from ProfileInventory)
+        // 1. Check for manually activated shield
         if (localStorage.getItem('streakShieldActive') === 'true') {
             localStorage.removeItem('streakShieldActive');
             return true;
         }
 
-        // 2. Check for passive shields (from ShopSystem/Inventory)
-        // Check ShopSystem protections first
+        // 2. Check InventorySystem for streak shields
+        if (window.inventorySystem && window.inventorySystem.hasItem('streak-shield')) {
+            const removed = window.inventorySystem.removeItem('streak-shield', 1);
+            if (removed) {
+                console.log('🛡️ Streak Shield consumed from inventory');
+                return true;
+            }
+        }
+
+        // 3. Fallback: Check legacy protections
         const protections = JSON.parse(localStorage.getItem('protections') || '{}');
         if (protections.streak && protections.streak > 0) {
             protections.streak--;
             localStorage.setItem('protections', JSON.stringify(protections));
             return true;
-        }
-
-        // 3. Check inventory consumables directly
-        if (this.state.inventory && this.state.inventory.consumables) {
-            const shieldIndex = this.state.inventory.consumables.findIndex(item => item.id === 'streak-shield');
-            if (shieldIndex !== -1) {
-                const shield = this.state.inventory.consumables[shieldIndex];
-                if (shield.quantity > 1) {
-                    shield.quantity--;
-                } else {
-                    this.state.inventory.consumables.splice(shieldIndex, 1);
-                }
-                this.saveToStorage();
-                return true;
-            }
         }
 
         return false;
@@ -772,7 +791,7 @@ class GlobalStateManager {
 
         // Update header balance with sync indicator
         if (headerBalance) {
-            headerBalance.innerHTML = `<i class="fas fa-coins"></i> <span class="balance-amount">${balance.toLocaleString()}</span>${hasPendingTx ? ' <i class="fas fa-sync-alt fa-spin" style="font-size: 10px; opacity: 0.7; margin-left: 4px;" title="Syncing with server..."></i>' : ''}`;
+            headerBalance.innerHTML = `<i class="fas fa-coins"></i> <span class="balance-amount">${balance.toLocaleString()}</span>`;
             
             // Add a subtle class if pending
             if (hasPendingTx) {
@@ -978,6 +997,13 @@ class GlobalStateManager {
 
             clearTimeout(timeout);
 
+            // Handle 500 errors gracefully
+            if (response.status >= 500) {
+                await response.text().catch(() => {});
+                console.warn(`⚠️ Backend Server Error (${response.status}) on profile sync. Using local state.`);
+                return;
+            }
+
             if (response.ok) {
                 const data = await response.json();
                 if (data.user) {
@@ -989,13 +1015,17 @@ class GlobalStateManager {
                     const lastLocalUpdate = parseInt(localStorage.getItem('balance_last_updated') || '0');
                     const timeSinceUpdate = Date.now() - lastLocalUpdate;
                     
+                    // Check for pending PayPal purchases that need to be preserved
+                    const pendingPurchases = JSON.parse(localStorage.getItem('pending_paypal_purchases') || '[]');
+                    const hasPendingPurchases = pendingPurchases.length > 0;
+                    
                     // Update user fields but treat balance carefully
                     const userUpdate = { ...data.user };
                     
-                    // If local balance was updated in the last 60 seconds, trust it over backend
+                    // If local balance was updated in the last 60 seconds OR has pending purchases, trust it over backend
                     // This prevents race conditions where transactions are queued but backend hasn't processed yet
-                    if (timeSinceUpdate < 60000 && localBalance !== backendBalance) {
-                        console.log(`💰 Keeping local balance (${localBalance}) - recent update (${Math.floor(timeSinceUpdate / 1000)}s ago)`);
+                    if ((timeSinceUpdate < 60000 || hasPendingPurchases) && localBalance !== backendBalance) {
+                        console.log(`💰 Keeping local balance (${localBalance}) - recent update (${Math.floor(timeSinceUpdate / 1000)}s ago) or pending purchases`);
                         console.log(`   Backend balance: ${backendBalance} (will sync via transaction queue)`);
                         userUpdate.balance = localBalance;
                     } else if (backendBalance !== localBalance) {
@@ -1010,6 +1040,9 @@ class GlobalStateManager {
 
                     this.setUser(userUpdate);
                     console.log('✅ Synced with backend');
+                    
+                    // After successful sync, retry any pending PayPal purchases
+                    this.retryPendingPurchases();
                 }
             } else if (response.status === 401 || response.status === 403) {
                 // Invalid token, clear it
@@ -1019,10 +1052,188 @@ class GlobalStateManager {
         } catch (error) {
             if (error.name === 'AbortError') {
                 console.warn('⚠️ Backend sync timeout');
+            } else if (error.message && error.message.includes('500')) {
+                console.warn('⚠️ Backend server error (500) during sync - using local data');
             } else {
                 console.warn('⚠️ Could not sync with backend:', error.message);
             }
         }
+    }
+    
+    /**
+     * Retry pending PayPal purchases and VIP subscriptions
+     * Called after successful backend sync on login
+     */
+    async retryPendingPurchases() {
+        const token = localStorage.getItem('auth_token');
+        if (!token) return;
+        
+        // Retry pending PayPal purchases
+        const pendingPurchases = JSON.parse(localStorage.getItem('pending_paypal_purchases') || '[]');
+        if (pendingPurchases.length > 0) {
+            console.log(`🔄 Retrying ${pendingPurchases.length} pending PayPal purchases...`);
+            
+            for (const purchase of pendingPurchases) {
+                await this.syncPayPalPurchaseToBackend(
+                    purchase.coins,
+                    purchase.bundleName,
+                    purchase.transactionId
+                );
+            }
+        }
+        
+        // Retry pending VIP subscriptions
+        const pendingSubs = JSON.parse(localStorage.getItem('pending_vip_subscriptions') || '[]');
+        if (pendingSubs.length > 0) {
+            console.log(`🔄 Retrying ${pendingSubs.length} pending VIP subscriptions...`);
+            
+            for (const sub of pendingSubs) {
+                await this.syncSubscriptionToBackend(
+                    sub.subscriptionData,
+                    sub.tier
+                );
+            }
+        }
+        
+        // Retry failed syncs
+        const failedSyncs = JSON.parse(localStorage.getItem('failed_paypal_syncs') || '[]');
+        if (failedSyncs.length > 0) {
+            console.log(`🔄 Retrying ${failedSyncs.length} failed PayPal syncs...`);
+            
+            for (const sync of failedSyncs) {
+                if (sync.attempts < 5) { // Max 5 retry attempts
+                    await this.syncPayPalPurchaseToBackend(
+                        sync.coins,
+                        sync.bundleName,
+                        sync.transactionId
+                    );
+                }
+            }
+        }
+    }
+    
+    /**
+     * Sync PayPal purchase to backend
+     */
+    async syncPayPalPurchaseToBackend(coins, bundleName, transactionId) {
+        const token = localStorage.getItem('auth_token');
+        if (!token) return false;
+        
+        const apiUrl = window.CONFIG?.API_BASE_URL || 'https://ultimate-sports-ai-backend-production.up.railway.app';
+        
+        try {
+            const response = await fetch(`${apiUrl}/api/payments/paypal-purchase`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    type: 'credit',
+                    amount: coins,
+                    reason: `PayPal Purchase: ${bundleName}`,
+                    metadata: {
+                        method: 'paypal',
+                        paypalTransactionId: transactionId,
+                        bundleName: bundleName,
+                        verified: true,
+                        timestamp: Date.now()
+                    }
+                }),
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                console.log(`✅ PayPal purchase synced: ${bundleName}`);
+                
+                // Remove from pending/failed lists
+                this.removePendingPurchase(transactionId);
+                return true;
+            }
+            
+            return false;
+        } catch (error) {
+            console.error('❌ Failed to sync PayPal purchase:', error);
+            return false;
+        }
+    }
+    
+    /**
+     * Sync VIP subscription to backend
+     */
+    async syncSubscriptionToBackend(subscriptionData, tier) {
+        const token = localStorage.getItem('auth_token');
+        if (!token) return false;
+        
+        const apiUrl = window.CONFIG?.API_BASE_URL || 'https://ultimate-sports-ai-backend-production.up.railway.app';
+        
+        try {
+            const response = await fetch(`${apiUrl}/api/subscriptions/activate`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    tier: subscriptionData.tier,
+                    tierId: subscriptionData.tierId,
+                    monthlyCoins: subscriptionData.monthlyCoins,
+                    subscriptionId: subscriptionData.subscriptionId,
+                    billingCycle: subscriptionData.billingCycle,
+                    price: subscriptionData.price,
+                    metadata: {
+                        method: 'paypal',
+                        paypalSubscriptionId: subscriptionData.subscriptionId,
+                        verified: true,
+                        timestamp: Date.now()
+                    }
+                }),
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                console.log(`✅ VIP subscription synced: ${subscriptionData.tier}`);
+                
+                // Remove from pending/failed lists
+                this.removePendingSubscription(subscriptionData.subscriptionId);
+                return true;
+            }
+            
+            return false;
+        } catch (error) {
+            console.error('❌ Failed to sync VIP subscription:', error);
+            return false;
+        }
+    }
+    
+    /**
+     * Remove synced purchase from pending lists
+     */
+    removePendingPurchase(transactionId) {
+        // Remove from pending purchases
+        const pendingPurchases = JSON.parse(localStorage.getItem('pending_paypal_purchases') || '[]');
+        const filtered = pendingPurchases.filter(p => p.transactionId !== transactionId);
+        localStorage.setItem('pending_paypal_purchases', JSON.stringify(filtered));
+        
+        // Remove from failed syncs
+        const failedSyncs = JSON.parse(localStorage.getItem('failed_paypal_syncs') || '[]');
+        const filteredFailed = failedSyncs.filter(s => s.transactionId !== transactionId);
+        localStorage.setItem('failed_paypal_syncs', JSON.stringify(filteredFailed));
+    }
+    
+    /**
+     * Remove synced subscription from pending lists
+     */
+    removePendingSubscription(subscriptionId) {
+        // Remove from pending subscriptions
+        const pendingSubs = JSON.parse(localStorage.getItem('pending_vip_subscriptions') || '[]');
+        const filtered = pendingSubs.filter(s => s.subscriptionData.subscriptionId !== subscriptionId);
+        localStorage.setItem('pending_vip_subscriptions', JSON.stringify(filtered));
+        
+        // Remove from failed syncs
+        const failedSyncs = JSON.parse(localStorage.getItem('failed_subscription_syncs') || '[]');
+        const filteredFailed = failedSyncs.filter(s => s.subscriptionData.subscriptionId !== subscriptionId);
+        localStorage.setItem('failed_subscription_syncs', JSON.stringify(filteredFailed));
     }
 
     // Update backend balance

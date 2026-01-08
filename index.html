@@ -4,145 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     
-    <!-- GLOBAL LOGO SANITIZER (Must be available before any UI renders) -->
+    <!-- GLOBAL ERROR HANDLER -->
     <script>
+        // Global error handler for production
+        (function() {
+            window.addEventListener('error', function(event) {
+                // Only suppress specific non-critical errors
+                if (event.target && event.target.tagName === 'IMG') {
+                    event.preventDefault();
+                    return true;
+                }
+            }, true);
+        })();
+
+        // Simplified logo resolution utility
         window.resolveSportsLogo = function(id, sport, url) {
-            const fallback = 'https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
+            const fallback = 'https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
             
             try {
-                // 1. DATA NORMALIZATION & EMERGENCY INTERCEPTION
-                let urlStr = typeof url === 'string' ? url : (url && (url.href || url.url)) || '';
+                let urlStr = typeof url === 'string' ? url : '';
                 const sportStr = String(sport || '').toUpperCase();
+                const idStr = String(id || '').trim().toUpperCase();
                 
-                // Extremely robust ID string conversion
-                let idStr = '';
-                if (typeof id === 'string') idStr = id.trim().toUpperCase();
-                else if (typeof id === 'number') idStr = String(id);
-                else if (id && id.id) idStr = String(id.id).trim().toUpperCase();
-                
-                // CRITICAL INTERCEPTION - Catch known broken ESPN URLs immediately before any other logic
-                const urlLower = urlStr.toLowerCase();
-                if (urlLower.includes('mci.png')) return 'https://a.espncdn.com/i/teamlogos/soccer/500/84.png';
-                if (urlLower.includes('ars.png')) return 'https://a.espncdn.com/i/teamlogos/soccer/500/359.png';
-                
-                // If urlStr is empty and we have no valid ID, return fallback immediately
-                if (!urlStr && !idStr) return fallback;
-
-                // EMERGENCY BLOCKLIST: Never return these specific broken strings
-                const blocklist = ['ars.png', 'mci.png', 'ars', 'mci'];
-                if (blocklist.some(b => urlLower.endsWith(b) || idStr.toLowerCase() === b)) {
-                     if (idStr.includes('ARS') || urlLower.includes('ars')) return 'https://a.espncdn.com/i/teamlogos/soccer/500/359.png';
-                     if (idStr.includes('MCI') || urlLower.includes('mci')) return 'https://a.espncdn.com/i/teamlogos/soccer/500/84.png';
-                }
-
-                // EMERGENCY KILL-SWITCH FOR KNOWN BROKEN ESPN ABBREVIATIONS
-                const isMCI = idStr === '84' || idStr === 'MCI' || idStr === 'MAN CITY' || idStr.includes('MANCHESTER CITY') || /mci\.png/i.test(urlStr);
-                const isARS = idStr === '359' || idStr === 'ARS' || idStr === 'ARSENAL' || /ars\.png/i.test(urlStr);
-
-                if (isMCI) return 'https://a.espncdn.com/i/teamlogos/soccer/500/84.png';
-                if (isARS) return 'https://a.espncdn.com/i/teamlogos/soccer/500/359.png';
-
-                // 2. SOCCER SPECIFIC LOGIC (ESPN soccer logos MUST be numeric IDs)
-                if (sportStr === 'SOCCER' || sportStr === 'EPL' || urlLower.includes('/soccer/') || urlLower.includes('eng.1')) {
+                // Soccer team ID mapping
+                if (sportStr === 'SOCCER' || sportStr === 'EPL' || urlStr.includes('/soccer/')) {
                     const soccerMap = {
-                        'LIV': '364', 'MUN': '360', 'CHE': '363', 'TOT': '367', 'NEW': '361', 'AVL': '362', 
-                        'WHA': '371', 'EVE': '368', 'LEI': '375', 'BHA': '331', 'CRY': '384', 'WOL': '380', 
-                        'BRE': '337', 'FUL': '370', 'NFO': '393', 'BOU': '349', 'LUT': '346', 'SHU': '398',
-                        'BUR': '374', 'IPS': '378', 'SOU': '376', 'WHT': '371', 'WHU': '371', 'LFC': '364', 'MU': '360',
-                        'MCI': '84', 'MC': '84', 'ARS': '359', 'AR': '359'
+                        'MCI': '84', 'ARS': '359', 'LIV': '364', 'MUN': '360', 'CHE': '363', 
+                        'TOT': '367', 'NEW': '361', 'AVL': '362', 'WHU': '371', 'EVE': '368'
                     };
-
-                    if (soccerMap[idStr]) return `https://a.espncdn.com/i/teamlogos/soccer/500/${soccerMap[idStr]}.png`;
                     
-                    // Check if URL contains an abbreviation that needs mapping
-                    const match = urlStr.match(/\/soccer\/500\/([a-z]+)\.png/i);
-                    if (match && match[1]) {
-                        const abbr = match[1].toUpperCase();
-                        if (soccerMap[abbr]) return `https://a.espncdn.com/i/teamlogos/soccer/500/${soccerMap[abbr]}.png`;
+                    if (soccerMap[idStr]) {
+                        return `https://a.espncdn.com/i/teamlogos/soccer/500/${soccerMap[idStr]}.png`;
                     }
-
-                    // If it's a numeric ID in the URL, keep it
-                    if (/\/\d+\.png/.test(urlStr)) return urlStr;
                     
-                    // If the ID itself is numeric, use it
-                    if (/^\d+$/.test(idStr)) return `https://a.espncdn.com/i/teamlogos/soccer/500/${idStr}.png`;
-                    
-                    // Fallback for soccer: if not numeric, it's probably broken
-                    if (!/\/\d+\.png/.test(urlStr) && urlStr.includes('espncdn.com')) return fallback;
-                }
-
-                // 3. GENERAL FALLBACK FOR OTHER SPORTS
-                if (urlStr.length > 20 && urlStr.startsWith('http')) {
-                    return urlStr;
-                }
-
-                if (!sportStr || !idStr) return fallback;
-
-                const league = sportStr.toLowerCase() || 'nfl';
-                const team = idStr.toLowerCase() || 'unknown';
-                
-                // Final safety: if we're about to return a known bad pattern, force fallback
-                if (team === 'ars' || team === 'mci') {
-                    return team === 'ars' ? 'https://a.espncdn.com/i/teamlogos/soccer/500/359.png' : 'https://a.espncdn.com/i/teamlogos/soccer/500/84.png';
+                    if (/^\d+$/.test(idStr)) {
+                        return `https://a.espncdn.com/i/teamlogos/soccer/500/${idStr}.png`;
+                    }
                 }
                 
-                return `https://a.espncdn.com/i/teamlogos/${league}/500/${team}.png`;
+                // Return valid URL if provided
+                if (urlStr.startsWith('http')) return urlStr;
+                
+                // Build ESPN URL
+                if (sportStr && idStr) {
+                    return `https://a.espncdn.com/i/teamlogos/${sportStr.toLowerCase()}/500/${idStr.toLowerCase()}.png`;
+                }
+                
+                return fallback;
             } catch (e) {
-                console.warn('Logo resolution error:', e);
                 return fallback;
             }
         };
 
-        // GLOBAL ERROR HEALER (Capture phase to stop bubbling)
+        // Image error handler - replace with fallback
         window.addEventListener('error', (event) => {
             if (event.target && event.target.tagName === 'IMG') {
                 const img = event.target;
-                const src = img.src || '';
-                
-                // Silently swallow empty source errors - they aren't critical
-                if (!src || src === window.location.href || src.includes('data:image/gif;base64')) {
-                    event.stopImmediatePropagation();
-                    event.preventDefault();
-                    return;
+                if (!img.src || img.src.includes('espncdn.com')) {
+                    img.src = 'https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
                 }
-
-                // Immediate rescue for MCI/ARS
-                const mciUrl = 'https://a.espncdn.com/i/teamlogos/soccer/500/84.png';
-                const arsUrl = 'https://a.espncdn.com/i/teamlogos/soccer/500/359.png';
-                
-                const isBrokenMCI = /mci\.png|(\/|_)mci(\/|_|\.)/i.test(src) || img.alt === 'MCI' || img.alt === 'Man City';
-                const isBrokenARS = /ars\.png|(\/|_)ars(\/|_|\.)/i.test(src) || img.alt === 'ARS' || img.alt === 'Arsenal';
-                
-                if (isBrokenMCI) {
-                    img.src = mciUrl;
-                    event.stopImmediatePropagation();
-                    event.preventDefault();
-                    return;
-                }
-                if (isBrokenARS) {
-                    img.src = arsUrl;
-                    event.stopImmediatePropagation();
-                    event.preventDefault();
-                    return;
-                }
-                
-                // Generic ESPN failure rescue
-                if (src.includes('espncdn.com')) {
-                    img.src = 'https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
-                    event.stopImmediatePropagation();
-                    event.preventDefault();
-                }
+                event.preventDefault();
             }
         }, true);
-
-        // PROACTIVE SWEEPER (Heal broken logos before they even fail if possible)
-        setInterval(() => {
-            document.querySelectorAll('img[src*="mci.png"], img[src*="ars.png"], img[alt="MCI"], img[alt="ARS"]').forEach(img => {
-                const src = img.src || '';
-                if (/mci\.png/i.test(src)) img.src = 'https://a.espncdn.com/i/teamlogos/soccer/500/84.png';
-                if (/ars\.png/i.test(src)) img.src = 'https://a.espncdn.com/i/teamlogos/soccer/500/359.png';
-            });
-        }, 500);
 
         // GLOBAL MESSAGE LISTENER (For Inter-Iframe Communication)
         window.addEventListener('message', (event) => {
@@ -179,6 +102,41 @@
                         window.appNavigation.navigateTo(data.page);
                     }
                     break;
+                
+                case 'coins_purchased':
+                    console.log('💰 Coins purchased:', data);
+                    // Refresh balance display
+                    if (window.globalState) {
+                        window.globalState.updateAllDisplays();
+                    }
+                    // Show notification
+                    if (window.globalState && typeof window.globalState.showNotification === 'function') {
+                        window.globalState.showNotification(
+                            `🎉 ${data.coins.toLocaleString()} coins added from ${data.bundle}!`,
+                            'success'
+                        );
+                    }
+                    break;
+                
+                case 'subscription_activated':
+                    console.log('👑 VIP Subscription activated:', data);
+                    // Refresh displays
+                    if (window.globalState) {
+                        window.globalState.updateAllDisplays();
+                    }
+                    // Show notification
+                    if (window.globalState && typeof window.globalState.showNotification === 'function') {
+                        window.globalState.showNotification(
+                            `👑 Welcome to ${data.tier}! ${data.monthlyCoins.toLocaleString()} coins/month`,
+                            'success'
+                        );
+                    }
+                    // Update VIP badge display
+                    if (window.vipSubscriptionManager) {
+                        window.vipSubscriptionManager.loadSubscription();
+                        window.vipSubscriptionManager.renderVIPBadge('#header-tier-container');
+                    }
+                    break;
             }
         });
     </script>
@@ -201,12 +159,13 @@
     <link rel="stylesheet" href="my-bets-styles.css?v=20250107002">
     <link rel="stylesheet" href="profile-styles.css?v=20250107002">
     <link rel="stylesheet" href="transaction-history-modal.css">
+    <link rel="stylesheet" href="connection-status.css">
     <link rel="stylesheet" href="two-factor-styles.css?v=20250107002">
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Sports AI">
-    <link rel="apple-touch-icon" href="https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN">
+    <link rel="apple-touch-icon" href="https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN">
     <link rel="stylesheet" href="breadcrumb-styles.css?v=20250117001">
     <link rel="stylesheet" href="achievements-showcase-styles.css?v=20250117001">
     <link rel="stylesheet" href="daily-rewards-styles.css?v=20250215001">
@@ -222,10 +181,13 @@
     <link rel="stylesheet" href="public-sentiment-heatmap.css?v=20250215001">
     <link rel="stylesheet" href="betting-odds-tracker.css?v=20250215002">
     <link rel="stylesheet" href="global-odds-comparison.css?v=20250215003">
+
     <link rel="stylesheet" href="social-share-manager.css?v=20250215001">
     <link rel="stylesheet" href="smart-parlay-generator.css?v=20250215001">
     <link rel="stylesheet" href="value-bet-scanner.css?v=20250215001">
     <link rel="stylesheet" href="legend-trade-market.css?v=20250215001">
+    <link rel="stylesheet" href="ai-recommendations-widget.css?v=20250215001">
+    <link rel="stylesheet" href="live-betting.css?v=20250215001">
 </head>
 <body>
     <!-- Loading Overlay -->
@@ -249,7 +211,7 @@
             </button>
             
             <div class="app-title">
-                <img src="https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN" alt="Ultimate Sports AI Logo" class="app-logo">
+                <img src="https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN" alt="Ultimate Sports AI Logo" class="app-logo">
                 <span>Ultimate Sports AI</span>
             </div>
             
@@ -261,15 +223,18 @@
                     <span id="save-indicator" style="display: none; font-size: 10px; color: #10b981; margin-left: 6px;">✓ Saved</span>
                 </div>
 
-                <button class="icon-button" id="daily-quests-btn" title="Daily Quests" onclick="window.dailyQuests.renderToModal()">
-                    <i class="fas fa-tasks"></i>
+                <!-- Buy Coins Button -->
+                <button class="buy-coins-btn" id="buy-coins-btn" title="Buy Ultimate Coins" onclick="window.open('coin-bundles.html', '_blank')">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Buy</span>
                 </button>
-                
-                <button class="icon-button" id="notifications-btn" aria-label="Notifications">
-                    <i class="fas fa-bell"></i>
-                    <span class="notification-badge">3</span>
+
+                <!-- VIP Subscription Button -->
+                <button class="vip-subscription-btn" id="vip-subscription-btn" title="VIP Subscriptions - Recurring Benefits" onclick="window.open('vip-subscriptions.html', '_blank')">
+                    <i class="fas fa-crown"></i>
+                    <span>VIP</span>
                 </button>
-                
+
                 <div id="header-tier-container" class="header-tier-container">
                     <!-- Badges injected by global-state-manager.js -->
                 </div>
@@ -282,56 +247,6 @@
 
         <!-- Breadcrumb Navigation -->
         <div id="breadcrumb-container" class="breadcrumb-container hidden"></div>
-
-        <!-- Notifications Dropdown -->
-        <div id="notifications-dropdown" class="notifications-dropdown" style="display: none;">
-            <div class="notifications-header">
-                <div>
-                    <h3 class="notifications-title">
-                        <i class="fas fa-bolt"></i> Live Activity
-                    </h3>
-                    <div class="live-indicator">
-                        <div class="live-dot"></div>
-                        LIVE
-                    </div>
-                </div>
-                <button class="activity-feed-refresh" id="notifications-refresh" title="Refresh">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-            </div>
-            
-            <!-- Activity Filters -->
-            <div class="activity-filters">
-                <button class="filter-btn active" data-filter="all">
-                    <i class="fas fa-globe"></i> All
-                </button>
-                <button class="filter-btn" data-filter="achievement">
-                    <i class="fas fa-trophy"></i> Badges
-                </button>
-                <button class="filter-btn" data-filter="game_win">
-                    <i class="fas fa-coins"></i> Wins
-                </button>
-                <button class="filter-btn" data-filter="streak">
-                    <i class="fas fa-fire"></i> Streaks
-                </button>
-                <button class="filter-btn" data-filter="tournament">
-                    <i class="fas fa-medal"></i> Tournaments
-                </button>
-                <button class="filter-btn" data-filter="big_win">
-                    <i class="fas fa-gem"></i> Mega
-                </button>
-                <button class="filter-btn" data-filter="sharp_alert">
-                    <i class="fas fa-bolt"></i> Sharp
-                </button>
-                <button class="filter-btn" data-filter="whale_bet">
-                    <i class="fas fa-whale"></i> Whales
-                </button>
-            </div>
-            
-            <div class="notifications-list" id="activity-feed-list">
-                <!-- Populated by JavaScript -->
-            </div>
-        </div>
 
         <!-- Drawer Overlay -->
         <div id="drawer-overlay" class="drawer-overlay"></div>
@@ -371,6 +286,11 @@
                         <span>My Bets</span>
                         <span class="badge" id="pending-bets-count" style="display:none;">0</span>
                     </button>
+                    <button class="menu-item" onclick="window.open('betting-history.html', '_blank')">
+                        <i class="fas fa-history"></i>
+                        <span>Betting History</span>
+                        <span class="badge badge-new">NEW</span>
+                    </button>
                     <button class="menu-item" data-page="analytics">
                         <i class="fas fa-chart-line"></i>
                         <span>Analytics</span>
@@ -385,10 +305,6 @@
                         <span>AI Coaches</span>
                         <span class="badge badge-pro">PRO</span>
                     </button>
-                    <button class="menu-item" data-page="subscription">
-                        <i class="fas fa-crown"></i>
-                        <span>Premium Plans</span>
-                    </button>
                 </div>
 
                 <!-- Social & Gaming -->
@@ -401,7 +317,7 @@
                     </button>
                     <button class="menu-item" data-page="tournaments">
                         <i class="fas fa-trophy"></i>
-                        <span>Tournaments</span>
+                        <span>Tournaments & Contests</span>
                         <span class="badge badge-hot">🔥</span>
                     </button>
                     <button class="menu-item" data-page="hall-of-fame">
@@ -416,6 +332,10 @@
                     <button class="menu-item" data-page="profile">
                         <i class="fas fa-user-circle"></i>
                         <span>My Profile</span>
+                    </button>
+                    <button class="menu-item" onclick="window.open('purchase-history.html', '_blank')">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                        <span>Purchase History</span>
                     </button>
                     <button class="menu-item" data-page="settings">
                         <i class="fas fa-cog"></i>
@@ -442,8 +362,8 @@
             <!-- HOME PAGE -->
             <div id="home-page" class="page active">
                 <div class="page-header gradient-header">
-                    <h1>🏆 Welcome to Ultimate Sports AI</h1>
-                    <p class="page-subtitle">Master sports analytics with AI-powered insights</p>
+                    <h1>🏆 Ultimate Sports AI</h1>
+                    <p class="page-subtitle">Master sports analytics with AI-powered insights and real-time data</p>
                 </div>
 
                 <div class="quick-actions">
@@ -452,7 +372,7 @@
                             <i class="fas fa-robot"></i>
                         </div>
                         <h3>AI Coaches</h3>
-                        <p>Get expert predictions</p>
+                        <p>Expert predictions</p>
                     </div>
 
                     <div class="quick-action-card" data-page="live-scores">
@@ -460,25 +380,28 @@
                             <i class="fas fa-play-circle"></i>
                         </div>
                         <h3>Live Scores</h3>
-                        <p>Real-time game tracking</p>
+                        <p>Real-time tracking</p>
                     </div>
 
-                    <div class="quick-action-card" data-page="analytics">
+                    <div class="quick-action-card" data-page="sports-lounge">
                         <div class="quick-action-icon">
-                            <i class="fas fa-chart-line"></i>
+                            <i class="fas fa-gamepad"></i>
                         </div>
-                        <h3>Analytics</h3>
-                        <p>View your stats</p>
+                        <h3>Sports Lounge</h3>
+                        <p>Games & Community</p>
                     </div>
 
-                    <div class="quick-action-card" data-page="subscription">
+                    <div class="quick-action-card" data-page="my-bets">
                         <div class="quick-action-icon">
-                            <i class="fas fa-crown"></i>
+                            <i class="fas fa-receipt"></i>
                         </div>
-                        <h3>Upgrade</h3>
-                        <p>Unlock premium features</p>
+                        <h3>My Bets</h3>
+                        <p>Track your picks</p>
                     </div>
                 </div>
+
+                <!-- AI Recommendations Widget -->
+                <div id="ai-recommendations-container" class="dashboard-section"></div>
 
                 <!-- Daily Summary -->
                 <div id="daily-summary-container" class="dashboard-section"></div>
@@ -495,7 +418,7 @@
             <div id="auth-page" class="page">
                 <div class="auth-container">
                     <div class="auth-header">
-                        <img src="https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN" alt="Logo" class="auth-logo">
+                        <img src="https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN" alt="Logo" class="auth-logo">
                         <h1>Welcome to Ultimate Sports AI</h1>
                         <p>Master sports analytics with AI-powered insights</p>
                     </div>
@@ -577,7 +500,7 @@
             <div id="password-reset-page" class="page">
                 <div class="auth-container">
                     <div class="auth-header">
-                        <img src="https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN" alt="Logo" class="auth-logo">
+                        <img src="https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN" alt="Logo" class="auth-logo">
                         <h1>Reset Password</h1>
                         <p>Securely reset your account password</p>
                     </div>
@@ -755,11 +678,11 @@
                                 <button class="btn btn-primary btn-block" onclick="window.open('badge-collection.html', '_blank')">
                                     <i class="fas fa-medal"></i> View Badge Collection
                                 </button>
-                                <button class="btn btn-primary btn-block" data-page="sports-lounge">
-                                    <i class="fas fa-gamepad"></i> Sports Lounge & Inventory
+                                <button class="btn btn-primary btn-block" onclick="if(window.appNavigation){window.appNavigation.navigateTo('sports-lounge'); setTimeout(() => {const invBtn = document.querySelector('[data-tab=\\\'inventory\\\']'); if(invBtn) invBtn.click();}, 300);} else {alert('Please navigate to Sports Lounge from the menu.');}">
+                                    <i class="fas fa-box-open"></i> My Inventory
                                 </button>
                                 <button id="transaction-history-btn" class="btn btn-primary btn-block" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                                    <i class="fas fa-history"></i> Transaction History
+                                    <i class="fas fa-file-invoice-dollar"></i> Billing & Purchase History
                                 </button>
                                 <button id="edit-profile-btn" class="btn btn-secondary btn-block">
                                     <i class="fas fa-edit"></i> Edit Profile
@@ -842,52 +765,50 @@
                 </div>
             </div>
 
-            <!-- SUBSCRIPTION PAGE -->
+            <!-- SUBSCRIPTION PAGE - Redirects to VIP Subscriptions -->
             <div id="subscription-page" class="page">
                 <div class="page-header">
-                    <h1><i class="fas fa-crown"></i> Subscription</h1>
-                    <p class="page-subtitle">Choose your plan</p>
+                    <h1><i class="fas fa-crown"></i> VIP Subscriptions</h1>
+                    <p class="page-subtitle">Recurring monthly benefits & exclusive perks</p>
                 </div>
-                <div id="subscription-container" class="content-container">
-                    <div class="pricing-grid">
-                        <div class="pricing-card">
-                            <h3>FREE</h3>
-                            <div class="price">$0<span>/month</span></div>
-                            <ul class="features">
-                                <li><i class="fas fa-check"></i> Basic live scores</li>
-                                <li><i class="fas fa-check"></i> Limited AI predictions</li>
-                                <li><i class="fas fa-check"></i> Community access</li>
-                            </ul>
-                            <button class="btn btn-secondary btn-block" disabled>Current Plan</button>
+                <div class="content-container" style="text-align: center; padding: 60px 24px;">
+                    <div style="font-size: 72px; margin-bottom: 24px;">👑</div>
+                    <h2 style="margin-bottom: 16px;">Upgrade to VIP</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 32px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                        Get monthly coin bonuses, XP multipliers, tournament discounts, and exclusive features with our VIP subscription tiers.
+                    </p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; max-width: 900px; margin: 0 auto 48px;">
+                        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 32px;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">🥉</div>
+                            <h3>Bronze VIP</h3>
+                            <div style="font-size: 2rem; font-weight: 700; color: #cd7f32; margin: 16px 0;">$9.99<span style="font-size: 1rem; color: var(--text-secondary);">/mo</span></div>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">5,000 coins monthly + perks</p>
                         </div>
-
-                        <div class="pricing-card featured">
-                            <div class="featured-badge">MOST POPULAR</div>
-                            <h3>PRO</h3>
-                            <div class="price">$14.99<span>/month</span></div>
-                            <ul class="features">
-                                <li><i class="fas fa-check"></i> All FREE features</li>
-                                <li><i class="fas fa-check"></i> Unlimited AI predictions</li>
-                                <li><i class="fas fa-check"></i> Advanced analytics</li>
-                                <li><i class="fas fa-check"></i> Real-time odds comparison</li>
-                                <li><i class="fas fa-check"></i> Priority support</li>
-                            </ul>
-                            <button class="btn btn-primary btn-block" id="subscribe-pro-btn">Upgrade to PRO</button>
+                        
+                        <div style="background: linear-gradient(135deg, rgba(251, 191, 36, 0.1) 0%, rgba(245, 158, 11, 0.1) 100%); border: 2px solid #fbbf24; border-radius: 16px; padding: 32px; position: relative;">
+                            <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 4px 16px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">POPULAR</div>
+                            <div style="font-size: 48px; margin-bottom: 16px;">🥈</div>
+                            <h3>Silver VIP</h3>
+                            <div style="font-size: 2rem; font-weight: 700; color: #c0c0c0; margin: 16px 0;">$19.99<span style="font-size: 1rem; color: var(--text-secondary);">/mo</span></div>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">15,000 coins monthly + priority support</p>
                         </div>
-
-                        <div class="pricing-card">
-                            <h3>VIP</h3>
-                            <div class="price">$29.99<span>/month</span></div>
-                            <ul class="features">
-                                <li><i class="fas fa-check"></i> All PRO features</li>
-                                <li><i class="fas fa-check"></i> Exclusive AI models</li>
-                                <li><i class="fas fa-check"></i> 1-on-1 coaching sessions</li>
-                                <li><i class="fas fa-check"></i> Early feature access</li>
-                                <li><i class="fas fa-check"></i> VIP community</li>
-                            </ul>
-                            <button class="btn btn-primary btn-block" id="subscribe-vip-btn">Upgrade to VIP</button>
+                        
+                        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 32px;">
+                            <div style="font-size: 48px; margin-bottom: 16px;">🥇</div>
+                            <h3>Gold VIP</h3>
+                            <div style="font-size: 2rem; font-weight: 700; color: #ffd700; margin: 16px 0;">$39.99<span style="font-size: 1rem; color: var(--text-secondary);">/mo</span></div>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">40,000 coins monthly + VIP tournaments</p>
                         </div>
                     </div>
+                    
+                    <button class="btn btn-primary" style="padding: 16px 48px; font-size: 1.2rem;" onclick="window.open('vip-subscriptions.html', '_blank')">
+                        <i class="fas fa-crown"></i> View All VIP Plans
+                    </button>
+                    
+                    <p style="color: var(--text-secondary); margin-top: 24px; font-size: 0.9rem;">
+                        Or <a href="#" onclick="window.open('coin-bundles.html', '_blank'); return false;" style="color: var(--primary);">buy coin bundles</a> for one-time purchases
+                    </p>
                 </div>
             </div>
 
@@ -908,14 +829,32 @@
                 <!-- Content loaded from my-bets.html -->
             </div>
 
-            <!-- TOURNAMENTS PAGE -->
+            <!-- TOURNAMENTS & CONTESTS PAGE -->
             <div id="tournaments-page" class="page">
-                <div class="page-header">
-                    <h1><i class="fas fa-trophy"></i> Tournaments</h1>
-                    <p class="page-subtitle">Compete and win big prizes</p>
+                <div class="page-header gradient-header">
+                    <h1><i class="fas fa-trophy"></i> Tournaments & Contests</h1>
+                    <p class="page-subtitle">Compete in live events and prediction contests - win big prizes!</p>
                 </div>
+                
+                <div class="tournaments-info-banner" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%); border: 1px solid var(--border-color); border-radius: 16px; padding: 24px; margin: 0 24px 24px; text-align: center;">
+                    <h3 style="margin: 0 0 12px; color: var(--primary);"><i class="fas fa-info-circle"></i> Two Ways to Compete</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px;">
+                        <div style="background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+                            <div style="font-size: 32px; margin-bottom: 12px;">🎮</div>
+                            <h4 style="margin: 0 0 8px; color: var(--text-primary);">Game Tournaments</h4>
+                            <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">Compete in mini-games like Parlay Battle, Sports Trivia, and more. Based on skill and performance.</p>
+                        </div>
+                        <div style="background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color);">
+                            <div style="font-size: 32px; margin-bottom: 12px;">🎯</div>
+                            <h4 style="margin: 0 0 8px; color: var(--text-primary);">Prediction Contests</h4>
+                            <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">Pick game winners across multiple sports. Real-time scoring as games complete. Test your sports knowledge!</p>
+                        </div>
+                    </div>
+                    <p style="margin: 20px 0 0; font-size: 13px; color: var(--text-secondary);"><strong>Coming Soon:</strong> Both systems are currently being enhanced with live scoring and automated prize distribution!</p>
+                </div>
+                
                 <div id="tournaments-container" class="content-container">
-                    <p class="loading-text">Loading tournaments...</p>
+                    <p class="loading-text">Loading tournaments and contests...</p>
                 </div>
             </div>
 
@@ -979,23 +918,35 @@
     <!-- GLOBAL CONFIGURATION (MUST LOAD BEFORE STATE) -->
     <script src="config.js?v=20250215001"></script>
     
+    <!-- LOGGER UTILITY (Production-safe logging) -->
+    <script src="logger.js?v=20250215001"></script>
+    
     <!-- ASSET MAPPINGS (LOAD BEFORE STATE) -->
     <script src="asset-mappings.js?v=20250215001"></script>
     
+    <!-- Error Handling (Load Early to catch all initialization errors) -->
+    <script src="error-handler.js?v=20250215002"></script>
+    <script src="auth-error-handler.js?v=20250215001"></script>
+
     <!-- GLOBAL STATE MANAGER (MUST LOAD BEFORE EVERYTHING) -->
     <script src="global-state-manager.js?v=20250215002"></script>
+    
+    <!-- INVENTORY SYSTEM (NEW UNIFIED SYSTEM) -->
+    <script src="inventory-item-definitions.js?v=20250215003"></script>
+    <script src="inventory-system.js?v=20250215003"></script>
     
     <!-- UNIFIED BALANCE MANAGER (SINGLE SOURCE OF TRUTH FOR COINS) -->
     <script src="unified-balance-manager.js?v=20250215002"></script>
     
-    <!-- UNIFIED INVENTORY MANAGER (SINGLE SOURCE OF TRUTH FOR ITEMS) -->
-    <script src="unified-inventory-manager.js?v=20250215002"></script>
-    
     <!-- TRANSACTION QUEUE MANAGER (LOAD AFTER GLOBAL STATE) -->
     <script src="transaction-queue-manager.js?v=20250215001"></script>
     
-    <!-- Error Handling -->
-    <script src="auth-error-handler.js?v=20250215001"></script>
+    <!-- BALANCE DIAGNOSTIC UTILITY (DEV TOOL) -->
+    <script src="balance-diagnostic.js?v=20250215001"></script>
+    
+    <!-- VIP SUBSCRIPTION MANAGER -->
+    <script type="module" src="vip-subscription-manager.js?v=20250215001"></script>
+    
     <script src="sports-data-service.js?v=20250215001"></script>
     
     <!-- Core Systems (Load First) -->
@@ -1019,6 +970,7 @@
     <script src="password-reset.js?v=20250101012"></script>
     <script src="profile.js?v=20250101012"></script>
     <script src="transaction-history-modal.js"></script>
+    <script src="connection-status.js"></script>
     
     <!-- Core Modules -->
     <script src="tier-restrictions.js?v=20250107003"></script>
@@ -1040,7 +992,6 @@
     <script src="tournaments-simple.js?v=20250214001"></script>
     <script src="analytics-frontend.js?v=20250214001"></script>
     <script src="settings-frontend.js?v=20250214001"></script>
-    <script src="profile-inventory.js?v=20250214001"></script>
     <script src="backend-diagnostics.js?v=20250214001"></script>
     <script src="shoutbox.js?v=20250215001"></script>
     <script src="trending-widget.js?v=20250215001"></script>
@@ -1050,14 +1001,19 @@
     <script src="live-commentary-overlay.js?v=20250215001"></script>
     <script src="betting-odds-tracker.js?v=20250215002" type="module"></script>
     <script src="global-odds-comparison.js?v=20250215003"></script>
+    <script src="ai-recommendations-widget.js?v=20250215001"></script>
     <script src="paper-trading-leaderboard.js?v=20250215001"></script>
     <script src="smart-parlay-generator.js?v=20250215001"></script>
     <script src="value-bet-scanner.js?v=20250215001"></script>
     <script type="module" src="social-share-manager.js?v=20250215001"></script>
     <script src="season-manager.js?v=20250215001"></script>
+    <script src="live-betting-system.js?v=20250215001"></script>
+
     <script type="module">
         import { LegendTradeMarket } from './legend-trade-market.js';
         window.LegendTradeMarketClass = LegendTradeMarket;
+        window.legendTradeMarket = new LegendTradeMarket();
+        window.legendTradeMarket.init();
     </script>
 
     <script>

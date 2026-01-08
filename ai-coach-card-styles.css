@@ -1,0 +1,617 @@
+/* ============================================
+   AI COACH CARD STYLES
+   Beautiful coach card UI and modals
+   ============================================ */
+
+/* Coach Cards Grid */
+.coaches-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+}
+
+/* Individual Coach Card */
+.coach-card {
+    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.coach-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--primary);
+    box-shadow: 0 12px 32px rgba(16, 185, 129, 0.2);
+}
+
+.coach-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.coach-card:hover::before {
+    opacity: 1;
+}
+
+/* Coach Card Header */
+.coach-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.coach-avatar {
+    font-size: 40px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+}
+
+.coach-info {
+    flex: 1;
+}
+
+.coach-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.coach-specialty {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 4px 0 0 0;
+}
+
+.coach-tier-badge {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.coach-tier-badge.free {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+/* Coach Stats */
+.coach-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.coach-stat {
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    display: block;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* Picks Preview */
+.coach-picks-preview {
+    min-height: 60px;
+}
+
+.picks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pick-item {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.pick-info {
+    flex: 1;
+}
+
+.pick-game {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 3px;
+}
+
+.pick-selection {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.pick-confidence {
+    width: 30px;
+    height: 20px;
+    background: linear-gradient(90deg, var(--primary), var(--accent));
+    border-radius: 4px;
+    margin-left: 8px;
+    position: relative;
+}
+
+.pick-confidence::after {
+    content: attr(data-confidence);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 10px;
+    font-weight: 600;
+    color: white;
+}
+
+.no-picks {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin: 0;
+    padding: 12px 0;
+}
+
+/* View Picks Button */
+.view-picks-btn {
+    width: 100%;
+    margin-top: auto;
+}
+
+/* Loading Skeleton */
+.coach-card.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--bg-tertiary) 0%,
+        var(--bg-secondary) 50%,
+        var(--bg-tertiary) 100%
+    );
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+.skeleton-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+}
+
+.skeleton-text {
+    height: 12px;
+    border-radius: 6px;
+    margin: 8px 0;
+}
+
+.skeleton-text.short {
+    width: 60%;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* ============================================
+   COACH DETAIL MODAL
+   ============================================ */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 16px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 32px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(40px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.coach-detail-modal {
+    padding: 24px;
+}
+
+.modal-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--bg-tertiary);
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.modal-close-btn:hover {
+    background: var(--primary);
+    color: white;
+}
+
+/* Coach Detail Header */
+.coach-detail-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.coach-avatar-large {
+    font-size: 64px;
+    margin-bottom: 16px;
+}
+
+.coach-detail-header h2 {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.coach-strategy {
+    color: var(--text-secondary);
+    font-size: 14px;
+    text-transform: capitalize;
+}
+
+/* Detail Stats */
+.coach-detail-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+}
+
+.detail-stat {
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.detail-stat i {
+    font-size: 24px;
+    color: var(--primary);
+}
+
+.detail-stat .label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.detail-stat .value {
+    display: block;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Coach Picks Detail */
+.coach-picks-detail {
+    margin-bottom: 32px;
+}
+
+.coach-picks-detail h3 {
+    margin-bottom: 16px;
+}
+
+.picks-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.pick-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pick-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.pick-game {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.confidence-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+}
+
+.pick-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pick-body p {
+    margin: 0;
+    font-size: 13px;
+}
+
+.pick-selection {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.pick-odds {
+    color: var(--text-secondary);
+}
+
+.pick-reasoning {
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.pick-time {
+    font-size: 12px;
+    color: var(--text-secondary);
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text-secondary);
+}
+
+.empty-state h3 {
+    margin-bottom: 8px;
+}
+
+/* Error State */
+.error-state {
+    text-align: center;
+    padding: 60px 24px;
+}
+
+.error-state h3 {
+    color: var(--danger);
+    margin-bottom: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .coaches-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .coach-detail-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-overlay {
+        padding: 8px;
+    }
+
+    .modal-content {
+        max-height: 90vh;
+        padding: 16px;
+        max-width: 95vw;
+        border-radius: 16px;
+    }
+
+    .coach-detail-modal {
+        padding: 12px;
+    }
+
+    .coach-stats {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .coach-detail-header h2 {
+        font-size: 20px;
+        margin-bottom: 4px;
+    }
+
+    .coach-avatar-large {
+        font-size: 48px;
+        margin-bottom: 12px;
+    }
+
+    .coach-strategy {
+        font-size: 12px;
+    }
+
+    .detail-stat .value {
+        font-size: 16px;
+    }
+
+    .pick-card {
+        padding: 12px;
+    }
+
+    .pick-header {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-content {
+        max-width: 95vw;
+        padding: 12px;
+        max-height: 95vh;
+        border-radius: 12px;
+    }
+
+    .coach-detail-header {
+        margin-bottom: 16px;
+    }
+
+    .coach-detail-header h2 {
+        font-size: 18px;
+        margin-bottom: 4px;
+    }
+
+    .coach-avatar-large {
+        font-size: 36px;
+        margin-bottom: 8px;
+    }
+
+    .coach-strategy {
+        font-size: 11px;
+    }
+
+    .coach-detail-stats {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .detail-stat {
+        padding: 10px;
+        gap: 4px;
+    }
+
+    .detail-stat i {
+        font-size: 20px;
+    }
+
+    .detail-stat .value {
+        font-size: 14px;
+    }
+
+    .detail-stat .label {
+        font-size: 10px;
+    }
+
+    .coach-picks-detail {
+        margin-bottom: 16px;
+    }
+
+    .coach-picks-detail h3 {
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
+
+    .pick-card {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .pick-game {
+        font-size: 11px;
+    }
+
+    .pick-selection {
+        font-size: 12px;
+    }
+
+    .pick-body p {
+        font-size: 12px;
+    }
+    
+    .modal-close-btn {
+        width: 32px;
+        height: 32px;
+        top: 12px;
+        right: 12px;
+    }
+}

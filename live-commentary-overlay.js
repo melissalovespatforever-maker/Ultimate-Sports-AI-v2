@@ -222,7 +222,7 @@ class LiveCommentaryOverlay {
         const game = this.currentGame;
         if (!game) return;
 
-        const fallbackLogo = 'https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
+        const fallbackLogo = 'https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
 
         // Resolve logos
         const awayLogo = window.resolveSportsLogo ? 

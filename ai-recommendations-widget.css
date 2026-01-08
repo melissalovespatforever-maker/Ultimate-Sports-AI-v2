@@ -1,0 +1,426 @@
+/* AI Recommendations Widget Styles */
+
+.ai-recommendations-widget {
+    background: var(--bg-card, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 32px;
+}
+
+.ai-recommendations-widget .widget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.ai-recommendations-widget .header-left h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+}
+
+.ai-recommendations-widget .widget-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+    margin: 0;
+}
+
+.ai-recommendations-widget .refresh-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.ai-recommendations-widget .refresh-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+}
+
+.ai-recommendations-widget .refresh-btn i {
+    transition: transform 0.3s;
+}
+
+.ai-recommendations-widget .refresh-btn:active i {
+    transform: rotate(180deg);
+}
+
+/* Recommendations Grid */
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.recommendation-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s;
+    opacity: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.recommendation-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #e040fb, transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.recommendation-card:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.recommendation-card:hover::before {
+    opacity: 1;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Card Header Row */
+.card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    gap: 8px;
+}
+
+.sport-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.match-score {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+}
+
+/* Game Info */
+.game-info {
+    margin-bottom: 16px;
+}
+
+.game-info h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: white;
+}
+
+.pick-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.pick-team {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.pick-odds {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #10b981;
+    font-family: 'Monaco', monospace;
+}
+
+.bet-type-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    background: rgba(99, 102, 241, 0.2);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #818cf8;
+}
+
+/* Confidence Bar */
+.confidence-bar-container {
+    margin-bottom: 12px;
+}
+
+.confidence-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 0.8rem;
+}
+
+.confidence-label span:first-child {
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+}
+
+.confidence-value {
+    font-weight: 700;
+}
+
+.confidence-bar {
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.confidence-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+/* Coach Attribution */
+.coach-attribution {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 12px;
+    padding: 6px 10px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 8px;
+}
+
+.coach-attribution i {
+    color: #818cf8;
+}
+
+/* Trending Badge */
+.trending-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: #f59e0b;
+    margin-bottom: 12px;
+    padding: 6px 10px;
+    background: rgba(245, 158, 11, 0.1);
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.trending-badge i {
+    animation: flicker 2s infinite;
+}
+
+@keyframes flicker {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+/* Reasoning */
+.reasoning {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.5;
+    margin-bottom: 16px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-left: 3px solid rgba(224, 64, 251, 0.5);
+    border-radius: 4px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.reasoning i {
+    color: #fbbf24;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+/* Action Button */
+.action-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.action-btn:active {
+    transform: scale(0.98);
+}
+
+/* Widget Footer */
+.widget-footer {
+    text-align: center;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.view-all-btn {
+    background: transparent;
+    border: 2px solid #e040fb;
+    color: #e040fb;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+
+.view-all-btn:hover {
+    background: rgba(224, 64, 251, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-state h3 {
+    font-size: 1.25rem;
+    margin: 0 0 12px 0;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.empty-state p {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 24px;
+}
+
+.empty-state .btn-primary {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.empty-state .btn-primary:hover {
+    transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .recommendations-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ai-recommendations-widget .widget-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .ai-recommendations-widget .refresh-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .recommendation-card {
+        padding: 16px;
+    }
+
+    .ai-recommendations-widget .header-left h2 {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .ai-recommendations-widget {
+        padding: 16px;
+        border-radius: 12px;
+    }
+
+    .card-header-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .pick-details {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+}
+
+/* Dark mode optimization */
+@media (prefers-color-scheme: dark) {
+    .ai-recommendations-widget {
+        background: rgba(255, 255, 255, 0.02);
+    }
+
+    .recommendation-card {
+        background: rgba(255, 255, 255, 0.03);
+    }
+
+    .recommendation-card:hover {
+        background: rgba(255, 255, 255, 0.06);
+    }
+}

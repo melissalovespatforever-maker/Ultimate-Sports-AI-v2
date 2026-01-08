@@ -1,0 +1,148 @@
+/* Connection Status Widget Styles */
+.connection-status-widget {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: default;
+    user-select: none;
+}
+
+.connection-status-widget:hover {
+    background: rgba(15, 23, 42, 0.8);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Status States */
+.connection-status-widget.online {
+    color: #10b981;
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.connection-status-widget.offline {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.connection-status-widget.syncing {
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.connection-status-widget.error {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Indicator Dot */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    position: relative;
+    box-shadow: 0 0 10px currentColor;
+}
+
+.status-dot::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.4;
+    animation: status-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes status-ping {
+    75%, 100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+/* Syncing Animation */
+.sync-icon {
+    display: none;
+    font-size: 10px;
+    animation: fa-spin 2s linear infinite;
+}
+
+.connection-status-widget.syncing .sync-icon {
+    display: inline-block;
+}
+
+.connection-status-widget.syncing .status-dot {
+    display: none;
+}
+
+/* Tooltip style */
+.connection-status-widget {
+    position: relative;
+}
+
+.connection-status-widget .status-tooltip {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: #1e293b;
+    color: white;
+    padding: 10px 14px;
+    border-radius: 8px;
+    width: 220px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: none;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.connection-status-widget:hover .status-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.tooltip-title {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--primary);
+}
+
+.tooltip-detail {
+    display: block;
+    color: #94a3b8;
+    line-height: 1.4;
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+    .connection-status-widget .status-text {
+        display: none;
+    }
+    .connection-status-widget {
+        padding: 6px;
+        margin-right: 4px;
+    }
+}

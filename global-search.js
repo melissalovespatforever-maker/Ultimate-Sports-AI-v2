@@ -217,7 +217,7 @@ class GlobalSearchManager {
             return;
         }
 
-        const fallbackLogo = 'https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
+        const fallbackLogo = 'https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
         let html = '';
 
         // Teams Section

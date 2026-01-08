@@ -190,6 +190,86 @@ class AchievementsSystem {
                 // Unique achievement, no series
             },
 
+            // Prediction Contest Achievements
+            'contest-novice': {
+                id: 'contest-novice',
+                name: 'Contest Novice',
+                description: 'Enter your first prediction contest',
+                icon: '🎲',
+                xp: 100,
+                category: 'contest',
+                unlocked: false,
+                series: 'contest-participation',
+                tier: 1,
+                targetValue: 1,
+                progressType: 'contest_entries'
+            },
+            'contest-veteran': {
+                id: 'contest-veteran',
+                name: 'Contest Veteran',
+                description: 'Enter 10 prediction contests',
+                icon: '🎖️',
+                xp: 500,
+                category: 'contest',
+                unlocked: false,
+                series: 'contest-participation',
+                tier: 2,
+                targetValue: 10,
+                progressType: 'contest_entries'
+            },
+            'first-victory': {
+                id: 'first-victory',
+                name: 'First Victory',
+                description: 'Win 1st place in a prediction contest',
+                icon: '🏆',
+                xp: 1000,
+                category: 'contest',
+                unlocked: false,
+                series: 'contest-wins',
+                tier: 1,
+                targetValue: 1,
+                progressType: 'contest_wins'
+            },
+            'podium-finisher': {
+                id: 'podium-finisher',
+                name: 'Podium Finisher',
+                description: 'Finish top 3 in contests 5 times',
+                icon: '🥇',
+                xp: 2500,
+                category: 'contest',
+                unlocked: false,
+                series: 'contest-podiums',
+                tier: 1,
+                targetValue: 5,
+                progressType: 'contest_podiums'
+            },
+            'perfect-predictor': {
+                id: 'perfect-predictor',
+                name: 'Perfect Predictor',
+                description: 'Get all predictions correct in a contest',
+                icon: '💎',
+                xp: 5000,
+                category: 'contest',
+                unlocked: false,
+                series: 'contest-perfect',
+                tier: 1,
+                targetValue: 1,
+                progressType: 'contest_perfect_records'
+            },
+            'contest-king': {
+                id: 'contest-king',
+                name: 'Contest Royalty',
+                description: 'Win 1st place in 10 contests',
+                icon: '👑',
+                xp: 10000,
+                category: 'contest',
+                unlocked: false,
+                series: 'contest-wins',
+                tier: 2,
+                targetValue: 10,
+                progressType: 'contest_wins'
+            },
+
             // Tournament Achievements
             'tournament-entry': {
                 id: 'tournament-entry',

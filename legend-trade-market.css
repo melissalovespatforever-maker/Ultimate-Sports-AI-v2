@@ -1,0 +1,97 @@
+/* Legend Trade Market Styles */
+
+.trade-market-container {
+    padding: 20px;
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    margin-top: 20px;
+}
+
+.trade-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.trade-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.trade-item:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary);
+}
+
+.trade-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.trade-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 12px 0;
+}
+
+.trade-card-display {
+    text-align: center;
+    width: 80px;
+}
+
+.trade-icon {
+    font-size: 2rem;
+    margin-bottom: 4px;
+}
+
+.trade-card-name {
+    font-weight: 700;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.trade-arrow {
+    color: var(--primary);
+    font-size: 1.2rem;
+}
+
+.btn-accept-trade {
+    width: 100%;
+    padding: 10px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: opacity 0.2s;
+}
+
+.btn-accept-trade:hover {
+    opacity: 0.9;
+}
+
+.btn-accept-trade:disabled {
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
+    cursor: not-allowed;
+}
+
+.verified-badge {
+    color: var(--success);
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
