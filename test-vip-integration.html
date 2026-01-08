@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP System Integration Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #10b981 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .test-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
+        }
+
+        .test-section h2 {
+            font-size: 1.8rem;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .status.pending {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+        }
+
+        .status.success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .status.error {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .test-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .test-card h3 {
+            font-size: 1rem;
+            margin-bottom: 12px;
+            color: #10b981;
+        }
+
+        .test-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .test-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        button {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 12px;
+            margin-bottom: 12px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.5);
+        }
+
+        button.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        button.danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        button.warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        pre {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            font-size: 0.85rem;
+            margin-top: 16px;
+        }
+
+        .log {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+
+        .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-entry.info { color: #60a5fa; }
+        .log-entry.success { color: #10b981; }
+        .log-entry.error { color: #ef4444; }
+        .log-entry.warning { color: #fbbf24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 VIP System Integration Test</h1>
+        <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 32px;">
+            Comprehensive testing suite for VIP subscriptions and coin bundles
+        </p>
+
+        <!-- System Status -->
+        <div class="test-section">
+            <h2>📊 System Status</h2>
+            <div class="test-grid">
+                <div class="test-card">
+                    <h3>VIP Manager</h3>
+                    <div class="test-value" id="vip-manager-status">-</div>
+                    <div class="test-label">Initialization Status</div>
+                </div>
+                <div class="test-card">
+                    <h3>Global State</h3>
+                    <div class="test-value" id="global-state-status">-</div>
+                    <div class="test-label">Connection Status</div>
+                </div>
+                <div class="test-card">
+                    <h3>Current Balance</h3>
+                    <div class="test-value" id="current-balance">-</div>
+                    <div class="test-label">Ultimate Coins</div>
+                </div>
+                <div class="test-card">
+                    <h3>VIP Status</h3>
+                    <div class="test-value" id="vip-status">-</div>
+                    <div class="test-label">Active Subscription</div>
+                </div>
+            </div>
+            <button onclick="refreshStatus()" class="success">🔄 Refresh Status</button>
+        </div>
+
+        <!-- Subscription Tests -->
+        <div class="test-section">
+            <h2>👑 VIP Subscription Tests</h2>
+            
+            <h3 style="margin-bottom: 16px; font-size: 1.2rem;">Create Test Subscription:</h3>
+            <button onclick="createTestSub('bronze_monthly')">🥉 Bronze Monthly</button>
+            <button onclick="createTestSub('silver_monthly')">🥈 Silver Monthly</button>
+            <button onclick="createTestSub('gold_monthly')">🥇 Gold Monthly</button>
+            <button onclick="createTestSub('silver_annual')" class="warning">🥈 Silver Annual</button>
+            
+            <h3 style="margin: 24px 0 16px; font-size: 1.2rem;">Test Features:</h3>
+            <button onclick="testXPMultiplier()" class="success">Test XP Multiplier</button>
+            <button onclick="testQuestBonus()" class="success">Test Quest Bonus</button>
+            <button onclick="testTournamentDiscount()" class="success">Test Tournament Discount</button>
+            <button onclick="testFeatureAccess()" class="success">Test Feature Access</button>
+            
+            <h3 style="margin: 24px 0 16px; font-size: 1.2rem;">Renewal Tests:</h3>
+            <button onclick="simulateRenewal()">⏰ Simulate Monthly Renewal</button>
+            <button onclick="manualRenewal()" class="success">💰 Manual Renewal</button>
+            
+            <h3 style="margin: 24px 0 16px; font-size: 1.2rem;">Subscription Management:</h3>
+            <button onclick="viewSubscriptionDetails()">📋 View Details</button>
+            <button onclick="cancelSubscription()" class="danger">❌ Cancel Subscription</button>
+            <button onclick="resetSystem()" class="danger">🔄 Reset System</button>
+            
+            <div id="subscription-output"></div>
+        </div>
+
+        <!-- Coin Tests -->
+        <div class="test-section">
+            <h2>💰 Coin Bundle Tests</h2>
+            
+            <h3 style="margin-bottom: 16px; font-size: 1.2rem;">Simulate Purchases:</h3>
+            <button onclick="simulateCoinPurchase(10000, 'Starter Pack')">🪙 Starter (10K)</button>
+            <button onclick="simulateCoinPurchase(27500, 'Pro Pack')">💎 Pro (27.5K)</button>
+            <button onclick="simulateCoinPurchase(57500, 'Elite Pack')">🏆 Elite (57.5K)</button>
+            <button onclick="simulateCoinPurchase(120000, 'Ultimate Pack')">👑 Ultimate (120K)</button>
+            
+            <h3 style="margin: 24px 0 16px; font-size: 1.2rem;">Balance Operations:</h3>
+            <button onclick="viewTransactionHistory()" class="success">📜 Transaction History</button>
+            <button onclick="addCustomCoins()">➕ Add Custom Coins</button>
+            <button onclick="deductCoins()">➖ Deduct Coins</button>
+        </div>
+
+        <!-- Integration Tests -->
+        <div class="test-section">
+            <h2>🔗 Integration Tests</h2>
+            
+            <button onclick="testWindowCommunication()">📡 Test Window Communication</button>
+            <button onclick="testBadgeRendering()">🎨 Test Badge Rendering</button>
+            <button onclick="testNotifications()">🔔 Test Notifications</button>
+            <button onclick="testConfetti()">🎉 Test Confetti</button>
+            <button onclick="runFullIntegrationTest()" class="warning">🧪 Run Full Test Suite</button>
+        </div>
+
+        <!-- Test Log -->
+        <div class="test-section">
+            <h2>📝 Test Log</h2>
+            <button onclick="clearLog()" class="danger">Clear Log</button>
+            <button onclick="exportLog()" class="success">Export Log</button>
+            <div class="log" id="test-log"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import VIP manager (if available)
+        let vipManager = null;
+        let globalState = null;
+
+        // Wait for page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                vipManager = window.vipSubscriptionManager;
+                globalState = window.globalState;
+                
+                if (!vipManager && window.opener?.vipSubscriptionManager) {
+                    vipManager = window.opener.vipSubscriptionManager;
+                }
+                
+                if (!globalState && window.opener?.globalState) {
+                    globalState = window.opener.globalState;
+                }
+                
+                refreshStatus();
+                log('System initialized', 'success');
+            }, 1000);
+        });
+
+        // Log function
+        window.log = function(message, type = 'info') {
+            const logDiv = document.getElementById('test-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${timestamp}] ${message}`;
+            logDiv.insertBefore(entry, logDiv.firstChild);
+        };
+
+        window.clearLog = function() {
+            document.getElementById('test-log').innerHTML = '';
+            log('Log cleared', 'info');
+        };
+
+        window.exportLog = function() {
+            const logContent = document.getElementById('test-log').textContent;
+            const blob = new Blob([logContent], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `vip-test-log-${Date.now()}.txt`;
+            a.click();
+            log('Log exported', 'success');
+        };
+
+        // Refresh system status
+        window.refreshStatus = function() {
+            // VIP Manager Status
+            const vipStatus = vipManager ? '✅ Loaded' : '❌ Not Found';
+            document.getElementById('vip-manager-status').textContent = vipStatus;
+            
+            // Global State Status
+            const gsStatus = globalState ? '✅ Connected' : '❌ Disconnected';
+            document.getElementById('global-state-status').textContent = gsStatus;
+            
+            // Current Balance
+            const balance = globalState?.getBalance() || parseInt(localStorage.getItem('unified_balance') || '0');
+            document.getElementById('current-balance').textContent = balance.toLocaleString();
+            
+            // VIP Status
+            if (vipManager && vipManager.isActive()) {
+                const status = vipManager.getSubscriptionStatus();
+                document.getElementById('vip-status').textContent = `${status.icon} ${status.tier}`;
+            } else {
+                document.getElementById('vip-status').textContent = '👤 Free Tier';
+            }
+            
+            log('Status refreshed', 'info');
+        };
+
+        // Create test subscription
+        window.createTestSub = function(tierId) {
+            const tierData = {
+                bronze_monthly: { tier: 'Bronze VIP', monthlyCoins: 5000, icon: '🥉', bonusCoins: 0 },
+                silver_monthly: { tier: 'Silver VIP', monthlyCoins: 15000, icon: '🥈', bonusCoins: 0 },
+                gold_monthly: { tier: 'Gold VIP', monthlyCoins: 40000, icon: '🥇', bonusCoins: 0 },
+                silver_annual: { tier: 'Silver VIP', monthlyCoins: 15000, icon: '🥈', bonusCoins: 30000 }
+            };
+            
+            const tier = tierData[tierId];
+            const testSub = {
+                tier: tier.tier,
+                tierId: tierId,
+                subscriptionId: 'TEST_' + Date.now(),
+                monthlyCoins: tier.monthlyCoins,
+                bonusCoins: tier.bonusCoins,
+                billingCycle: tierId.includes('annual') ? 'annual' : 'monthly',
+                startDate: Date.now(),
+                nextBillingDate: Date.now() + (30 * 24 * 60 * 60 * 1000),
+                lastCoinCredit: Date.now(),
+                active: true
+            };
+            
+            localStorage.setItem('vip_subscription', JSON.stringify(testSub));
+            
+            if (vipManager) {
+                vipManager.loadSubscription();
+                if (tier.bonusCoins) {
+                    vipManager.creditCoins(tier.bonusCoins, 'Annual bonus');
+                }
+                vipManager.creditMonthlyCoins();
+            }
+            
+            refreshStatus();
+            log(`Created ${tier.tier} subscription`, 'success');
+        };
+
+        // Test XP multiplier
+        window.testXPMultiplier = function() {
+            if (!vipManager) {
+                log('VIP Manager not available', 'error');
+                return;
+            }
+            
+            const baseXP = 100;
+            const boostedXP = vipManager.applyXPMultiplier(baseXP);
+            const tier = vipManager.getCurrentTier();
+            
+            const output = `Base XP: ${baseXP} → Boosted: ${boostedXP} (${tier?.xpMultiplier}x multiplier)`;
+            log(output, 'success');
+            alert(output);
+        };
+
+        // Test quest bonus
+        window.testQuestBonus = function() {
+            if (!vipManager) {
+                log('VIP Manager not available', 'error');
+                return;
+            }
+            
+            const baseReward = 1000;
+            const boostedReward = vipManager.applyQuestRewardBonus(baseReward);
+            const tier = vipManager.getCurrentTier();
+            
+            const output = `Base Reward: ${baseReward} → Boosted: ${boostedReward} (+${Math.round(tier?.questRewardBonus * 100)}% bonus)`;
+            log(output, 'success');
+            alert(output);
+        };
+
+        // Test tournament discount
+        window.testTournamentDiscount = function() {
+            if (!vipManager) {
+                log('VIP Manager not available', 'error');
+                return;
+            }
+            
+            const entryFee = 10000;
+            const discountedFee = vipManager.applyTournamentDiscount(entryFee);
+            const savings = entryFee - discountedFee;
+            
+            const output = `Entry Fee: ${entryFee} → Discounted: ${discountedFee} (Save ${savings} coins)`;
+            log(output, 'success');
+            alert(output);
+        };
+
+        // Test feature access
+        window.testFeatureAccess = function() {
+            if (!vipManager) {
+                log('VIP Manager not available', 'error');
+                return;
+            }
+            
+            const features = ['vip_tournaments', 'premium_ai', 'chat_colors', 'monthly_coaching'];
+            const results = features.map(f => `${f}: ${vipManager.hasFeature(f) ? '✅' : '❌'}`).join('\n');
+            
+            log('Feature access tested', 'success');
+            alert(`Feature Access:\n${results}\n\nPriority Support: ${vipManager.hasPrioritySupport() ? '✅' : '❌'}`);
+        };
+
+        // Simulate renewal
+        window.simulateRenewal = function() {
+            const sub = JSON.parse(localStorage.getItem('vip_subscription'));
+            if (!sub) {
+                log('No active subscription', 'error');
+                return;
+            }
+            
+            const thirtyOneDaysAgo = Date.now() - (31 * 24 * 60 * 60 * 1000);
+            sub.lastCoinCredit = thirtyOneDaysAgo;
+            localStorage.setItem('vip_subscription', JSON.stringify(sub));
+            
+            log('Set last credit to 31 days ago', 'success');
+            alert('Last coin credit set to 31 days ago.\n\nNow run: Manual Renewal');
+        };
+
+        // Manual renewal
+        window.manualRenewal = function() {
+            if (!vipManager) {
+                log('VIP Manager not available', 'error');
+                return;
+            }
+            
+            const success = vipManager.manualRenewal();
+            if (success) {
+                refreshStatus();
+                log('Manual renewal completed', 'success');
+            } else {
+                log('Manual renewal failed - no active subscription', 'error');
+            }
+        };
+
+        // View subscription details
+        window.viewSubscriptionDetails = function() {
+            const sub = JSON.parse(localStorage.getItem('vip_subscription'));
+            const output = document.getElementById('subscription-output');
+            output.innerHTML = '<pre>' + JSON.stringify(sub, null, 2) + '</pre>';
+            log('Subscription details displayed', 'info');
+        };
+
+        // Cancel subscription
+        window.cancelSubscription = function() {
+            if (!confirm('Cancel active subscription?')) return;
+            
+            const sub = JSON.parse(localStorage.getItem('vip_subscription'));
+            if (sub) {
+                sub.active = false;
+                sub.endDate = Date.now();
+                localStorage.setItem('vip_subscription', JSON.stringify(sub));
+                
+                if (vipManager) vipManager.deactivateSubscription();
+                
+                refreshStatus();
+                log('Subscription cancelled', 'warning');
+            } else {
+                log('No subscription to cancel', 'error');
+            }
+        };
+
+        // Reset system
+        window.resetSystem = function() {
+            if (!confirm('Reset entire VIP system? This will clear all subscription data.')) return;
+            
+            localStorage.removeItem('vip_subscription');
+            if (vipManager) vipManager.loadSubscription();
+            
+            refreshStatus();
+            log('System reset complete', 'warning');
+        };
+
+        // Simulate coin purchase
+        window.simulateCoinPurchase = function(amount, bundleName) {
+            const currentBalance = parseInt(localStorage.getItem('unified_balance') || '0');
+            const newBalance = currentBalance + amount;
+            localStorage.setItem('unified_balance', newBalance.toString());
+            
+            if (globalState) {
+                globalState.setBalance(newBalance);
+                globalState.addTransaction({
+                    type: 'coin_purchase',
+                    amount: amount,
+                    description: `Purchased ${bundleName}`,
+                    timestamp: Date.now()
+                });
+            }
+            
+            refreshStatus();
+            log(`Purchased ${bundleName}: +${amount.toLocaleString()} coins`, 'success');
+        };
+
+        // View transaction history
+        window.viewTransactionHistory = function() {
+            const transactions = JSON.parse(localStorage.getItem('coin_transactions') || '[]');
+            const last10 = transactions.slice(-10).reverse();
+            
+            if (last10.length === 0) {
+                alert('No transactions found');
+                log('No transaction history', 'info');
+                return;
+            }
+            
+            const output = last10.map(t => 
+                `${new Date(t.timestamp).toLocaleString()}\n${t.description}: ${t.amount.toLocaleString()} coins`
+            ).join('\n\n');
+            
+            alert(`Last 10 Transactions:\n\n${output}`);
+            log('Transaction history viewed', 'info');
+        };
+
+        // Add custom coins
+        window.addCustomCoins = function() {
+            const amount = prompt('Enter coin amount to add:');
+            if (!amount || isNaN(amount)) return;
+            
+            simulateCoinPurchase(parseInt(amount), 'Custom Admin Credit');
+        };
+
+        // Deduct coins
+        window.deductCoins = function() {
+            const amount = prompt('Enter coin amount to deduct:');
+            if (!amount || isNaN(amount)) return;
+            
+            const currentBalance = parseInt(localStorage.getItem('unified_balance') || '0');
+            const newBalance = Math.max(0, currentBalance - parseInt(amount));
+            localStorage.setItem('unified_balance', newBalance.toString());
+            
+            if (globalState) globalState.setBalance(newBalance);
+            
+            refreshStatus();
+            log(`Deducted ${amount} coins`, 'warning');
+        };
+
+        // Test window communication
+        window.testWindowCommunication = function() {
+            window.postMessage({
+                action: 'notify',
+                message: 'Test notification from integration test',
+                type: 'info'
+            }, '*');
+            log('Window message sent', 'info');
+        };
+
+        // Test badge rendering
+        window.testBadgeRendering = function() {
+            if (!vipManager) {
+                log('VIP Manager not available', 'error');
+                return;
+            }
+            
+            // Create a test container
+            const testDiv = document.createElement('div');
+            testDiv.id = 'test-badge-container';
+            document.body.appendChild(testDiv);
+            
+            vipManager.renderVIPBadge('#test-badge-container');
+            
+            setTimeout(() => {
+                const hasContent = testDiv.innerHTML.length > 0;
+                log(`Badge rendering test: ${hasContent ? '✅ Success' : '❌ Failed'}`, hasContent ? 'success' : 'error');
+                testDiv.remove();
+            }, 500);
+        };
+
+        // Test notifications
+        window.testNotifications = function() {
+            if (globalState && typeof globalState.showNotification === 'function') {
+                globalState.showNotification('Test notification!', 'success');
+                log('Notification test triggered', 'success');
+            } else {
+                log('Notification system not available', 'error');
+            }
+        };
+
+        // Test confetti
+        window.testConfetti = function() {
+            if (window.confetti) {
+                window.confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+                log('Confetti test triggered', 'success');
+            } else {
+                log('Confetti library not available', 'error');
+            }
+        };
+
+        // Run full integration test
+        window.runFullIntegrationTest = async function() {
+            log('Starting full integration test...', 'info');
+            
+            const tests = [
+                { name: 'VIP Manager', fn: () => !!vipManager },
+                { name: 'Global State', fn: () => !!globalState },
+                { name: 'LocalStorage', fn: () => typeof localStorage !== 'undefined' },
+                { name: 'Create Bronze Sub', fn: () => { createTestSub('bronze_monthly'); return true; } },
+                { name: 'Check Active Status', fn: () => vipManager && vipManager.isActive() },
+                { name: 'XP Multiplier', fn: () => vipManager && vipManager.applyXPMultiplier(100) === 150 },
+                { name: 'Quest Bonus', fn: () => vipManager && vipManager.applyQuestBonus(1000) === 1250 },
+                { name: 'Feature Access', fn: () => vipManager && vipManager.hasFeature('bronze_badge') },
+                { name: 'Cancel Sub', fn: () => { cancelSubscription(); return true; } },
+                { name: 'Verify Inactive', fn: () => vipManager && !vipManager.isActive() }
+            ];
+            
+            let passed = 0;
+            let failed = 0;
+            
+            for (const test of tests) {
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    const result = test.fn();
+                    if (result) {
+                        log(`✅ ${test.name}`, 'success');
+                        passed++;
+                    } else {
+                        log(`❌ ${test.name}`, 'error');
+                        failed++;
+                    }
+                } catch (error) {
+                    log(`❌ ${test.name}: ${error.message}`, 'error');
+                    failed++;
+                }
+            }
+            
+            log(`Test suite complete: ${passed} passed, ${failed} failed`, passed === tests.length ? 'success' : 'warning');
+            alert(`Integration Test Complete\n\nPassed: ${passed}/${tests.length}\nFailed: ${failed}/${tests.length}`);
+            
+            refreshStatus();
+        };
+    </script>
+</body>
+</html>

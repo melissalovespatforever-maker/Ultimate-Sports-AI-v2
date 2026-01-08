@@ -71,13 +71,17 @@ export class SocialShareManager {
     }
 
     renderPlayerPreview(container, player) {
+        const evolvedClass = player.isEvolved ? 'evolved' : '';
+        const ascendedClass = player.isAscended ? 'ascended' : '';
+        
         container.innerHTML = `
-            <div class="player-share-card tier-${player.tier} ${player.isEvolved ? 'evolved' : ''}">
+            <div class="player-share-card tier-${player.tier} ${evolvedClass} ${ascendedClass}">
                 <div class="share-card-header">
                     <span class="share-tier">${player.tier.toUpperCase()}</span>
                     <span class="share-level">LVL ${player.level}</span>
                 </div>
                 <div class="share-card-body">
+                    ${player.isAscended ? '<div class="share-badge ascended"><i class="fas fa-crown"></i> ASCENDED</div>' : player.isEvolved ? '<div class="share-badge evolved"><i class="fas fa-bolt"></i> EVOLVED</div>' : ''}
                     <div class="share-overall">${player.overall}</div>
                     <div class="share-name">${player.name}</div>
                     <div class="share-pos">${player.position}</div>

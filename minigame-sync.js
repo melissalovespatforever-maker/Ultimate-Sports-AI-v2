@@ -13,21 +13,24 @@ const MinigameSync = {
     init(gameName) {
         this._gameName = gameName;
         this._sessionId = `game_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        console.log(`🎮 MinigameSync initialized for: ${gameName}`);
         return this;
     },
     
-    // Get balance from global state or parent
+    // Get balance from global state or parent (STRICT PRIORITY ORDER)
     getBalance() {
+        // PRIORITY 1: Parent window GlobalStateManager (for iframes)
         if (window.parent && window.parent !== window && window.parent.globalState) {
             return window.parent.globalState.getBalance();
-        } else if (window.globalState) {
-            return window.globalState.getBalance();
-        } else {
-            return parseInt(localStorage.getItem('unified_balance') || 
-                          localStorage.getItem('ultimateCoins') || 
-                          localStorage.getItem('sportsLoungeBalance') || '10000');
         }
+        
+        // PRIORITY 2: Own GlobalStateManager
+        if (window.globalState) {
+            return window.globalState.getBalance();
+        }
+        
+        // PRIORITY 3: Wait for GlobalStateManager to initialize
+        const fallbackBalance = parseInt(localStorage.getItem('unified_balance') || '10000');
+        return fallbackBalance;
     },
 
     // Set balance in global state or parent (internal use only)
@@ -60,7 +63,6 @@ const MinigameSync = {
             });
             
             if (result !== false) {
-                console.log(`💸 ${reason}: -${amount} coins (New balance: ${result})`);
                 this.syncWithParent();
                 return true;
             }
@@ -70,8 +72,6 @@ const MinigameSync = {
         // Fallback to direct balance update (no queue)
         const newBalance = balance - amount;
         this.setBalance(newBalance);
-        console.log(`💸 ${reason}: -${amount} coins (New balance: ${newBalance})`);
-        console.warn('⚠️ Transaction not queued - global state not available');
         
         return true;
     },
@@ -98,8 +98,6 @@ const MinigameSync = {
             metadata.baseAmount = amount;
             metadata.multiplier = appliedMultiplier;
             
-            console.log(`✨ Multiplier applied: ${appliedMultiplier}x (Base: ${amount}, Final: ${finalAmount})`);
-            
             // Show a small toast for the boost if possible
             if (window.showToast) {
                 window.showToast(`✨ Boost Active! +${Math.round((appliedMultiplier - 1) * 100)}% Coins`, 'success');
@@ -115,7 +113,6 @@ const MinigameSync = {
                 ...metadata
             });
             
-            console.log(`💰 ${reason}: +${finalAmount} coins (New balance: ${newBalance})`);
             this.syncWithParent();
             return newBalance;
         }
@@ -124,8 +121,6 @@ const MinigameSync = {
         const balance = this.getBalance();
         const newBalance = balance + finalAmount;
         this.setBalance(newBalance);
-        console.log(`💰 ${reason}: +${finalAmount} coins (New balance: ${newBalance})`);
-        console.warn('⚠️ Transaction not queued - global state not available');
         
         return newBalance;
     },

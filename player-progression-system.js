@@ -128,6 +128,83 @@ const PLAYER_DATABASE = {
         stats: { accuracy: 87, power: 91, speed: 93 }
     },
 
+    qb_bronze_5: {
+        id: 'qb_bronze_5',
+        name: 'Zach Wilson',
+        position: 'QB',
+        tier: 'bronze',
+        overall: 72,
+        stats: { accuracy: 68, power: 76, speed: 72 }
+    },
+    qb_bronze_6: {
+        id: 'qb_bronze_6',
+        name: 'Mac Jones',
+        position: 'QB',
+        tier: 'bronze',
+        overall: 74,
+        stats: { accuracy: 75, power: 70, speed: 64 }
+    },
+
+    // MORE SILVER QBs
+    qb_silver_5: {
+        id: 'qb_silver_5',
+        name: 'Matthew Stafford',
+        position: 'QB',
+        tier: 'silver',
+        overall: 85,
+        stats: { accuracy: 86, power: 88, speed: 64 }
+    },
+    qb_silver_6: {
+        id: 'qb_silver_6',
+        name: 'Russell Wilson',
+        position: 'QB',
+        tier: 'silver',
+        overall: 84,
+        stats: { accuracy: 82, power: 80, speed: 85 }
+    },
+    qb_silver_7: {
+        id: 'qb_silver_7',
+        name: 'Dak Prescott',
+        position: 'QB',
+        tier: 'silver',
+        overall: 85,
+        stats: { accuracy: 85, power: 82, speed: 76 }
+    },
+    qb_silver_8: {
+        id: 'qb_silver_8',
+        name: 'Kyler Murray',
+        position: 'QB',
+        tier: 'silver',
+        overall: 83,
+        stats: { accuracy: 80, power: 75, speed: 92 }
+    },
+
+    // MORE GOLD QBs
+    qb_gold_6: {
+        id: 'qb_gold_6',
+        name: 'Justin Herbert',
+        position: 'QB',
+        tier: 'gold',
+        overall: 91,
+        stats: { accuracy: 89, power: 94, speed: 83 }
+    },
+    qb_gold_7: {
+        id: 'qb_gold_7',
+        name: 'Tua Tagovailoa',
+        position: 'QB',
+        tier: 'gold',
+        overall: 90,
+        stats: { accuracy: 93, power: 82, speed: 78 }
+    },
+    qb_gold_8: {
+        id: 'qb_gold_8',
+        name: 'C.J. Stroud',
+        position: 'QB',
+        tier: 'gold',
+        overall: 91,
+        stats: { accuracy: 90, power: 86, speed: 80 }
+    },
+
     // DIAMOND QBs (97-99 OVR) - Legends
     qb_diamond_1: {
         id: 'qb_diamond_1',
@@ -160,6 +237,22 @@ const PLAYER_DATABASE = {
         tier: 'diamond',
         overall: 99,
         stats: { accuracy: 99, power: 88, speed: 70 }
+    },
+    qb_diamond_5: {
+        id: 'qb_diamond_5',
+        name: 'Aaron Rodgers',
+        position: 'QB',
+        tier: 'diamond',
+        overall: 97,
+        stats: { accuracy: 98, power: 93, speed: 72 }
+    },
+    qb_diamond_6: {
+        id: 'qb_diamond_6',
+        name: 'Brett Favre',
+        position: 'QB',
+        tier: 'diamond',
+        overall: 98,
+        stats: { accuracy: 94, power: 99, speed: 68 }
     },
 
     // ========== RUNNING BACKS ==========
@@ -205,6 +298,22 @@ const PLAYER_DATABASE = {
         overall: 70,
         stats: { speed: 80, power: 65, agility: 72 }
     },
+    rb_bronze_5: {
+        id: 'rb_bronze_5',
+        name: 'Darrell Henderson',
+        position: 'RB',
+        tier: 'bronze',
+        overall: 72,
+        stats: { speed: 83, power: 67, agility: 75 }
+    },
+    rb_bronze_6: {
+        id: 'rb_bronze_6',
+        name: 'Raheem Mostert',
+        position: 'RB',
+        tier: 'bronze',
+        overall: 71,
+        stats: { speed: 88, power: 62, agility: 73 }
+    },
 
     // SILVER RBs
     rb_silver_1: {
@@ -238,6 +347,38 @@ const PLAYER_DATABASE = {
         tier: 'silver',
         overall: 85,
         stats: { speed: 88, power: 79, agility: 90 }
+    },
+    rb_silver_5: {
+        id: 'rb_silver_5',
+        name: 'Rhamondre Stevenson',
+        position: 'RB',
+        tier: 'silver',
+        overall: 83,
+        stats: { speed: 82, power: 90, agility: 80 }
+    },
+    rb_silver_6: {
+        id: 'rb_silver_6',
+        name: 'Breece Hall',
+        position: 'RB',
+        tier: 'silver',
+        overall: 84,
+        stats: { speed: 90, power: 82, agility: 86 }
+    },
+    rb_silver_7: {
+        id: 'rb_silver_7',
+        name: 'Kenneth Walker III',
+        position: 'RB',
+        tier: 'silver',
+        overall: 84,
+        stats: { speed: 91, power: 85, agility: 84 }
+    },
+    rb_silver_8: {
+        id: 'rb_silver_8',
+        name: 'Bijan Robinson',
+        position: 'RB',
+        tier: 'silver',
+        overall: 85,
+        stats: { speed: 93, power: 84, agility: 88 }
     },
 
     // GOLD RBs
@@ -273,6 +414,22 @@ const PLAYER_DATABASE = {
         overall: 92,
         stats: { speed: 96, power: 86, agility: 94 }
     },
+    rb_gold_5: {
+        id: 'rb_gold_5',
+        name: 'Jahmyr Gibbs',
+        position: 'RB',
+        tier: 'gold',
+        overall: 91,
+        stats: { speed: 97, power: 80, agility: 92 }
+    },
+    rb_gold_6: {
+        id: 'rb_gold_6',
+        name: 'Austin Ekeler',
+        position: 'RB',
+        tier: 'gold',
+        overall: 90,
+        stats: { speed: 91, power: 82, agility: 95 }
+    },
 
     // DIAMOND RBs - Legends
     rb_diamond_1: {
@@ -306,6 +463,22 @@ const PLAYER_DATABASE = {
         tier: 'diamond',
         overall: 98,
         stats: { speed: 97, power: 94, agility: 93 }
+    },
+    rb_diamond_5: {
+        id: 'rb_diamond_5',
+        name: 'LaDainian Tomlinson',
+        position: 'RB',
+        tier: 'diamond',
+        overall: 98,
+        stats: { speed: 94, power: 91, agility: 96 }
+    },
+    rb_diamond_6: {
+        id: 'rb_diamond_6',
+        name: 'Marshall Faulk',
+        position: 'RB',
+        tier: 'diamond',
+        overall: 97,
+        stats: { speed: 93, power: 88, agility: 98 }
     },
 
     // ========== WIDE RECEIVERS ==========
@@ -351,6 +524,22 @@ const PLAYER_DATABASE = {
         overall: 74,
         stats: { speed: 84, catching: 68, route: 69 }
     },
+    wr_bronze_5: {
+        id: 'wr_bronze_5',
+        name: 'Marvin Jones Jr.',
+        position: 'WR',
+        tier: 'bronze',
+        overall: 72,
+        stats: { speed: 80, catching: 71, route: 70 }
+    },
+    wr_bronze_6: {
+        id: 'wr_bronze_6',
+        name: 'Nico Collins',
+        position: 'WR',
+        tier: 'bronze',
+        overall: 73,
+        stats: { speed: 82, catching: 69, route: 71 }
+    },
 
     // SILVER WRs
     wr_silver_1: {
@@ -384,6 +573,38 @@ const PLAYER_DATABASE = {
         tier: 'silver',
         overall: 82,
         stats: { speed: 92, catching: 79, route: 76 }
+    },
+    wr_silver_5: {
+        id: 'wr_silver_5',
+        name: 'Amari Cooper',
+        position: 'WR',
+        tier: 'silver',
+        overall: 83,
+        stats: { speed: 89, catching: 85, route: 88 }
+    },
+    wr_silver_6: {
+        id: 'wr_silver_6',
+        name: 'Garrett Wilson',
+        position: 'WR',
+        tier: 'silver',
+        overall: 84,
+        stats: { speed: 90, catching: 83, route: 85 }
+    },
+    wr_silver_7: {
+        id: 'wr_silver_7',
+        name: 'Jaxon Smith-Njigba',
+        position: 'WR',
+        tier: 'silver',
+        overall: 82,
+        stats: { speed: 87, catching: 84, route: 86 }
+    },
+    wr_silver_8: {
+        id: 'wr_silver_8',
+        name: 'Puka Nacua',
+        position: 'WR',
+        tier: 'silver',
+        overall: 85,
+        stats: { speed: 89, catching: 87, route: 84 }
     },
 
     // GOLD WRs
@@ -427,6 +648,30 @@ const PLAYER_DATABASE = {
         overall: 95,
         stats: { speed: 90, catching: 97, route: 98 }
     },
+    wr_gold_6: {
+        id: 'wr_gold_6',
+        name: 'AJ Brown',
+        position: 'WR',
+        tier: 'gold',
+        overall: 93,
+        stats: { speed: 91, catching: 92, route: 90 }
+    },
+    wr_gold_7: {
+        id: 'wr_gold_7',
+        name: 'Amon-Ra St. Brown',
+        position: 'WR',
+        tier: 'gold',
+        overall: 92,
+        stats: { speed: 88, catching: 94, route: 93 }
+    },
+    wr_gold_8: {
+        id: 'wr_gold_8',
+        name: 'Stefon Diggs',
+        position: 'WR',
+        tier: 'gold',
+        overall: 94,
+        stats: { speed: 92, catching: 95, route: 96 }
+    },
 
     // DIAMOND WRs - Legends
     wr_diamond_1: {
@@ -452,6 +697,30 @@ const PLAYER_DATABASE = {
         tier: 'diamond',
         overall: 98,
         stats: { speed: 95, catching: 97, route: 94 }
+    },
+    wr_diamond_4: {
+        id: 'wr_diamond_4',
+        name: 'Calvin Johnson',
+        position: 'WR',
+        tier: 'diamond',
+        overall: 99,
+        stats: { speed: 96, catching: 99, route: 95 }
+    },
+    wr_diamond_5: {
+        id: 'wr_diamond_5',
+        name: 'Larry Fitzgerald',
+        position: 'WR',
+        tier: 'diamond',
+        overall: 97,
+        stats: { speed: 89, catching: 99, route: 96 }
+    },
+    wr_diamond_6: {
+        id: 'wr_diamond_6',
+        name: 'Marvin Harrison',
+        position: 'WR',
+        tier: 'diamond',
+        overall: 98,
+        stats: { speed: 93, catching: 98, route: 99 }
     },
     wr_diamond_4: {
         id: 'wr_diamond_4',
@@ -571,6 +840,30 @@ const PLAYER_DATABASE = {
         overall: 71,
         stats: { tackling: 72, speed: 78, awareness: 68 }
     },
+    lb_bronze_4: {
+        id: 'lb_bronze_4',
+        name: 'Foye Oluokun',
+        position: 'LB',
+        tier: 'bronze',
+        overall: 74,
+        stats: { tackling: 75, speed: 77, awareness: 73 }
+    },
+    lb_bronze_5: {
+        id: 'lb_bronze_5',
+        name: 'Alex Singleton',
+        position: 'LB',
+        tier: 'bronze',
+        overall: 72,
+        stats: { tackling: 73, speed: 74, awareness: 71 }
+    },
+    lb_bronze_6: {
+        id: 'lb_bronze_6',
+        name: 'Germaine Pratt',
+        position: 'LB',
+        tier: 'bronze',
+        overall: 73,
+        stats: { tackling: 74, speed: 76, awareness: 72 }
+    },
 
     // SILVER LBs
     lb_silver_1: {
@@ -597,6 +890,46 @@ const PLAYER_DATABASE = {
         overall: 83,
         stats: { tackling: 87, speed: 80, awareness: 88 }
     },
+    lb_silver_4: {
+        id: 'lb_silver_4',
+        name: 'CJ Mosley',
+        position: 'LB',
+        tier: 'silver',
+        overall: 82,
+        stats: { tackling: 86, speed: 79, awareness: 87 }
+    },
+    lb_silver_5: {
+        id: 'lb_silver_5',
+        name: 'Tremaine Edmunds',
+        position: 'LB',
+        tier: 'silver',
+        overall: 81,
+        stats: { tackling: 82, speed: 84, awareness: 83 }
+    },
+    lb_silver_6: {
+        id: 'lb_silver_6',
+        name: 'Jerome Baker',
+        position: 'LB',
+        tier: 'silver',
+        overall: 80,
+        stats: { tackling: 80, speed: 86, awareness: 81 }
+    },
+    lb_silver_7: {
+        id: 'lb_silver_7',
+        name: 'Lavonte David',
+        position: 'LB',
+        tier: 'silver',
+        overall: 84,
+        stats: { tackling: 89, speed: 83, awareness: 90 }
+    },
+    lb_silver_8: {
+        id: 'lb_silver_8',
+        name: 'Shaquille Leonard',
+        position: 'LB',
+        tier: 'silver',
+        overall: 82,
+        stats: { tackling: 85, speed: 82, awareness: 85 }
+    },
 
     // GOLD LBs
     lb_gold_1: {
@@ -622,6 +955,30 @@ const PLAYER_DATABASE = {
         tier: 'gold',
         overall: 94,
         stats: { tackling: 97, speed: 88, awareness: 93 }
+    },
+    lb_gold_4: {
+        id: 'lb_gold_4',
+        name: 'Nick Bolton',
+        position: 'LB',
+        tier: 'gold',
+        overall: 91,
+        stats: { tackling: 92, speed: 87, awareness: 89 }
+    },
+    lb_gold_5: {
+        id: 'lb_gold_5',
+        name: 'Devin White',
+        position: 'LB',
+        tier: 'gold',
+        overall: 90,
+        stats: { tackling: 89, speed: 93, awareness: 86 }
+    },
+    lb_gold_6: {
+        id: 'lb_gold_6',
+        name: 'Patrick Queen',
+        position: 'LB',
+        tier: 'gold',
+        overall: 91,
+        stats: { tackling: 90, speed: 91, awareness: 88 }
     },
 
     // DIAMOND LBs - Legends
@@ -677,6 +1034,30 @@ const PLAYER_DATABASE = {
         overall: 70,
         stats: { coverage: 70, speed: 80, agility: 68 }
     },
+    cb_bronze_4: {
+        id: 'cb_bronze_4',
+        name: 'Emmanuel Moseley',
+        position: 'CB',
+        tier: 'bronze',
+        overall: 72,
+        stats: { coverage: 73, speed: 83, agility: 71 }
+    },
+    cb_bronze_5: {
+        id: 'cb_bronze_5',
+        name: 'Darious Williams',
+        position: 'CB',
+        tier: 'bronze',
+        overall: 73,
+        stats: { coverage: 74, speed: 84, agility: 73 }
+    },
+    cb_bronze_6: {
+        id: 'cb_bronze_6',
+        name: 'Michael Davis',
+        position: 'CB',
+        tier: 'bronze',
+        overall: 71,
+        stats: { coverage: 71, speed: 81, agility: 70 }
+    },
 
     // SILVER CBs
     cb_silver_1: {
@@ -703,6 +1084,46 @@ const PLAYER_DATABASE = {
         overall: 85,
         stats: { coverage: 87, speed: 86, agility: 88 }
     },
+    cb_silver_4: {
+        id: 'cb_silver_4',
+        name: 'Jaylon Johnson',
+        position: 'CB',
+        tier: 'silver',
+        overall: 82,
+        stats: { coverage: 84, speed: 83, agility: 85 }
+    },
+    cb_silver_5: {
+        id: 'cb_silver_5',
+        name: 'Carlton Davis',
+        position: 'CB',
+        tier: 'silver',
+        overall: 81,
+        stats: { coverage: 82, speed: 84, agility: 83 }
+    },
+    cb_silver_6: {
+        id: 'cb_silver_6',
+        name: 'Denzel Ward',
+        position: 'CB',
+        tier: 'silver',
+        overall: 84,
+        stats: { coverage: 86, speed: 90, agility: 87 }
+    },
+    cb_silver_7: {
+        id: 'cb_silver_7',
+        name: 'Kristian Fulton',
+        position: 'CB',
+        tier: 'silver',
+        overall: 80,
+        stats: { coverage: 81, speed: 82, agility: 84 }
+    },
+    cb_silver_8: {
+        id: 'cb_silver_8',
+        name: 'Christian Gonzalez',
+        position: 'CB',
+        tier: 'silver',
+        overall: 83,
+        stats: { coverage: 85, speed: 88, agility: 86 }
+    },
 
     // GOLD CBs
     cb_gold_1: {
@@ -728,6 +1149,30 @@ const PLAYER_DATABASE = {
         tier: 'gold',
         overall: 93,
         stats: { coverage: 95, speed: 90, agility: 92 }
+    },
+    cb_gold_4: {
+        id: 'cb_gold_4',
+        name: 'DaRon Bland',
+        position: 'CB',
+        tier: 'gold',
+        overall: 91,
+        stats: { coverage: 92, speed: 89, agility: 90 }
+    },
+    cb_gold_5: {
+        id: 'cb_gold_5',
+        name: 'Tariq Woolen',
+        position: 'CB',
+        tier: 'gold',
+        overall: 90,
+        stats: { coverage: 88, speed: 95, agility: 87 }
+    },
+    cb_gold_6: {
+        id: 'cb_gold_6',
+        name: 'Devon Witherspoon',
+        position: 'CB',
+        tier: 'gold',
+        overall: 92,
+        stats: { coverage: 93, speed: 91, agility: 94 }
     },
 
     // DIAMOND CBs - Legends
@@ -775,6 +1220,38 @@ const PLAYER_DATABASE = {
         overall: 73,
         stats: { coverage: 72, speed: 76, hitpower: 78 }
     },
+    s_bronze_3: {
+        id: 's_bronze_3',
+        name: 'Nick Cross',
+        position: 'S',
+        tier: 'bronze',
+        overall: 71,
+        stats: { coverage: 70, speed: 78, hitpower: 73 }
+    },
+    s_bronze_4: {
+        id: 's_bronze_4',
+        name: 'Julian Blackmon',
+        position: 'S',
+        tier: 'bronze',
+        overall: 72,
+        stats: { coverage: 71, speed: 77, hitpower: 74 }
+    },
+    s_bronze_5: {
+        id: 's_bronze_5',
+        name: 'Jaquan Brisker',
+        position: 'S',
+        tier: 'bronze',
+        overall: 74,
+        stats: { coverage: 73, speed: 75, hitpower: 79 }
+    },
+    s_bronze_6: {
+        id: 's_bronze_6',
+        name: 'Andre Cisco',
+        position: 'S',
+        tier: 'bronze',
+        overall: 72,
+        stats: { coverage: 72, speed: 76, hitpower: 72 }
+    },
 
     // SILVER S
     s_silver_1: {
@@ -793,6 +1270,54 @@ const PLAYER_DATABASE = {
         overall: 83,
         stats: { coverage: 84, speed: 82, hitpower: 85 }
     },
+    s_silver_3: {
+        id: 's_silver_3',
+        name: 'Kevin Byard',
+        position: 'S',
+        tier: 'silver',
+        overall: 84,
+        stats: { coverage: 87, speed: 81, hitpower: 82 }
+    },
+    s_silver_4: {
+        id: 's_silver_4',
+        name: 'Kyle Hamilton',
+        position: 'S',
+        tier: 'silver',
+        overall: 82,
+        stats: { coverage: 83, speed: 85, hitpower: 84 }
+    },
+    s_silver_5: {
+        id: 's_silver_5',
+        name: 'Jevon Holland',
+        position: 'S',
+        tier: 'silver',
+        overall: 81,
+        stats: { coverage: 82, speed: 86, hitpower: 79 }
+    },
+    s_silver_6: {
+        id: 's_silver_6',
+        name: 'Antoine Winfield Jr',
+        position: 'S',
+        tier: 'silver',
+        overall: 85,
+        stats: { coverage: 86, speed: 83, hitpower: 88 }
+    },
+    s_silver_7: {
+        id: 's_silver_7',
+        name: 'Budda Baker',
+        position: 'S',
+        tier: 'silver',
+        overall: 84,
+        stats: { coverage: 85, speed: 87, hitpower: 86 }
+    },
+    s_silver_8: {
+        id: 's_silver_8',
+        name: 'Justin Simmons',
+        position: 'S',
+        tier: 'silver',
+        overall: 83,
+        stats: { coverage: 85, speed: 80, hitpower: 81 }
+    },
 
     // GOLD S
     s_gold_1: {
@@ -810,6 +1335,38 @@ const PLAYER_DATABASE = {
         tier: 'gold',
         overall: 94,
         stats: { coverage: 92, speed: 93, hitpower: 96 }
+    },
+    s_gold_3: {
+        id: 's_gold_3',
+        name: 'Tyrann Mathieu',
+        position: 'S',
+        tier: 'gold',
+        overall: 92,
+        stats: { coverage: 93, speed: 90, hitpower: 87 }
+    },
+    s_gold_4: {
+        id: 's_gold_4',
+        name: 'Jamal Adams',
+        position: 'S',
+        tier: 'gold',
+        overall: 91,
+        stats: { coverage: 86, speed: 89, hitpower: 97 }
+    },
+    s_gold_5: {
+        id: 's_gold_5',
+        name: 'Brian Branch',
+        position: 'S',
+        tier: 'gold',
+        overall: 90,
+        stats: { coverage: 91, speed: 91, hitpower: 88 }
+    },
+    s_gold_6: {
+        id: 's_gold_6',
+        name: 'Jalen Thompson',
+        position: 'S',
+        tier: 'gold',
+        overall: 91,
+        stats: { coverage: 90, speed: 88, hitpower: 92 }
     },
 
     // DIAMOND S - Legends
@@ -849,6 +1406,30 @@ const PLAYER_DATABASE = {
         overall: 95,
         stats: { offense: 88, defense: 98, special: 94 }
     },
+    coach_gold_3: {
+        id: 'coach_gold_3',
+        name: 'Mike Tomlin',
+        position: 'COACH',
+        tier: 'gold',
+        overall: 92,
+        stats: { offense: 89, defense: 93, special: 90 }
+    },
+    coach_gold_4: {
+        id: 'coach_gold_4',
+        name: 'Sean McVay',
+        position: 'COACH',
+        tier: 'gold',
+        overall: 93,
+        stats: { offense: 97, defense: 86, special: 91 }
+    },
+    coach_gold_5: {
+        id: 'coach_gold_5',
+        name: 'Kyle Shanahan',
+        position: 'COACH',
+        tier: 'gold',
+        overall: 91,
+        stats: { offense: 96, defense: 85, special: 89 }
+    },
 
     // DIAMOND Coaches - Legends
     coach_diamond_1: {
@@ -874,6 +1455,30 @@ const PLAYER_DATABASE = {
         tier: 'diamond',
         overall: 99,
         stats: { offense: 96, defense: 96, special: 98 }
+    },
+    coach_diamond_4: {
+        id: 'coach_diamond_4',
+        name: 'Don Shula',
+        position: 'COACH',
+        tier: 'diamond',
+        overall: 99,
+        stats: { offense: 95, defense: 97, special: 97 }
+    },
+    coach_diamond_5: {
+        id: 'coach_diamond_5',
+        name: 'Tom Landry',
+        position: 'COACH',
+        tier: 'diamond',
+        overall: 99,
+        stats: { offense: 94, defense: 98, special: 96 }
+    },
+    coach_diamond_6: {
+        id: 'coach_diamond_6',
+        name: 'Chuck Noll',
+        position: 'COACH',
+        tier: 'diamond',
+        overall: 99,
+        stats: { offense: 93, defense: 99, special: 95 }
     }
 };
 
@@ -947,7 +1552,8 @@ class PlayerProgressionManager {
                 packsOpened: 0,
                 duplicates: 0,
                 trainingXP: 100, // Starting training XP
-                evolutionStones: 0
+                evolutionStones: 0,
+                packHistory: [] // Track recent pack openings
             };
             
             // Give starter pack on first load
@@ -962,6 +1568,9 @@ class PlayerProgressionManager {
             }
             if (this.store.state.playerCollection.evolutionStones === undefined) {
                 this.store.state.playerCollection.evolutionStones = 0;
+            }
+            if (!this.store.state.playerCollection.packHistory) {
+                this.store.state.playerCollection.packHistory = [];
             }
         }
     }
@@ -1032,6 +1641,30 @@ class PlayerProgressionManager {
         });
 
         this.store.state.playerCollection.packsOpened++;
+        
+        // Record History
+        const historyEntry = {
+            id: 'pk_' + Date.now(),
+            packId: packType,
+            packName: pack.name,
+            cost: pack.cost,
+            timestamp: Date.now(),
+            cards: results.map(r => ({
+                id: r.id,
+                name: r.name,
+                tier: r.tier,
+                overall: r.overall,
+                isNew: r.isNew
+            }))
+        };
+        
+        // Keep last 50 entries
+        if (!this.store.state.playerCollection.packHistory) this.store.state.playerCollection.packHistory = [];
+        this.store.state.playerCollection.packHistory.unshift(historyEntry);
+        if (this.store.state.playerCollection.packHistory.length > 50) {
+            this.store.state.playerCollection.packHistory.pop();
+        }
+
         this.store.save();
 
         return {
@@ -1039,6 +1672,30 @@ class PlayerProgressionManager {
             packType,
             cards: results
         };
+    }
+
+    getPackStats() {
+        const history = this.store.state.playerCollection.packHistory || [];
+        const stats = {
+            totalSpent: 0,
+            tierCounts: { bronze: 0, silver: 0, gold: 0, diamond: 0 },
+            totalCards: 0,
+            bestPull: null,
+            totalPacks: this.store.state.playerCollection.packsOpened || 0
+        };
+
+        history.forEach(entry => {
+            stats.totalSpent += entry.cost;
+            entry.cards.forEach(card => {
+                stats.totalCards++;
+                stats.tierCounts[card.tier]++;
+                if (!stats.bestPull || card.overall > stats.bestPull.overall) {
+                    stats.bestPull = card;
+                }
+            });
+        });
+
+        return stats;
     }
 
     rollTier(probabilities) {
@@ -1152,6 +1809,9 @@ class PlayerProgressionManager {
 
         this.store.state.playerCollection.evolutionStones--;
         instance.isAscended = true;
+        
+        // Recalculate team stats with ascension boost
+        this.recalculateTeamStats();
         this.store.save();
 
         return { success: true };
@@ -1378,9 +2038,17 @@ class PlayerProgressionManager {
 
         this.store.state.playerCollection.trainingXP -= costXP;
         const result = this.addPlayerXP(playerId, costXP);
+        
+        // Recalculate team stats after training
+        this.recalculateTeamStats();
         this.store.save();
 
-        return { success: true, leveledUp: result.leveledUp, newLevel: instance.level };
+        return { 
+            success: true, 
+            leveledUp: result.leveledUp, 
+            newLevel: instance.level,
+            capped: result.capped 
+        };
     }
 }
 

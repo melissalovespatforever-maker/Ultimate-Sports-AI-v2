@@ -2,11 +2,13 @@
  * SHOP SYSTEM - Purchase boosters, avatars, and exclusive items
  */
 
+import { logger } from './logger.js';
+
 const ShopSystem = {
     
     // Initialize shop
     init() {
-        console.log('🛒 Initializing Shop System');
+        logger.info('Shop System', 'Initializing');
         this.setupCategoryFilters();
         this.loadActiveBoosters();
         this.updateBoosterTimers();
@@ -110,13 +112,13 @@ const ShopSystem = {
 
     // Purchase item
     purchase(itemId, price) {
-        console.log(`🛍️ Attempting to purchase ${itemId} for ${price}`);
+        logger.debug('Shop System', `Attempting purchase: ${itemId} for ${price} coins`);
         
         // Get global state manager (local or parent)
         const globalState = window.globalState || (window.parent && window.parent.globalState);
         
         if (!globalState) {
-            console.error('❌ GlobalStateManager not found! Cannot process purchase.');
+            logger.error('Shop System', 'GlobalStateManager not found');
             this.showNotification('❌ System error: Please refresh the page', 'error');
             return false;
         }
@@ -125,7 +127,7 @@ const ShopSystem = {
         const currentBalance = globalState.getBalance();
         if (currentBalance < price) {
             this.showNotification(`❌ Insufficient balance! You need ${price.toLocaleString()} coins but have ${currentBalance.toLocaleString()}.`, 'error');
-            console.warn(`Purchase failed: Need ${price}, have ${currentBalance}`);
+            logger.warn('Shop System', `Insufficient balance: need ${price}, have ${currentBalance}`);
             return false;
         }
         
@@ -139,46 +141,89 @@ const ShopSystem = {
         });
         
         if (result === false) {
-            console.error('❌ Failed to deduct coins');
+            logger.error('Shop System', 'Failed to deduct coins');
             this.showNotification('❌ Purchase failed. Please try again.', 'error');
             return false;
         }
 
-        console.log(`✅ Coins deducted. New balance: ${result}`);
+        logger.debug('Shop System', `Coins deducted. New balance: ${result}`);
 
-        // Get complete item data from asset mappings
-        const assetData = window.getAssetData ? window.getAssetData(itemId) : null;
+        // Get item data from catalog (if available)
+        const catalogItem = window.getItemData ? window.getItemData(itemId) : null;
         
-        // Determine correct category for inventory
-        let inventoryType = 'booster';
-        if (itemId === 'streak-shield' || itemId === '1000-coins') {
-            inventoryType = 'consumable';
-        } else if (assetData && assetData.category) {
-            inventoryType = assetData.category.replace(/s$/, ''); // Convert plural to singular
+        let itemType = 'consumable';
+        let duration = null;
+        let itemMetadata = { 
+            price: price,
+            purchasedAt: Date.now()
+        };
+
+        if (catalogItem) {
+            // Use catalog data
+            itemType = catalogItem.type;
+            duration = catalogItem.duration || null;
+            itemMetadata = {
+                ...catalogItem.metadata,
+                ...itemMetadata,
+                icon: catalogItem.icon,
+                description: catalogItem.description
+            };
+        } else {
+            // Fallback: Legacy classification
+            if (itemId.includes('coin-') && (itemId.includes('2x') || itemId.includes('3x'))) {
+                itemType = 'booster';
+                duration = 3600000;
+                itemMetadata.multiplier = itemId.includes('3x') ? 3 : 2;
+                itemMetadata.stat = 'coins';
+                itemMetadata.icon = itemId.includes('3x') ? '🤑' : '💰';
+            } else if (itemId.includes('xp-')) {
+                itemType = 'booster';
+                duration = 7200000;
+                itemMetadata.multiplier = 2;
+                itemMetadata.stat = 'xp';
+                itemMetadata.icon = '📈';
+            } else if (itemId === 'streak-shield') {
+                itemType = 'consumable';
+                itemMetadata.icon = '🛡️';
+            } else if (itemId.includes('ring') || itemId.includes('golden-coin')) {
+                itemType = 'permanent';
+                itemMetadata.bonus = itemId.includes('ring') ? 0.03 : 0.05;
+                itemMetadata.stat = itemId.includes('ring') ? 'xp' : 'coins';
+                itemMetadata.icon = '💍';
+            } else if (['jordan-1', 'king-chess', 'gotrich', 'scrooge', 'guccii-duffel'].includes(itemId)) {
+                itemType = 'avatar';
+                const avatarIcons = {
+                    'jordan-1': '👟',
+                    'king-chess': '👑',
+                    'gotrich': '🏀',
+                    'scrooge': '🎰',
+                    'guccii-duffel': '💼'
+                };
+                itemMetadata.icon = avatarIcons[itemId] || '😊';
+                itemMetadata.emoji = avatarIcons[itemId];
+            } else {
+                itemType = 'cosmetic';
+                itemMetadata.icon = '✨';
+            }
         }
 
-        // Add to inventory through GlobalStateManager (single source of truth)
-        const itemAdded = globalState.addItem({
+        // Add to inventory through new InventorySystem
+        const itemAdded = window.inventorySystem?.addItem({
             item_id: itemId,
-            item_name: assetData ? assetData.name : this.getItemName(itemId),
-            item_type: inventoryType,
+            item_name: this.getItemName(itemId),
+            item_type: itemType,
             quantity: 1,
-            metadata: { 
-                price: price,
-                purchasedAt: Date.now(),
-                imageUrl: assetData ? assetData.imageUrl : null,
-                description: assetData ? assetData.description : '',
-                duration: assetData ? assetData.duration : null
-            }
+            metadata: itemMetadata,
+            duration: duration
         });
 
         if (!itemAdded) {
-            console.warn('⚠️ Item not added to inventory (possibly failed)');
+            logger.warn('Shop System', 'Item not added to inventory');
         } else {
-            console.log(`✅ Item added to inventory: ${itemId} (${inventoryType})`);
+            logger.debug('Shop System', `Item added to inventory: ${itemId} (${itemType})`);
         }
 
-        // Apply item effect (activates booster if applicable)
+        // Legacy support: Apply item effect for old systems
         this.applyItemEffect(itemId);
 
         // Show success
@@ -187,23 +232,30 @@ const ShopSystem = {
         // Update balance display
         this.updateBalanceDisplay();
         
-        // Force refresh inventory display if on that tab
-        if (window.profileInventory && typeof window.profileInventory.renderInventorySection === 'function') {
-            setTimeout(() => window.profileInventory.renderInventorySection(), 100);
-        }
+        // Dispatch event for inventory update
+        window.dispatchEvent(new CustomEvent('itemPurchased', {
+            detail: { 
+                item: {
+                    item_id: itemId,
+                    item_name: this.getItemName(itemId),
+                    item_type: itemType,
+                    metadata: itemMetadata
+                }
+            }
+        }));
 
         return true;
     },
 
     // Purchase avatar
     purchaseAvatar(itemId, price, tier) {
-        console.log(`🛍️ Attempting to purchase avatar ${itemId} for ${price}`);
+        logger.debug('Shop System', `Attempting avatar purchase: ${itemId} for ${price} coins`);
         
         // Get global state manager (local or parent)
         const globalState = window.globalState || (window.parent && window.parent.globalState);
 
         if (!globalState) {
-            console.error('❌ GlobalStateManager not found!');
+            logger.error('Shop System', 'GlobalStateManager not found');
             this.showNotification('❌ System error: Please refresh the page', 'error');
             return false;
         }
@@ -225,11 +277,11 @@ const ShopSystem = {
         });
             
         if (result === false) {
-            console.error('❌ Failed to deduct coins for avatar');
+            logger.error('Shop System', 'Failed to deduct coins for avatar');
             return false;
         }
 
-        console.log(`✅ Coins deducted for avatar. New balance: ${result}`);
+        logger.debug('Shop System', `Avatar purchase complete. New balance: ${result}`);
 
         // Add to inventory through GlobalStateManager (single source of truth)
         const itemAdded = globalState.addItem({
@@ -245,9 +297,9 @@ const ShopSystem = {
         });
 
         if (!itemAdded) {
-            console.warn('⚠️ Avatar not added to inventory (possibly failed)');
+            logger.warn('Shop System', 'Avatar not added to inventory');
         } else {
-            console.log(`✅ Avatar added to inventory: ${itemId}`);
+            logger.debug('Shop System', `Avatar added to inventory: ${itemId}`);
         }
 
         // Show success with option to equip
@@ -400,7 +452,7 @@ const ShopSystem = {
 
     // Purchase coins with real money via PayPal
     purchaseCoins(packageName, coins, priceUSD) {
-        console.log(`💳 Initiating coin purchase: ${packageName} - ${coins} coins for $${priceUSD}`);
+        logger.info('Shop System', `Initiating coin purchase: ${packageName} - ${coins} coins for $${priceUSD}`);
 
         // Wait for PayPal shop if not ready
         if (!window.PayPalShop) {
@@ -572,7 +624,7 @@ const ShopSystem = {
         setInterval(() => {
             const boosters = this.getActiveBoosters();
             if (boosters.length > 0) {
-                console.log(`Active boosters: ${boosters.length}`);
+                logger.debug('Shop System', `Active boosters: ${boosters.length}`);
             }
         }, 60000); // Check every minute
     },
@@ -581,7 +633,7 @@ const ShopSystem = {
     loadActiveBoosters() {
         // Could show active boosters in UI
         const boosters = this.getActiveBoosters();
-        console.log(`${boosters.length} active boosters`);
+        logger.debug('Shop System', `${boosters.length} active boosters`);
     },
 
     // Add item to inventory
@@ -693,7 +745,7 @@ if (document.readyState === 'loading') {
     }
 }
 
-console.log('✅ ShopSystem loaded and available globally');
+logger.info('Shop System', 'Loaded and available globally');
 
 // Add CSS animations
 const style = document.createElement('style');
@@ -730,5 +782,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Export for global access
 window.ShopSystem = ShopSystem;
-
-console.log('✅ Shop System Loaded');

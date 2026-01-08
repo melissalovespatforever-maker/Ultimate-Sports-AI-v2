@@ -3,7 +3,9 @@
 // Offline-first transaction system with retry logic
 // ============================================
 
-console.log('💳 Loading Transaction Queue Manager');
+import { logger } from './logger.js';
+
+logger.info('Transaction Queue', 'Loading Transaction Queue Manager');
 
 class TransactionQueueManager {
     constructor() {
@@ -14,6 +16,10 @@ class TransactionQueueManager {
         this.baseRetryDelay = 1000; // 1 second
         this.maxRetryDelay = 60000; // 60 seconds
         this.processingInterval = null;
+        
+        // CIRCUIT BREAKER - Stop hitting endpoints that return 500
+        this.circuitBreakers = new Map(); // endpoint -> { lastFailure: timestamp, failureCount: number }
+        this.CIRCUIT_BREAKER_TIMEOUT = 15000; // 15 seconds (reduced from 60s)
         
         // API endpoint configuration
         this.apiBaseUrl = window.CONFIG?.API_BASE_URL || 'https://ultimate-sports-ai-backend-production.up.railway.app';
@@ -36,13 +42,11 @@ class TransactionQueueManager {
         
         // Process queue immediately if online
         if (navigator.onLine && this.queue.length > 0) {
-            console.log(`📦 Found ${this.queue.length} queued transactions, processing...`);
+            logger.info('Transaction Queue', `Found ${this.queue.length} queued transactions, processing...`);
             this.processQueue();
         }
         
-        console.log('✅ Transaction Queue Manager initialized');
-        console.log(`📊 Queue Status: ${this.queue.length} pending transactions`);
-        console.log(`🌐 Online Status: ${navigator.onLine ? 'Online' : 'Offline'}`);
+        logger.info('Transaction Queue', `Initialized - ${this.queue.length} pending, ${navigator.onLine ? 'Online' : 'Offline'}`);
     }
 
     // ============================================
@@ -80,13 +84,7 @@ class TransactionQueueManager {
         this.queue.push(transaction);
         this.saveQueue();
         
-        console.log(`📝 Transaction queued:`, {
-            id: transaction.id,
-            type,
-            amount,
-            reason,
-            queueSize: this.queue.length
-        });
+        logger.debug('Transaction Queue', `Queued: ${type} ${amount} - "${reason}" (queue: ${this.queue.length})`);
 
         // WHALE BET NOTIFICATION (Transactions > 5,000 coins)
         if (Math.abs(amount) >= 5000) {
@@ -97,18 +95,19 @@ class TransactionQueueManager {
         const isAuthenticated = !!localStorage.getItem('auth_token');
         if (navigator.onLine && !this.processing && isAuthenticated) {
             // Process immediately for authenticated users to keep balance in sync
-            setTimeout(() => this.processQueue(), 50);
+            // Added 2s delay to allow error handlers to stabilize
+            setTimeout(() => this.processQueue(), 2000);
         }
 
         return transaction.id;
     }
 
     handleWhaleBet(transaction) {
-        console.log('🐋 Whale bet detected!', transaction);
+        const amount = Math.abs(transaction.amount);
+        logger.info('Transaction Queue', `Whale bet detected: ${amount} coins`);
         
         const username = localStorage.getItem('unified_username') || 'A User';
         const game = transaction.metadata?.game || 'Sports Lounge';
-        const amount = Math.abs(transaction.amount);
         
         // Log to activity feed
         if (window.ActivityFeed && typeof window.ActivityFeed.logWhaleBet === 'function') {
@@ -126,12 +125,12 @@ class TransactionQueueManager {
      */
     async processQueue() {
         if (this.processing) {
-            console.log('⏳ Queue already processing, skipping...');
+            logger.debug('Transaction Queue', 'Already processing, skipping...');
             return;
         }
 
         if (!navigator.onLine) {
-            console.log('📴 Offline - queue processing postponed');
+            logger.debug('Transaction Queue', 'Offline - processing postponed');
             return;
         }
 
@@ -140,7 +139,12 @@ class TransactionQueueManager {
         }
 
         this.processing = true;
-        console.log(`🔄 Processing ${this.queue.length} queued transactions...`);
+        logger.info('Transaction Queue', `Processing ${this.queue.length} transactions...`);
+
+        // Dispatch sync start event
+        window.dispatchEvent(new CustomEvent('transactionSyncStarted', {
+            detail: { count: this.queue.length }
+        }));
 
         const results = {
             success: 0,
@@ -164,6 +168,13 @@ class TransactionQueueManager {
                 i--; // Adjust index after removal
                 results.success++;
                 this.retryAttempts.delete(transaction.id);
+                
+                // RESET CIRCUIT BREAKER ON SUCCESS
+                const endpoint = transaction.endpoint || '/api/transactions';
+                if (this.circuitBreakers.has(endpoint)) {
+                    logger.debug('Transaction Queue', `Circuit breaker reset for ${endpoint}`);
+                    this.circuitBreakers.delete(endpoint);
+                }
             } else if (result.shouldRetry) {
                 // Keep in queue for retry
                 transaction.attempts++;
@@ -200,9 +211,9 @@ class TransactionQueueManager {
 
         // Only log if there's something meaningful to report
         if (results.success > 0 || results.failed > 0) {
-            console.log('✅ Queue processing complete:', results);
+            logger.info('Transaction Queue', `Processing complete: ${results.success} success, ${results.failed} failed`);
         } else if (results.retryLater > 0) {
-            console.log(`⏳ ${results.retryLater} transaction(s) queued for retry`);
+            logger.debug('Transaction Queue', `${results.retryLater} transaction(s) queued for retry`);
         }
         
         // Dispatch event for UI updates
@@ -217,16 +228,25 @@ class TransactionQueueManager {
      * @returns {object} - Result with success flag and error if any
      */
     async processTransaction(transaction) {
-        console.log(`⚡ Processing transaction ${transaction.id}...`, transaction);
+        logger.debug('Transaction Queue', `Processing transaction ${transaction.id}`);
         
         transaction.status = 'processing';
+        
+        const endpoint = transaction.endpoint || '/api/transactions';
+        
+        // CHECK CIRCUIT BREAKER
+        const circuit = this.circuitBreakers.get(endpoint);
+        if (circuit && Date.now() - circuit.lastFailure < this.CIRCUIT_BREAKER_TIMEOUT) {
+            logger.warn('Transaction Queue', `Circuit breaker active for ${endpoint}, skipping`);
+            return { success: false, shouldRetry: true, error: 'Circuit breaker active' };
+        }
         
         try {
             // Get auth token
             const authToken = localStorage.getItem('auth_token');
             
             if (!authToken) {
-                console.warn('⚠️ No auth token - user must be authenticated for backend sync');
+                logger.warn('Transaction Queue', 'No auth token - guest user, skipping backend sync');
                 // For guest users, we can't sync to backend but we keep transaction locally
                 return { 
                     success: false, 
@@ -246,23 +266,76 @@ class TransactionQueueManager {
                     metadata: transaction.metadata
                 };
 
-            const response = await fetch(`${this.apiBaseUrl}${endpoint}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`
-                },
-                body: JSON.stringify(body)
-            });
+            let response;
+            try {
+                response = await fetch(`${this.apiBaseUrl}${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(body)
+                });
+            } catch (fetchError) {
+                // If the fetch itself fails or throws (like the ResourceLoadError 500)
+                // we catch it here and return a retry state
+                console.warn(`📡 Transaction ${transaction.id} fetch failed:`, fetchError.message);
+                return { 
+                    success: false, 
+                    shouldRetry: true, 
+                    error: fetchError.message 
+                };
+            }
+
+            // Handle 500 errors gracefully without throwing to prevent top-level ResourceLoadError
+            if (response.status >= 500) {
+                // TRIP CIRCUIT BREAKER
+                this.circuitBreakers.set(endpoint, {
+                    lastFailure: Date.now(),
+                    failureCount: (this.circuitBreakers.get(endpoint)?.failureCount || 0) + 1
+                });
+
+                // Consume response body to prevent memory leaks/hangs
+                try {
+                    await response.text();
+                } catch (e) {}
+                
+                console.warn(`⚠️ Backend Server Error (${response.status}) on ${endpoint}. Circuit breaker tripped.`);
+                
+                return { 
+                    success: false, 
+                    shouldRetry: true, 
+                    error: `Server Error ${response.status}` 
+                };
+            }
+
+            // SUCCESS - Reset circuit breaker
+            this.circuitBreakers.delete(endpoint);
 
             if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.message || `HTTP ${response.status}: ${response.statusText}`);
+                // For 4xx errors, we should not retry as they usually mean a logic error or permission issue
+                let errorData = {};
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    try {
+                        const text = await response.text();
+                        errorData = { message: text };
+                    } catch (e2) {}
+                }
+                
+                console.error(`❌ Transaction ${transaction.id} client error (${response.status}):`, errorData.message || response.statusText);
+                
+                return {
+                    success: false,
+                    shouldRetry: false,
+                    error: errorData.message || `HTTP ${response.status}: ${response.statusText}`
+                };
             }
 
             const data = await response.json();
             
-            console.log(`✅ Transaction ${transaction.id} processed successfully:`, data);
+            logger.debug('Transaction Queue', `Transaction ${transaction.id} processed successfully`);
             
             transaction.status = 'completed';
             transaction.completedAt = Date.now();
@@ -278,12 +351,16 @@ class TransactionQueueManager {
             
             const isRouteNotFound = error.message.includes('Route') && error.message.includes('not found');
             
-            if (isNetworkError || isRouteNotFound) {
-                // Network errors and missing backend routes are expected - log as warning, not error
-                console.warn(`⚠️ Transaction ${transaction.id} queued (backend unavailable):`, error.message);
+            if (isNetworkError || isRouteNotFound || (error.message && error.message.includes('500'))) {
+                // Network errors, missing backend routes, and server crashes (500) are expected - silent in console
+                // Only log on first attempt to avoid spam
+                if (transaction.attempts === 0) {
+                    const errorType = error.message.includes('500') ? 'server error' : 'offline mode';
+                    logger.debug('Transaction Queue', `Transaction ${transaction.id} saved locally (${errorType})`);
+                }
             } else {
                 // Other errors should be logged as errors
-                console.error(`❌ Transaction ${transaction.id} failed:`, error.message);
+                logger.error('Transaction Queue', `Transaction ${transaction.id} failed: ${error.message}`);
             }
             
             transaction.status = 'pending';
@@ -384,12 +461,12 @@ class TransactionQueueManager {
                 this.queue = this.queue.filter(t => t.createdAt > sevenDaysAgo);
                 
                 if (this.queue.length < originalLength) {
-                    console.log(`🧹 Cleaned up ${originalLength - this.queue.length} old transactions`);
+                    logger.info('Transaction Queue', `Cleaned up ${originalLength - this.queue.length} old transactions`);
                     this.saveQueue();
                 }
             }
         } catch (error) {
-            console.error('❌ Failed to load transaction queue:', error);
+            logger.error('Transaction Queue', `Failed to load queue: ${error.message}`);
             this.queue = [];
         }
     }
@@ -398,7 +475,7 @@ class TransactionQueueManager {
      * Clear the entire queue (use with caution!)
      */
     clearQueue() {
-        console.warn('⚠️ Clearing transaction queue');
+        logger.warn('Transaction Queue', 'Clearing transaction queue');
         this.queue = [];
         this.retryAttempts.clear();
         this.saveQueue();
@@ -409,13 +486,13 @@ class TransactionQueueManager {
     // ============================================
 
     handleOnline() {
-        console.log('🌐 Connection restored - processing queued transactions');
+        logger.info('Transaction Queue', 'Connection restored - processing queued transactions');
         this.startPeriodicProcessing();
         this.processQueue();
     }
 
     handleOffline() {
-        console.log('📴 Connection lost - transactions will be queued');
+        logger.info('Transaction Queue', 'Connection lost - transactions will be queued');
         this.stopPeriodicProcessing();
     }
 
@@ -427,7 +504,7 @@ class TransactionQueueManager {
         // Process queue every 30 seconds
         this.processingInterval = setInterval(() => {
             if (this.queue.length > 0 && !this.processing) {
-                console.log('⏰ Periodic queue processing triggered');
+                logger.debug('Transaction Queue', 'Periodic processing triggered');
                 this.processQueue();
             }
         }, 30000);
@@ -479,10 +556,13 @@ class TransactionQueueManager {
     notifySyncIssues(transaction) {
         console.warn('⚠️ Transaction sync issues detected:', transaction);
         
-        if (window.globalState && typeof window.globalState.showNotification === 'function') {
+        // ONLY show notification if user is authenticated (guest users work offline by design)
+        const isAuthenticated = !!localStorage.getItem('auth_token');
+        
+        if (isAuthenticated && window.globalState && typeof window.globalState.showNotification === 'function') {
             window.globalState.showNotification(
-                '🔄 Connection unstable. Your data is being saved locally and will sync when stable.',
-                'warning'
+                '💾 Your progress is saved locally and will sync automatically',
+                'info'
             );
         }
     }
@@ -497,11 +577,11 @@ class TransactionQueueManager {
                                transaction.error.includes('not found');
         
         if (isRouteNotFound) {
-            console.log('ℹ️ Transaction processed locally (backend route not available):', transaction.id);
+            logger.debug('Transaction Queue', `Transaction ${transaction.id} processed locally (backend route not available)`);
             return;
         }
         
-        console.warn('⚠️ Transaction permanently failed:', transaction);
+        logger.warn('Transaction Queue', `Transaction permanently failed: ${transaction.id}`);
         
         // Try to show notification
         if (window.globalState && typeof window.globalState.showNotification === 'function') {
@@ -521,7 +601,7 @@ class TransactionQueueManager {
      * Force retry all pending transactions
      */
     retryAll() {
-        console.log('🔄 Force retrying all pending transactions');
+        logger.info('Transaction Queue', 'Force retrying all pending transactions');
         this.queue.forEach(t => {
             t.attempts = 0;
             t.status = 'pending';
@@ -541,5 +621,3 @@ window.transactionQueue = new TransactionQueueManager();
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = TransactionQueueManager;
 }
-
-console.log('✅ Transaction Queue Manager loaded successfully');

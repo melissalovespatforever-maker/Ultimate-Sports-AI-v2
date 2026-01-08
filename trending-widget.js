@@ -172,7 +172,7 @@ class TrendingWidget {
             return;
         }
 
-        const fallbackLogo = 'https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
+        const fallbackLogo = 'https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
         
         const getSanitizedLogo = (logo, team, sport) => {
             if (window.resolveSportsLogo) {
@@ -217,7 +217,7 @@ class TrendingWidget {
             return;
         }
 
-        const fallbackLogo = 'https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
+        const fallbackLogo = 'https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
 
         const getSanitizedLogo = (logo, team, sport) => {
             if (window.resolveSportsLogo) {

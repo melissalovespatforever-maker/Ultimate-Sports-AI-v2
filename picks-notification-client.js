@@ -8,6 +8,8 @@
 // - Auto-reconnection
 // ============================================
 
+import { logger } from './logger.js';
+
 import io from 'socket.io-client';
 
 class PicksNotificationClient {
@@ -49,24 +51,24 @@ class PicksNotificationClient {
                 this.socket.on('connect', () => {
                     this.isConnected = true;
                     this.reconnectAttempts = 0;
-                    console.log('✅ Picks WebSocket connected');
+                    logger.debug('Picks WebSocket', 'Connected');
                     this.emit('connected');
                     resolve();
                 });
 
                 this.socket.on('disconnect', () => {
                     this.isConnected = false;
-                    console.log('❌ Picks WebSocket disconnected');
+                    logger.debug('Picks WebSocket', 'Disconnected');
                     this.emit('disconnected');
                 });
 
                 this.socket.on('reconnect_attempt', () => {
                     this.reconnectAttempts++;
-                    console.log(`🔄 Reconnection attempt ${this.reconnectAttempts}`);
+                    logger.debug('Picks WebSocket', `Reconnection attempt ${this.reconnectAttempts}`);
                 });
 
                 this.socket.on('error', (error) => {
-                    console.error('WebSocket error:', error);
+                    logger.error('Picks WebSocket', `Error: ${error.message || error}`);
                     this.emit('error', error);
                     reject(error);
                 });
@@ -122,7 +124,7 @@ class PicksNotificationClient {
 
         // Subscription confirmation
         this.socket.on('subscribe:picks:success', (data) => {
-            console.log('✅ Subscription successful:', data);
+            logger.debug('Picks WebSocket', 'Subscription successful');
         });
 
         // Errors
@@ -150,7 +152,7 @@ class PicksNotificationClient {
             coachIds: Array.from(this.subscriptions)
         });
 
-        console.log(`📥 Subscribed to coaches: ${coachIds.join(', ')}`);
+        logger.debug('Picks WebSocket', `Subscribed to coaches: ${coachIds.join(', ')}`);
     }
 
     /**
@@ -166,7 +168,7 @@ class PicksNotificationClient {
         coachIds.forEach(coachId => this.subscriptions.delete(coachId));
 
         this.socket.emit('unsubscribe:picks', coachIds);
-        console.log(`📤 Unsubscribed from coaches: ${coachIds.join(', ')}`);
+        logger.debug('Picks WebSocket', `Unsubscribed from coaches: ${coachIds.join(', ')}`);
     }
 
     /**
@@ -176,7 +178,7 @@ class PicksNotificationClient {
         if (!this.isConnected) return;
 
         this.socket.emit('subscribe:all-picks');
-        console.log('👨‍💼 Subscribed to all picks');
+        logger.debug('Picks WebSocket', 'Subscribed to all picks');
     }
 
     /**
@@ -185,7 +187,7 @@ class PicksNotificationClient {
     handlePickCreated(data) {
         const { coach_id, pick, matchup, confidence, odds, notification } = data;
 
-        console.log(`🎲 New pick: ${pick} in ${matchup} (${confidence}% confidence)`);
+        logger.info('Picks WebSocket', `New pick: ${pick} in ${matchup} (${confidence}% confidence)`);
 
         // Show notification
         this.showNotification({
@@ -216,7 +218,7 @@ class PicksNotificationClient {
         const { result, notification, coachId } = data;
 
         const resultEmoji = result === 'win' ? '✅' : result === 'loss' ? '❌' : '➡️';
-        console.log(`${resultEmoji} Pick result: ${result.toUpperCase()}`);
+        logger.info('Picks WebSocket', `Pick result: ${result.toUpperCase()}`);
 
         // Show notification
         this.showNotification({
@@ -242,7 +244,7 @@ class PicksNotificationClient {
     handleStreakUpdate(data) {
         const { coachId, streak, accuracy } = data;
 
-        console.log(`🔥 ${coachId} streak: ${streak}W (${accuracy}% accurate)`);
+        logger.info('Picks WebSocket', `${coachId} streak: ${streak}W (${accuracy}% accurate)`);
 
         this.showNotification({
             title: `🔥 Streak Update`,
@@ -261,7 +263,7 @@ class PicksNotificationClient {
     handleStatsUpdate(data) {
         const { coachId, stats } = data;
 
-        console.log(`📈 Stats updated for coach ${coachId}:`, stats);
+        logger.debug('Picks WebSocket', `Stats updated for coach ${coachId}`);
         this.emit('coach:stats:update', data);
     }
 
@@ -271,7 +273,7 @@ class PicksNotificationClient {
     handleMarketMovement(data) {
         const { matchup, oddsMovement, newOdds, notification } = data;
 
-        console.log(`💹 Market movement: ${newOdds} (${oddsMovement})`);
+        logger.debug('Picks WebSocket', `Market movement: ${newOdds} (${oddsMovement})`);
 
         this.showNotification({
             title: '💹 Market Movement',
@@ -295,7 +297,7 @@ class PicksNotificationClient {
     handleInjuryAlert(data) {
         const { injuredPlayer, status, notification } = data;
 
-        console.log(`🏥 Injury: ${injuredPlayer} - ${status}`);
+        logger.info('Picks WebSocket', `Injury: ${injuredPlayer} - ${status}`);
 
         this.showNotification({
             title: '⚠️ Injury Alert',
@@ -320,7 +322,7 @@ class PicksNotificationClient {
     handleGameStatus(data) {
         const { matchup, status, score } = data;
 
-        console.log(`🎮 ${matchup} - ${status}: ${score}`);
+        logger.debug('Picks WebSocket', `${matchup} - ${status}: ${score}`);
 
         if (status === 'IN_PROGRESS' || status === 'FINAL') {
             this.showNotification({
@@ -445,7 +447,7 @@ class PicksNotificationClient {
      */
     setSoundEnabled(enabled) {
         this.soundEnabled = enabled;
-        console.log(`🔊 Notification sounds ${enabled ? 'enabled' : 'disabled'}`);
+        logger.debug('Picks WebSocket', `Notification sounds ${enabled ? 'enabled' : 'disabled'}`);
     }
 
     /**
@@ -497,7 +499,7 @@ class PicksNotificationClient {
         if (this.socket) {
             this.socket.disconnect();
             this.isConnected = false;
-            console.log('🔌 Picks WebSocket disconnected');
+            logger.debug('Picks WebSocket', 'Disconnected');
         }
     }
 

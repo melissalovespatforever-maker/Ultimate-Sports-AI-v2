@@ -13,61 +13,61 @@
   "dir": "ltr",
   "icons": [
     {
-      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "src": "https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "src": "https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
       "sizes": "96x96",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "src": "https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
       "sizes": "128x128",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "src": "https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "src": "https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
       "sizes": "152x152",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "src": "https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "src": "https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
       "sizes": "384x384",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "src": "https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "src": "https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "src": "https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -75,13 +75,13 @@
   ],
   "screenshots": [
     {
-      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "src": "https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
       "sizes": "540x720",
       "type": "image/png",
       "form_factor": "narrow"
     },
     {
-      "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+      "src": "https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
       "sizes": "720x540",
       "type": "image/png",
       "form_factor": "wide"
@@ -97,7 +97,7 @@
       "url": "/#live-games",
       "icons": [
         {
-          "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+          "src": "https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
           "sizes": "192x192",
           "type": "image/png"
         }
@@ -110,7 +110,7 @@
       "url": "/#bet-history",
       "icons": [
         {
-          "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+          "src": "https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
           "sizes": "192x192",
           "type": "image/png"
         }
@@ -123,7 +123,7 @@
       "url": "/#leaderboard",
       "icons": [
         {
-          "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+          "src": "https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
           "sizes": "192x192",
           "type": "image/png"
         }
@@ -136,7 +136,7 @@
       "url": "/#rewards",
       "icons": [
         {
-          "src": "https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
+          "src": "https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN",
           "sizes": "192x192",
           "type": "image/png"
         }

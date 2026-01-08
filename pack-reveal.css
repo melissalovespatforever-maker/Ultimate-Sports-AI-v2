@@ -1,0 +1,173 @@
+/* 
+ * PACK REVEAL STYLES 
+ * Professional card opening animations for Ultimate Sports AI
+ */
+
+.pack-reveal-overlay {
+    perspective: 1000px;
+}
+
+/* Pack Burst Effect */
+.reveal-burst {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.reveal-burst.active {
+    animation: burstOut 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+@keyframes burstOut {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.8); }
+    100% { transform: translate(-50%, -50%) scale(100); opacity: 0; box-shadow: 0 0 100px 50px rgba(255, 255, 255, 0); }
+}
+
+/* Pack Shaking & Opening */
+.pack-opening-img.shaking {
+    animation: packHaptic 0.1s infinite;
+}
+
+.pack-opening-img.opening {
+    animation: packFlyOpen 0.6s ease-in forwards;
+}
+
+@keyframes packHaptic {
+    0% { transform: translate(0, 0) rotate(0deg); }
+    25% { transform: translate(2px, 1px) rotate(1deg); }
+    50% { transform: translate(-1px, -2px) rotate(-1deg); }
+    75% { transform: translate(-2px, 1px) rotate(0deg); }
+    100% { transform: translate(1px, -1px) rotate(1deg); }
+}
+
+@keyframes packFlyOpen {
+    0% { transform: scale(1); opacity: 1; filter: brightness(1); }
+    50% { transform: scale(1.2) translateY(-20px); filter: brightness(3); }
+    100% { transform: scale(2) translateY(-100px); opacity: 0; filter: brightness(10); }
+}
+
+/* Card Reveal Container */
+.pack-reveal {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 40px;
+    min-height: 400px;
+}
+
+/* 3D Card Flip */
+.card-reveal-wrapper {
+    width: 220px;
+    height: 300px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(50px) rotateX(20deg);
+}
+
+.card-reveal-wrapper.show {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg);
+    animation: cardEntrance 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes cardEntrance {
+    0% { opacity: 0; transform: scale(0.5) translateY(100px) rotateY(90deg); }
+    100% { opacity: 1; transform: scale(1) translateY(0) rotateY(0deg); }
+}
+
+.card-reveal-wrapper.flipped {
+    transform: rotateY(180deg);
+}
+
+.card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.card-back {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border: 3px solid var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.card-back::after {
+    content: '🏈';
+    font-size: 4rem;
+    filter: drop-shadow(0 0 10px var(--primary));
+}
+
+.card-front {
+    transform: rotateY(180deg);
+    z-index: 1;
+}
+
+/* Rarity Effects */
+.card-reveal-wrapper.rarity-diamond {
+    filter: drop-shadow(0 0 15px rgba(185, 242, 255, 0.6));
+}
+
+.card-reveal-wrapper.rarity-gold {
+    filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.5));
+}
+
+.card-reveal-wrapper.rarity-diamond.flipped .card-front {
+    animation: diamondGlow 2s infinite alternate;
+}
+
+.card-reveal-wrapper.rarity-gold.flipped .card-front {
+    animation: goldGlow 2s infinite alternate;
+}
+
+@keyframes diamondGlow {
+    0% { box-shadow: 0 0 20px rgba(185, 242, 255, 0.4), inset 0 0 10px rgba(255,255,255,0.2); }
+    100% { box-shadow: 0 0 40px rgba(185, 242, 255, 0.8), inset 0 0 20px rgba(255,255,255,0.4); }
+}
+
+@keyframes goldGlow {
+    0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
+    100% { box-shadow: 0 0 30px rgba(255, 215, 0, 0.6); }
+}
+
+/* Sparkle Particles */
+.sparkle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: white;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Continue Button Appearance */
+#pack-continue-btn {
+    animation: fadeIn 0.5s ease 1s both;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

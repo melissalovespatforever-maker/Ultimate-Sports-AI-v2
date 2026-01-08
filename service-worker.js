@@ -149,22 +149,22 @@ self.addEventListener('push', event => {
         data = {
             title: 'Ultimate Sports AI',
             body: event.data.text(),
-            icon: 'https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN'
+            icon: 'https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN'
         };
     }
     console.log('[Service Worker] Push notification received:', data);
     const title = data.title || 'Ultimate Sports AI';
     const options = {
         body: data.body || 'You have a new update.',
-        icon: data.icon || 'https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN',
-        badge: 'https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN',
+        icon: data.icon || 'https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN',
+        badge: 'https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN',
         vibrate: [200, 100, 200],
         data: {
             url: data.url || '/',
             timestamp: Date.now()
         },
         actions: [
-            { action: 'explore', title: 'View Now', icon: 'https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN' },
+            { action: 'explore', title: 'View Now', icon: 'https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN' },
             { action: 'dismiss', title: 'Dismiss' }
         ],
         tag: data.tag || 'default',
@@ -227,7 +227,7 @@ self.addEventListener('message', event => {
         const testPayload = {
             title: 'Test Notification! 🚀',
             body: 'Your notifications are working perfectly!',
-            icon: 'https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN',
+            icon: 'https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN',
             url: '/#bet-history',
             tag: 'test'
         };
@@ -236,7 +236,7 @@ self.addEventListener('message', event => {
             self.registration.showNotification(testPayload.title, {
                 body: testPayload.body,
                 icon: testPayload.icon,
-                badge: 'https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN',
+                badge: 'https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN',
                 vibrate: [200, 100, 200],
                 data: { url: testPayload.url },
                 tag: testPayload.tag,

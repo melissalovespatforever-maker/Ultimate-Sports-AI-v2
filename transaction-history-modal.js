@@ -153,12 +153,24 @@ class TransactionHistoryModal {
             return;
         }
 
+        const endpoint = `/api/transactions?limit=${this.config.limit}&offset=${this.config.offset}`;
+        
+        // CIRCUIT BREAKER CHECK
+        if (window.transactionQueue && window.transactionQueue.circuitBreakers) {
+            const circuit = window.transactionQueue.circuitBreakers.get('/api/transactions');
+            if (circuit && Date.now() - circuit.lastFailure < 60000) {
+                console.warn('🛡️ Circuit Breaker active for History. Using local fallback.');
+                this.useLocalFallback();
+                return;
+            }
+        }
+
         this.isLoading = true;
         this.showLoading();
-
+        
         try {
             const response = await fetch(
-                `${this.config.apiBaseUrl}/api/transactions?limit=${this.config.limit}&offset=${this.config.offset}`,
+                `${this.config.apiBaseUrl}${endpoint}`,
                 {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -168,19 +180,23 @@ class TransactionHistoryModal {
                 }
             );
 
-            if (!response.ok) {
-                // If the backend history is unavailable, show local queued transactions as a fallback
-                if (this.config.offset === 0 && window.transactionQueue) {
-                    this.transactions = window.transactionQueue.queue.map(t => ({
-                        ...t,
-                        created_at: t.createdAt
-                    }));
-                    this.total = this.transactions.length;
-                    this.renderTransactions();
-                    this.updateStats();
-                    return;
+            if (response.status >= 500) {
+                // TRIP CIRCUIT BREAKER
+                if (window.transactionQueue && window.transactionQueue.circuitBreakers) {
+                    window.transactionQueue.circuitBreakers.set('/api/transactions', {
+                        lastFailure: Date.now(),
+                        failureCount: 1
+                    });
                 }
-                throw new Error(`Failed to load transactions: ${response.status}`);
+
+                try { await response.text(); } catch (e) {} // Consume
+                throw new Error(`Server Error ${response.status}`);
+            }
+
+            if (!response.ok) {
+                console.warn(`⚠️ Transaction history API returned ${response.status} - attempting local fallback`);
+                this.useLocalFallback();
+                return;
             }
 
             const data = await response.json();
@@ -193,10 +209,26 @@ class TransactionHistoryModal {
             this.updateLoadMoreButton();
 
         } catch (error) {
-            console.error('Error loading transactions:', error);
-            this.showError('Failed to load transaction history');
+            console.warn('⚠️ Transaction load error caught:', error.message);
+            this.useLocalFallback();
         } finally {
             this.isLoading = false;
+        }
+    }
+
+    useLocalFallback() {
+        if (this.config.offset === 0 && window.transactionQueue) {
+            this.transactions = window.transactionQueue.queue.map(t => ({
+                ...t,
+                created_at: t.createdAt,
+                balance_before: 0,
+                balance_after: 0
+            }));
+            this.total = this.transactions.length;
+            this.renderTransactions();
+            this.updateStats();
+        } else {
+            this.showError('Transaction history is temporarily unavailable');
         }
     }
 

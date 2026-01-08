@@ -260,7 +260,7 @@ class SportsDataService {
         }
         
         // Basic fallback if global helper not yet available
-        return providedUrl || 'https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
+        return providedUrl || 'https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
     }
 
     processESPNData(data, sportKey) {

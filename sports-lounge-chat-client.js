@@ -1,7 +1,10 @@
 /**
  * SPORTS LOUNGE CHAT CLIENT
- * Real-time WebSocket chat implementation
+ * Real-time WebSocket chat implementation with moderation
  */
+
+import { logger } from './logger.js';
+import { chatSummaryService } from './chat-summary-service.js';
 
 class SportsLoungeChat {
     constructor() {
@@ -13,6 +16,67 @@ class SportsLoungeChat {
         this.typingTimeout = null;
         this.reconnectAttempts = 0;
         this.maxReconnectAttempts = 5;
+        this.moderation = null; // Will be set to window.chatModeration
+        
+        // Tracking for summary
+        this.missedMessages = [];
+        this.isWindowFocused = true;
+        this.setupFocusTracking();
+    }
+
+    setupFocusTracking() {
+        window.addEventListener('focus', () => {
+            this.isWindowFocused = true;
+            this.checkMissedMessages();
+        });
+        window.addEventListener('blur', () => {
+            this.isWindowFocused = false;
+        });
+
+        // Also track tab switching within the lounge
+        document.querySelectorAll('.lounge-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.getAttribute('data-tab');
+                this.isChatTabActive = (tabName === 'chat-room');
+                if (this.isChatTabActive) {
+                    this.checkMissedMessages();
+                }
+            });
+        });
+        
+        // Initial state
+        this.isChatTabActive = document.getElementById('chat-room')?.classList.contains('active');
+    }
+
+    checkMissedMessages() {
+        if (this.missedMessages.length >= 5) {
+            this.showCatchUpButton();
+        }
+    }
+
+    showCatchUpButton() {
+        const chatContainer = document.querySelector('.chat-container-full');
+        if (!chatContainer || document.getElementById('chat-catch-up-btn')) return;
+
+        const btn = document.createElement('button');
+        btn.id = 'chat-catch-up-btn';
+        btn.className = 'catch-up-btn';
+        btn.innerHTML = `<i class="fas fa-bolt"></i> Catch Up (${this.missedMessages.length})`;
+        btn.onclick = () => this.generateSummary();
+        
+        const actions = chatContainer.querySelector('.chat-actions');
+        if (actions) actions.appendChild(btn);
+    }
+
+    generateSummary() {
+        const summary = chatSummaryService.summarize(this.missedMessages);
+        if (summary) {
+            const container = document.getElementById('chat-messages');
+            chatSummaryService.renderSummaryUI(summary, container);
+        }
+        
+        this.missedMessages = [];
+        document.getElementById('chat-catch-up-btn')?.remove();
     }
 
     // ============================================
@@ -178,6 +242,36 @@ class SportsLoungeChat {
             return;
         }
 
+        // Initialize moderation if not already done
+        if (!this.moderation && window.chatModeration) {
+            this.moderation = window.chatModeration;
+        }
+
+        // Apply moderation filters
+        if (this.moderation) {
+            const userId = localStorage.getItem('unified_user_id') || 'guest';
+            const username = localStorage.getItem('unified_username') || 'Guest';
+            
+            const validation = this.moderation.validateMessage(message.trim(), userId, username);
+            
+            // Message blocked
+            if (!validation.allowed) {
+                this.showError(validation.reason || 'Message blocked by moderation');
+                logger.warn('Chat', `Message blocked: ${validation.reason}`);
+                return;
+            }
+
+            // Show warnings to user
+            if (validation.warnings && validation.warnings.length > 0) {
+                validation.warnings.forEach(warning => {
+                    this.showWarning(warning);
+                });
+            }
+
+            // Use filtered message
+            message = validation.message;
+        }
+
         this.socket.emit('message:send', {
             message: message.trim(),
             channel: this.currentChannel
@@ -193,6 +287,18 @@ class SportsLoungeChat {
 
     handleNewMessage(message) {
         this.messages.push(message);
+        
+        // Record for trending topics
+        if (!message.isSystem && chatSummaryService) {
+            chatSummaryService.recordMessage(message.message);
+        }
+
+        // Track missed messages for summary if user is not looking at chat
+        const isUserLookingAtChat = this.isWindowFocused && this.isChatTabActive;
+        if (!isUserLookingAtChat && !message.isSystem) {
+            this.missedMessages.push(message);
+        }
+
         this.renderMessage(message);
         this.scrollToBottom();
         
@@ -473,7 +579,7 @@ class SportsLoungeChat {
     }
 
     showError(message, type = 'error') {
-        console.error('Chat error:', message);
+        logger.error('Chat', message);
         
         // Don't show error toasts for normal fallback transitions
         if (message.includes('unavailable') || message.includes('Failed to connect')) {
@@ -496,6 +602,25 @@ class SportsLoungeChat {
         `;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
+    }
+
+    showWarning(message) {
+        const toast = document.createElement('div');
+        toast.className = 'chat-warning-toast';
+        toast.textContent = `⚠️ ${message}`;
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #f59e0b;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 10000;
+            animation: slideInUp 0.3s ease;
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
     }
 
     scrollToBottom() {

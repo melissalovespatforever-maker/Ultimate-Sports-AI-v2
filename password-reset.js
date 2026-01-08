@@ -3,7 +3,9 @@
 // Complete flow with email verification
 // ============================================
 
-console.log('🔐 Loading Password Reset Module');
+import { logger } from './logger.js';
+
+logger.info('Password Reset', 'Loading module');
 
 class PasswordResetManager {
     constructor() {
@@ -33,7 +35,7 @@ class PasswordResetManager {
 
     async handleRequestSubmit(e) {
         e.preventDefault();
-        console.log('📧 Password reset request submitted');
+        logger.info('Password Reset', 'Reset request submitted');
 
         const email = document.getElementById('reset-email').value.trim();
 
@@ -52,7 +54,7 @@ class PasswordResetManager {
                 body: JSON.stringify({ email })
             });
 
-            console.log('✅ Reset email sent successfully');
+            logger.debug('Password Reset', 'Reset email sent successfully');
             this.resetEmail = email;
             
             // Show verification step
@@ -123,7 +125,7 @@ class PasswordResetManager {
 
     async handleVerifySubmit(e) {
         e.preventDefault();
-        console.log('✓ Verifying reset code');
+        logger.debug('Password Reset', 'Verifying code');
 
         // Get code from inputs
         const codeInputs = document.querySelectorAll('.code-input');
@@ -147,7 +149,7 @@ class PasswordResetManager {
                 })
             });
 
-            console.log('✅ Code verified successfully');
+            logger.debug('Password Reset', 'Code verified successfully');
             this.resetToken = response.reset_token;
             
             // Show reset password step
@@ -199,7 +201,7 @@ class PasswordResetManager {
 
     async handleResetSubmit(e) {
         e.preventDefault();
-        console.log('🔑 Resetting password');
+        logger.info('Password Reset', 'Resetting password');
 
         const newPassword = document.getElementById('reset-new-password').value;
         const confirmPassword = document.getElementById('reset-confirm-password').value;
@@ -227,7 +229,7 @@ class PasswordResetManager {
                 })
             });
 
-            console.log('✅ Password reset successfully');
+            logger.info('Password Reset', 'Password reset successfully');
             showToast('Password reset successfully! You can now sign in', 'success');
             
             // Reset state and go back to login
@@ -250,7 +252,7 @@ class PasswordResetManager {
     // ============================================
 
     showRequestStep() {
-        console.log('📧 Showing request step');
+        logger.debug('Password Reset', 'Showing request step');
         document.getElementById('reset-request-step').style.display = 'block';
         document.getElementById('reset-verify-step').style.display = 'none';
         document.getElementById('reset-password-step').style.display = 'none';
@@ -258,7 +260,7 @@ class PasswordResetManager {
     }
 
     showVerifyStep() {
-        console.log('✓ Showing verify step');
+        logger.debug('Password Reset', 'Showing verify step');
         document.getElementById('reset-request-step').style.display = 'none';
         document.getElementById('reset-verify-step').style.display = 'block';
         document.getElementById('reset-password-step').style.display = 'none';
@@ -271,7 +273,7 @@ class PasswordResetManager {
     }
 
     showResetStep() {
-        console.log('🔑 Showing reset step');
+        logger.debug('Password Reset', 'Showing reset step');
         document.getElementById('reset-request-step').style.display = 'none';
         document.getElementById('reset-verify-step').style.display = 'none';
         document.getElementById('reset-password-step').style.display = 'block';
@@ -328,7 +330,7 @@ class PasswordResetManager {
         const email = params.get('email');
 
         if (token && email) {
-            console.log('🔑 Reset token found in URL');
+            logger.debug('Password Reset', 'Reset token found in URL');
             this.resetToken = token;
             this.resetEmail = email;
             
@@ -346,14 +348,14 @@ class PasswordResetManager {
     // ============================================
 
     openResetFlow() {
-        console.log('🔓 Opening password reset flow');
+        logger.debug('Password Reset', 'Opening password reset flow');
         this.resetState();
         this.showRequestStep();
         window.appNavigation.navigateTo('password-reset');
     }
 
     goBackToLogin() {
-        console.log('← Going back to login');
+        logger.debug('Password Reset', 'Going back to login');
         this.resetState();
         window.appNavigation.navigateTo('auth');
     }
@@ -365,7 +367,7 @@ let passwordResetManager;
 function initPasswordReset() {
     if (!passwordResetManager) {
         passwordResetManager = new PasswordResetManager();
-        console.log('✅ Password Reset Manager initialized');
+        logger.debug('Password Reset', 'Manager initialized');
     }
 }
 
@@ -388,4 +390,4 @@ window.goBackToLoginFromReset = () => {
     }
 };
 
-console.log('✅ Password Reset Module loaded');
+// Module loaded

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase History | Ultimate Sports AI</title>
+    <script type="importmap">
+        {
+            "imports": {
+                "react": "https://esm.sh/react@18.2.0",
+                "react-dom": "https://esm.sh/react-dom@18.2.0",
+                "lucide-react": "https://esm.sh/lucide-react@0.344.0"
+            }
+        }
+    </script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            background: radial-gradient(circle at top, #1a1a2e 0%, #0f0f1a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+        .history-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        .history-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .transaction-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.2s, background 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .transaction-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+            transform: translateY(-2px);
+        }
+        .type-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-coin { background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.3); }
+        .badge-vip { background: rgba(156, 39, 176, 0.2); color: #e040fb; border: 1px solid rgba(156, 39, 176, 0.3); }
+        
+        .amount {
+            font-family: 'Monaco', monospace;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #00ff88;
+        }
+        .date {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .back-btn {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            transition: color 0.2s;
+        }
+        .back-btn:hover { color: #ffffff; }
+        
+        /* Skeleton loading */
+        .skeleton {
+            background: linear-gradient(90deg, #222, #333, #222);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="module">
+        import React, { useState, useEffect } from 'react';
+        import ReactDOM from 'react-dom';
+        import { ArrowLeft, Receipt, Coins, Crown, Calendar, CheckCircle, ExternalLink } from 'lucide-react';
+        import { transactionManager } from './transaction-manager.js';
+
+        const PurchaseHistory = () => {
+            const [transactions, setTransactions] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                // Simulate slight delay for professional feel
+                const timer = setTimeout(() => {
+                    setTransactions(transactionManager.getTransactions());
+                    setLoading(false);
+                }, 400);
+                return () => clearTimeout(timer);
+            }, []);
+
+            const formatDate = (isoString) => {
+                const date = new Date(isoString);
+                return date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            };
+
+            return (
+                <div className="history-container">
+                    <a href="index.html" className="back-btn">
+                        <ArrowLeft size={18} /> Back to Dashboard
+                    </a>
+
+                    <div className="history-card">
+                        <div className="d-flex align-items-center gap-3 mb-4">
+                            <div className="p-3 bg-primary bg-opacity-10 rounded-3">
+                                <Receipt className="text-primary" size={28} />
+                            </div>
+                            <div>
+                                <h2 className="mb-0 fw-bold">Billing History</h2>
+                                <p className="text-white-50 mb-0 small">Review all your coin and VIP membership transactions.</p>
+                            </div>
+                        </div>
+
+                        <div className="alert alert-info bg-primary bg-opacity-10 border-0 text-white-50 small mb-4">
+                            Looking for your betting history? 
+                            <button className="btn btn-link p-0 ms-1 text-primary text-decoration-none fw-bold" onClick={() => {
+                                if (window.opener && window.opener.transactionHistoryModal) {
+                                    window.opener.transactionHistoryModal.open();
+                                } else {
+                                    alert('Please access game history from the main dashboard profile page.');
+                                }
+                            }}>View Game Transactions</button>
+                        </div>
+
+                        {loading ? (
+                            <div className="d-flex flex-column gap-3">
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className="transaction-item skeleton" style={{ height: '80px', border: 'none' }}></div>
+                                ))}
+                            </div>
+                        ) : transactions.length > 0 ? (
+                            <div className="transaction-list">
+                                {transactions.map((tx) => (
+                                    <div key={tx.id} className="transaction-item">
+                                        <div className="d-flex align-items-center gap-3">
+                                            <div className={`p-2 rounded-circle ${tx.type.includes('VIP') ? 'bg-purple' : 'bg-warning'} bg-opacity-10`}>
+                                                {tx.type.includes('VIP') ? 
+                                                    <Crown size={20} className="text-purple" style={{ color: '#e040fb' }} /> : 
+                                                    <Coins size={20} className="text-warning" />
+                                                }
+                                            </div>
+                                            <div>
+                                                <div className="d-flex align-items-center gap-2 mb-1">
+                                                    <span className="fw-bold">{tx.item}</span>
+                                                    <span className={`type-badge ${tx.type.includes('VIP') ? 'badge-vip' : 'badge-coin'}`}>
+                                                        {tx.type.replace('_', ' ')}
+                                                    </span>
+                                                </div>
+                                                <div className="date d-flex align-items-center gap-1">
+                                                    <Calendar size={12} />
+                                                    {formatDate(tx.timestamp)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="text-end">
+                                            <div className="amount">${tx.amount.toFixed(2)}</div>
+                                            <div className="small text-success d-flex align-items-center justify-content-end gap-1">
+                                                <CheckCircle size={12} /> {tx.status}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="empty-state">
+                                <Receipt size={48} className="mb-3 opacity-25" />
+                                <h5>No Transactions Found</h5>
+                                <p className="mb-4">You haven't made any purchases yet.</p>
+                                <div className="d-flex justify-content-center gap-2">
+                                    <a href="coin-bundles.html" className="btn btn-outline-warning btn-sm">Buy Coins</a>
+                                    <a href="vip-subscriptions.html" className="btn btn-outline-primary btn-sm">Get VIP</a>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="mt-4 pt-4 border-top border-white border-opacity-10 text-center">
+                            <p className="small text-white-50 mb-0">
+                                Need help with a transaction? <a href="#" className="text-primary text-decoration-none">Contact Support</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<PurchaseHistory />);
+    </script>
+</body>
+</html>

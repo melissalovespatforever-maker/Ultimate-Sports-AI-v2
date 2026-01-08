@@ -197,7 +197,7 @@ class LiveScoresManager {
         const hypeColor = game.hypeLevel > 80 ? '#ef4444' : (game.hypeLevel > 50 ? '#f59e0b' : '#3b82f6');
         const hypeIcon = game.hypeLevel > 80 ? '🔥' : (game.hypeLevel > 50 ? '⚡' : '📈');
 
-        const fallbackLogo = 'https://play.rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
+        const fallbackLogo = 'https://rosebud.ai/assets/Ultimate sports logo match app layout.png?lZrN';
         
         // Resolve logos using global resolver with team IDs
         const homeLogo = window.resolveSportsLogo ? 

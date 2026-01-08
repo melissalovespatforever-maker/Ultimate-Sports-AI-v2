@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIP Subscriptions | Ultimate Sports AI</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    
+    <!-- PayPal SDK - Production Configuration with Error Handling -->
+    <script>
+        // PayPal SDK Error Handler with improved reliability
+        window.paypalLoadAttempts = 0;
+        window.paypalMaxAttempts = 3;
+        window.paypalSDKLoaded = false;
+        
+        function loadPayPalSDK() {
+            return new Promise((resolve, reject) => {
+                // Check if already loaded
+                if (window.paypal && window.paypal.Buttons) {
+                    console.log('✅ PayPal SDK already loaded');
+                    window.paypalSDKLoaded = true;
+                    resolve();
+                    return;
+                }
+                
+                // Remove any existing PayPal script tags
+                const existingScripts = document.querySelectorAll('script[src*="paypal.com"]');
+                existingScripts.forEach(s => s.remove());
+                
+                const script = document.createElement('script');
+                script.src = 'https://www.paypal.com/sdk/js?client-id=AY8wzPPT8jprCoc4NhICcYnBXBUFCGP0Fy0NL6eCz94UtfcSugDU8e991IPOwZtYYC1VxqyZ4-fD5MGOv&currency=USD&intent=capture&vault=true';
+                script.async = true;
+                script.setAttribute('data-sdk-integration-source', 'button-factory');
+                
+                let loadTimeout = setTimeout(() => {
+                    console.error('❌ PayPal SDK load timeout');
+                    script.onerror();
+                }, 15000); // 15 second timeout
+                
+                script.onload = () => {
+                    clearTimeout(loadTimeout);
+                    // Wait a bit for PayPal to fully initialize
+                    setTimeout(() => {
+                        if (window.paypal && window.paypal.Buttons) {
+                            console.log('✅ PayPal SDK loaded and verified successfully');
+                            window.paypalSDKLoaded = true;
+                            resolve();
+                        } else {
+                            console.error('❌ PayPal SDK loaded but API not available');
+                            script.onerror();
+                        }
+                    }, 500);
+                };
+                
+                script.onerror = () => {
+                    clearTimeout(loadTimeout);
+                    window.paypalLoadAttempts++;
+                    console.error(`❌ PayPal SDK failed to load (attempt ${window.paypalLoadAttempts}/${window.paypalMaxAttempts})`);
+                    
+                    if (window.paypalLoadAttempts < window.paypalMaxAttempts) {
+                        console.log('🔄 Retrying PayPal SDK load in 3 seconds...');
+                        script.remove(); // Clean up failed script
+                        setTimeout(() => {
+                            loadPayPalSDK().then(resolve).catch(reject);
+                        }, 3000);
+                    } else {
+                        reject(new Error('PayPal SDK failed to load after multiple attempts'));
+                    }
+                };
+                
+                document.head.appendChild(script);
+            });
+        }
+        
+        // Load PayPal SDK with error handling
+        loadPayPalSDK().catch(error => {
+            console.error('💥 PayPal SDK Error:', error);
+            window.paypalSDKLoaded = false;
+            
+            // Show user-friendly error
+            document.addEventListener('DOMContentLoaded', () => {
+                const errorDiv = document.createElement('div');
+                errorDiv.id = 'paypal-error-banner';
+                errorDiv.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 16px 24px; border-radius: 12px; z-index: 10000; box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-width: 90%; text-align: center;';
+                errorDiv.innerHTML = `
+                    <strong>⚠️ Payment System Error</strong><br>
+                    <small>PayPal SDK failed to load. This might be due to network issues or ad blockers.</small><br>
+                    <button onclick="location.reload()" style="margin-top: 12px; background: white; color: #ef4444; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">🔄 Refresh Page</button>
+                    <button onclick="document.getElementById('paypal-error-banner').remove()" style="margin-top: 12px; margin-left: 8px; background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Dismiss</button>
+                `;
+                document.body.appendChild(errorDiv);
+            });
+        });
+    </script>
+    
+    <!-- Confetti for celebration effects -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .subscriptions-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .subscriptions-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .subscriptions-header h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 16px;
+        }
+
+        .subscriptions-header p {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 8px;
+        }
+
+        .subscription-toggle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        .toggle-label {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .toggle-label.active {
+            color: white;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 32px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+
+        .toggle-switch.annual::after {
+            transform: translateX(28px);
+        }
+
+        .toggle-switch.annual {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .savings-badge {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: inline-block;
+        }
+
+        .subscriptions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 32px;
+            margin-bottom: 48px;
+        }
+
+        .subscription-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .subscription-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .subscription-card:hover {
+            transform: translateY(-8px);
+            border-color: #fbbf24;
+            box-shadow: 0 20px 60px rgba(251, 191, 36, 0.3);
+        }
+
+        .subscription-card:hover::before {
+            opacity: 1;
+        }
+
+        .subscription-card.featured {
+            border-color: #fbbf24;
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%);
+            transform: scale(1.05);
+        }
+
+        .subscription-card.featured:hover {
+            transform: scale(1.08) translateY(-8px);
+        }
+
+        .featured-badge {
+            position: absolute;
+            top: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 8px 24px;
+            border-radius: 0 0 16px 16px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            z-index: 1;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);
+        }
+
+        .tier-icon {
+            font-size: 72px;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+            position: relative;
+            z-index: 1;
+        }
+
+        .tier-name {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tier-description {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 24px;
+            min-height: 48px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tier-price {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #fbbf24;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tier-price .currency {
+            font-size: 1.5rem;
+            vertical-align: super;
+        }
+
+        .tier-price .period {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 600;
+        }
+
+        .tier-original-price {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.4);
+            text-decoration: line-through;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .features-list {
+            list-style: none;
+            text-align: left;
+            margin: 32px 0;
+            padding: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .features-list li {
+            padding: 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .features-list li:last-child {
+            border-bottom: none;
+        }
+
+        .features-list i {
+            color: #10b981;
+            font-size: 1.2rem;
+            min-width: 24px;
+        }
+
+        .features-list .feature-highlight {
+            color: #fbbf24;
+            font-weight: 600;
+        }
+
+        .subscribe-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border: none;
+            color: white;
+            padding: 18px 32px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 16px;
+        }
+
+        .subscribe-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5);
+        }
+
+        .subscribe-btn:active {
+            transform: scale(0.98);
+        }
+
+        .featured .subscribe-btn {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #0f172a;
+            font-size: 1.2rem;
+            padding: 20px 32px;
+        }
+
+        .paypal-button-container {
+            margin-top: 12px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .benefits-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            padding: 48px;
+            margin-bottom: 48px;
+        }
+
+        .benefits-section h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 48px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+        }
+
+        .benefit-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+        }
+
+        .benefit-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .benefit-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .benefit-description {
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+        }
+
+        .comparison-table {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            padding: 48px;
+            margin-bottom: 48px;
+            overflow-x: auto;
+        }
+
+        .comparison-table h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 48px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 2fr repeat(3, 1fr);
+            gap: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .comparison-cell {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .comparison-cell.header {
+            background: rgba(99, 102, 241, 0.2);
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .comparison-cell.feature-name {
+            justify-content: flex-start;
+            font-weight: 600;
+        }
+
+        .faq-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 24px;
+            padding: 48px;
+            margin-bottom: 48px;
+        }
+
+        .faq-section h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 48px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .faq-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .faq-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #fbbf24;
+        }
+
+        .faq-question {
+            font-size: 1.2rem;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .faq-answer {
+            margin-top: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.8;
+            display: none;
+        }
+
+        .faq-item.active .faq-answer {
+            display: block;
+        }
+
+        .faq-item.active .faq-icon {
+            transform: rotate(180deg);
+        }
+
+        .faq-icon {
+            transition: transform 0.3s;
+        }
+
+        @media (max-width: 1024px) {
+            .subscriptions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .subscription-card.featured {
+                transform: scale(1);
+            }
+
+            .subscription-card.featured:hover {
+                transform: translateY(-8px);
+            }
+
+            .comparison-grid {
+                grid-template-columns: 1.5fr repeat(3, 1fr);
+                font-size: 0.9rem;
+            }
+
+            .comparison-cell {
+                padding: 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .subscriptions-header h1 {
+                font-size: 2rem;
+            }
+
+            .subscriptions-header p {
+                font-size: 1rem;
+            }
+
+            .tier-price {
+                font-size: 2.5rem;
+            }
+
+            .benefits-section,
+            .comparison-table,
+            .faq-section {
+                padding: 32px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="subscriptions-container">
+        <div class="subscriptions-header">
+            <h1>👑 VIP Subscriptions</h1>
+            <p>Unlock exclusive benefits with recurring monthly rewards</p>
+            
+            <div class="subscription-toggle">
+                <span class="toggle-label active" id="monthly-label">Monthly</span>
+                <div class="toggle-switch" id="billing-toggle" onclick="toggleBilling()"></div>
+                <span class="toggle-label" id="annual-label">Annual</span>
+                <span class="savings-badge">Save up to 20%</span>
+            </div>
+        </div>
+
+        <div class="subscriptions-grid" id="subscriptions-grid">
+            <!-- Subscription cards will be loaded here -->
+        </div>
+
+        <!-- Recurring Benefits -->
+        <div class="benefits-section">
+            <h2>💎 Monthly Recurring Benefits</h2>
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-icon">🪙</div>
+                    <div class="benefit-title">Monthly Coin Bonus</div>
+                    <div class="benefit-description">Receive bonus coins automatically deposited to your account every month</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">🎁</div>
+                    <div class="benefit-title">Exclusive Rewards</div>
+                    <div class="benefit-description">Get early access to new features, special tournaments, and VIP-only events</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">⚡</div>
+                    <div class="benefit-title">Priority Support</div>
+                    <div class="benefit-description">24/7 dedicated support with faster response times and priority assistance</div>
+                </div>
+                <div class="benefit-card">
+                    <div class="benefit-icon">🏆</div>
+                    <div class="benefit-title">Boosted XP & Rewards</div>
+                    <div class="benefit-description">Earn more XP, unlock achievements faster, and climb the leaderboards</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="comparison-table">
+            <h2>📊 Feature Comparison</h2>
+            <div class="comparison-grid">
+                <div class="comparison-cell header">Features</div>
+                <div class="comparison-cell header">Bronze</div>
+                <div class="comparison-cell header">Silver</div>
+                <div class="comparison-cell header">Gold</div>
+
+                <div class="comparison-cell feature-name">Monthly Coin Bonus</div>
+                <div class="comparison-cell">5,000</div>
+                <div class="comparison-cell">15,000</div>
+                <div class="comparison-cell">40,000</div>
+
+                <div class="comparison-cell feature-name">AI Coach Access</div>
+                <div class="comparison-cell">Basic</div>
+                <div class="comparison-cell">Advanced</div>
+                <div class="comparison-cell">Premium+</div>
+
+                <div class="comparison-cell feature-name">Tournament Entry Fee Discount</div>
+                <div class="comparison-cell">10%</div>
+                <div class="comparison-cell">25%</div>
+                <div class="comparison-cell">50%</div>
+
+                <div class="comparison-cell feature-name">Daily Quest Rewards</div>
+                <div class="comparison-cell">+25%</div>
+                <div class="comparison-cell">+50%</div>
+                <div class="comparison-cell">+100%</div>
+
+                <div class="comparison-cell feature-name">XP Multiplier</div>
+                <div class="comparison-cell">1.5x</div>
+                <div class="comparison-cell">2x</div>
+                <div class="comparison-cell">3x</div>
+
+                <div class="comparison-cell feature-name">Exclusive Badge</div>
+                <div class="comparison-cell"><i class="fas fa-check" style="color: #10b981;"></i></div>
+                <div class="comparison-cell"><i class="fas fa-check" style="color: #10b981;"></i></div>
+                <div class="comparison-cell"><i class="fas fa-check" style="color: #10b981;"></i></div>
+
+                <div class="comparison-cell feature-name">Priority Support</div>
+                <div class="comparison-cell"><i class="fas fa-times" style="color: #ef4444;"></i></div>
+                <div class="comparison-cell"><i class="fas fa-check" style="color: #10b981;"></i></div>
+                <div class="comparison-cell"><i class="fas fa-check" style="color: #10b981;"></i></div>
+
+                <div class="comparison-cell feature-name">VIP-Only Tournaments</div>
+                <div class="comparison-cell"><i class="fas fa-times" style="color: #ef4444;"></i></div>
+                <div class="comparison-cell"><i class="fas fa-times" style="color: #ef4444;"></i></div>
+                <div class="comparison-cell"><i class="fas fa-check" style="color: #10b981;"></i></div>
+            </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="faq-section">
+            <h2>❓ Frequently Asked Questions</h2>
+            
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    How do monthly coin bonuses work?
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    Your monthly coin bonus is automatically credited to your account on the same day each month as your subscription renewal date. For example, if you subscribe on the 15th, you'll receive your bonus coins on the 15th of every month.
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    Can I cancel my subscription anytime?
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    Yes! You can cancel your subscription at any time from your account settings. You'll continue to have access to VIP benefits until the end of your current billing period. No refunds for partial months.
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    What happens to my coins if I cancel?
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    All coins you've earned through monthly bonuses remain in your account permanently, even after cancellation. You never lose coins you've already received.
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    Can I upgrade or downgrade my plan?
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    Absolutely! You can upgrade to a higher tier anytime and the change takes effect immediately. Downgrades take effect at the start of your next billing cycle to ensure you get full value from your current plan.
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    Is annual billing really cheaper?
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    Yes! Annual subscriptions save you 2 months compared to monthly billing (pay for 10, get 12 months). That's a 16.7% discount plus you get an extra coin bonus upfront.
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    How secure is my payment information?
+                    <i class="fas fa-chevron-down faq-icon"></i>
+                </div>
+                <div class="faq-answer">
+                    We use PayPal's industry-leading payment processing with 256-bit SSL encryption. We never store your payment details on our servers. All transactions are PCI-DSS compliant.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { logger } from './logger.js';
+
+        const SUBSCRIPTION_TIERS = {
+            monthly: [
+                {
+                    id: 'bronze_monthly',
+                    planId: 'P-BRONZE-MONTHLY-001', // Replace with actual PayPal plan ID
+                    name: 'Bronze VIP',
+                    icon: '🥉',
+                    description: 'Perfect for casual players looking to enhance their experience',
+                    price: 9.99,
+                    monthlyCoins: 5000,
+                    features: [
+                        '5,000 bonus coins every month',
+                        'Basic AI Coach access',
+                        '10% tournament entry discount',
+                        '+25% daily quest rewards',
+                        '1.5x XP multiplier',
+                        'Exclusive Bronze badge',
+                        'Ad-free experience'
+                    ],
+                    popular: false
+                },
+                {
+                    id: 'silver_monthly',
+                    planId: 'P-SILVER-MONTHLY-001', // Replace with actual PayPal plan ID
+                    name: 'Silver VIP',
+                    icon: '🥈',
+                    description: 'Best value for dedicated players who want more rewards',
+                    price: 19.99,
+                    monthlyCoins: 15000,
+                    features: [
+                        '15,000 bonus coins every month',
+                        'Advanced AI Coach access',
+                        '25% tournament entry discount',
+                        '+50% daily quest rewards',
+                        '2x XP multiplier',
+                        'Exclusive Silver badge',
+                        'Priority support',
+                        'Early access to new features'
+                    ],
+                    popular: true
+                },
+                {
+                    id: 'gold_monthly',
+                    planId: 'P-GOLD-MONTHLY-001', // Replace with actual PayPal plan ID
+                    name: 'Gold VIP',
+                    icon: '🥇',
+                    description: 'Ultimate package for serious competitors and VIPs',
+                    price: 39.99,
+                    monthlyCoins: 40000,
+                    features: [
+                        '40,000 bonus coins every month',
+                        'Premium+ AI Coach access',
+                        '50% tournament entry discount',
+                        '+100% daily quest rewards',
+                        '3x XP multiplier',
+                        'Exclusive Gold badge & profile frame',
+                        '24/7 priority support',
+                        'VIP-only tournaments',
+                        'Exclusive chat colors & emotes',
+                        'Monthly 1-on-1 coaching session'
+                    ],
+                    popular: false
+                }
+            ],
+            annual: [
+                {
+                    id: 'bronze_annual',
+                    planId: 'P-BRONZE-ANNUAL-001', // Replace with actual PayPal plan ID
+                    name: 'Bronze VIP',
+                    icon: '🥉',
+                    description: 'Perfect for casual players looking to enhance their experience',
+                    price: 99.99,
+                    originalPrice: 119.88,
+                    monthlyCoins: 5000,
+                    bonusCoins: 10000,
+                    features: [
+                        '5,000 bonus coins every month',
+                        '10,000 upfront bonus coins',
+                        'Basic AI Coach access',
+                        '10% tournament entry discount',
+                        '+25% daily quest rewards',
+                        '1.5x XP multiplier',
+                        'Exclusive Bronze badge',
+                        'Ad-free experience'
+                    ],
+                    popular: false
+                },
+                {
+                    id: 'silver_annual',
+                    planId: 'P-SILVER-ANNUAL-001', // Replace with actual PayPal plan ID
+                    name: 'Silver VIP',
+                    icon: '🥈',
+                    description: 'Best value for dedicated players who want more rewards',
+                    price: 199.99,
+                    originalPrice: 239.88,
+                    monthlyCoins: 15000,
+                    bonusCoins: 30000,
+                    features: [
+                        '15,000 bonus coins every month',
+                        '30,000 upfront bonus coins',
+                        'Advanced AI Coach access',
+                        '25% tournament entry discount',
+                        '+50% daily quest rewards',
+                        '2x XP multiplier',
+                        'Exclusive Silver badge',
+                        'Priority support',
+                        'Early access to new features'
+                    ],
+                    popular: true
+                },
+                {
+                    id: 'gold_annual',
+                    planId: 'P-GOLD-ANNUAL-001', // Replace with actual PayPal plan ID
+                    name: 'Gold VIP',
+                    icon: '🥇',
+                    description: 'Ultimate package for serious competitors and VIPs',
+                    price: 399.99,
+                    originalPrice: 479.88,
+                    monthlyCoins: 40000,
+                    bonusCoins: 80000,
+                    features: [
+                        '40,000 bonus coins every month',
+                        '80,000 upfront bonus coins',
+                        'Premium+ AI Coach access',
+                        '50% tournament entry discount',
+                        '+100% daily quest rewards',
+                        '3x XP multiplier',
+                        'Exclusive Gold badge & profile frame',
+                        '24/7 priority support',
+                        'VIP-only tournaments',
+                        'Exclusive chat colors & emotes',
+                        'Monthly 1-on-1 coaching session'
+                    ],
+                    popular: false
+                }
+            ]
+        };
+
+        let currentBillingCycle = 'monthly';
+
+        function renderSubscriptions() {
+            const grid = document.getElementById('subscriptions-grid');
+            const tiers = SUBSCRIPTION_TIERS[currentBillingCycle];
+            
+            grid.innerHTML = tiers.map(tier => {
+                const isAnnual = currentBillingCycle === 'annual';
+                const bonusText = isAnnual ? `+ ${tier.bonusCoins.toLocaleString()} bonus coins upfront!` : '';
+                
+                return `
+                    <div class="subscription-card ${tier.popular ? 'featured' : ''}" data-tier-id="${tier.id}">
+                        ${tier.popular ? '<div class="featured-badge">MOST POPULAR</div>' : ''}
+                        <div class="tier-icon">${tier.icon}</div>
+                        <div class="tier-name">${tier.name}</div>
+                        <div class="tier-description">${tier.description}</div>
+                        
+                        ${tier.originalPrice ? `<div class="tier-original-price">$${tier.originalPrice.toFixed(2)}</div>` : ''}
+                        
+                        <div class="tier-price">
+                            <span class="currency">$</span>${isAnnual ? tier.price.toFixed(0) : tier.price.toFixed(2)}
+                            <span class="period">/${isAnnual ? 'year' : 'month'}</span>
+                        </div>
+                        
+                        ${bonusText ? `<div style="color: #10b981; font-weight: 700; margin-bottom: 16px; position: relative; z-index: 1;">${bonusText}</div>` : ''}
+                        
+                        <ul class="features-list">
+                            ${tier.features.map(feature => `
+                                <li>
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>${feature}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                        
+                        <button class="subscribe-btn" onclick="window.handleSubscription('${tier.id}', ${tier.price}, '${tier.name}')">
+                            <i class="fas fa-crown"></i> Subscribe Now
+                        </button>
+                        <div class="paypal-button-container" id="paypal-button-${tier.id}"></div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        window.toggleBilling = function() {
+            const toggle = document.getElementById('billing-toggle');
+            const monthlyLabel = document.getElementById('monthly-label');
+            const annualLabel = document.getElementById('annual-label');
+            
+            if (currentBillingCycle === 'monthly') {
+                currentBillingCycle = 'annual';
+                toggle.classList.add('annual');
+                monthlyLabel.classList.remove('active');
+                annualLabel.classList.add('active');
+            } else {
+                currentBillingCycle = 'monthly';
+                toggle.classList.remove('annual');
+                monthlyLabel.classList.add('active');
+                annualLabel.classList.remove('active');
+            }
+            
+            renderSubscriptions();
+        };
+
+        window.toggleFAQ = function(element) {
+            element.classList.toggle('active');
+        };
+
+        window.handleSubscription = function(tierId, price, tierName) {
+            const tiers = SUBSCRIPTION_TIERS[currentBillingCycle];
+            const tier = tiers.find(t => t.id === tierId);
+            if (!tier) return;
+
+            // Check if PayPal SDK is loaded
+            if (typeof paypal === 'undefined') {
+                alert('Payment system unavailable. Please refresh and try again.');
+                return;
+            }
+            
+            // For now, use direct payment instead of subscription plans
+            // This allows immediate functionality while subscription plans are being set up
+            initPayPalDirectPayment(tier);
+        };
+
+        function initPayPalDirectPayment(tier) {
+            const container = document.getElementById(`paypal-button-${tier.id}`);
+            container.innerHTML = '';
+
+            paypal.Buttons({
+                style: {
+                    layout: 'horizontal',
+                    color: 'gold',
+                    shape: 'rect',
+                    label: 'pay'
+                },
+                createOrder: function(data, actions) {
+                    return actions.order.create({
+                        purchase_units: [{
+                            description: `${tier.name} ${currentBillingCycle === 'annual' ? 'Annual' : 'Monthly'} Subscription`,
+                            amount: {
+                                currency_code: 'USD',
+                                value: tier.price.toFixed(2)
+                            }
+                        }]
+                    });
+                },
+                onApprove: function(data, actions) {
+                    return actions.order.capture().then(function(orderData) {
+                        console.log('✅ Payment captured:', orderData);
+                        const subscriptionId = 'SUB-' + orderData.id;
+                        activateSubscription(tier, subscriptionId);
+                    });
+                },
+                onError: function(err) {
+                    console.error('❌ Payment error:', err);
+                    alert('Payment failed. Please try again.');
+                }
+            }).render(`#paypal-button-${tier.id}`);
+        }
+
+        function initPayPalSubscription(tier) {
+            const container = document.getElementById(`paypal-button-${tier.id}`);
+            container.innerHTML = '';
+
+            paypal.Buttons({
+                style: {
+                    layout: 'horizontal',
+                    color: 'gold',
+                    shape: 'rect',
+                    label: 'subscribe'
+                },
+                createSubscription: function(data, actions) {
+                    return actions.subscription.create({
+                        'plan_id': tier.planId
+                    });
+                },
+                onApprove: function(data, actions) {
+                    console.log('✅ Subscription approved:', data);
+                    activateSubscription(tier, data.subscriptionID);
+                },
+                onError: function(err) {
+                    console.error('❌ Subscription error:', err);
+                    alert('Subscription failed. Please try again.');
+                }
+            }).render(`#paypal-button-${tier.id}`);
+        }
+
+        async function activateSubscription(tier, subscriptionId) {
+            const globalState = window.globalState || (window.opener && window.opener.globalState);
+            
+            // Log Transaction
+            import('./transaction-manager.js').then(module => {
+                module.transactionManager.logTransaction({
+                    type: 'VIP_SUBSCRIPTION',
+                    amount: tier.price,
+                    item: `${tier.name} (${currentBillingCycle === 'annual' ? 'Annual' : 'Monthly'})`,
+                    metadata: { paypalSubscriptionId: subscriptionId, billingCycle: currentBillingCycle }
+                });
+            });
+
+            const subscriptionData = {
+                tier: tier.name,
+                tierId: tier.id,
+                monthlyCoins: tier.monthlyCoins,
+                subscriptionId: subscriptionId,
+                startDate: Date.now(),
+                nextBillingDate: Date.now() + (currentBillingCycle === 'annual' ? 365 : 30) * 24 * 60 * 60 * 1000,
+                billingCycle: currentBillingCycle,
+                active: true,
+                price: tier.price
+            };
+
+            // Save to localStorage and globalState
+            if (globalState) {
+                const userData = globalState.getState();
+                userData.subscription = subscriptionData;
+                globalState.setState(userData);
+                
+                // Credit upfront bonus for annual using addCoins (handles backend sync)
+                if (tier.bonusCoins) {
+                    globalState.addCoins(tier.bonusCoins, `${tier.name} Annual Bonus`, {
+                        method: 'paypal_subscription',
+                        subscriptionId: subscriptionId,
+                        verified: true
+                    });
+                }
+            } else {
+                localStorage.setItem('vip_subscription', JSON.stringify(subscriptionData));
+            }
+            
+            // CRITICAL: Sync subscription to backend immediately
+            await syncSubscriptionToBackend(subscriptionData, tier);
+
+            // Show success
+            showSubscriptionSuccess(tier);
+
+            // Notify parent window
+            if (window.opener) {
+                window.opener.postMessage({
+                    action: 'subscription_activated',
+                    tier: tier.name,
+                    monthlyCoins: tier.monthlyCoins
+                }, '*');
+            }
+        }
+        
+        /**
+         * Sync VIP subscription to backend immediately
+         * CRITICAL: Prevents data loss on logout/login
+         */
+        async function syncSubscriptionToBackend(subscriptionData, tier) {
+            const token = localStorage.getItem('auth_token');
+            if (!token) {
+                console.warn('⚠️ No auth token - VIP subscription will sync on next login');
+                
+                // Store pending subscription for future sync
+                const pendingSubs = JSON.parse(localStorage.getItem('pending_vip_subscriptions') || '[]');
+                pendingSubs.push({
+                    subscriptionData,
+                    tier,
+                    timestamp: Date.now()
+                });
+                localStorage.setItem('pending_vip_subscriptions', JSON.stringify(pendingSubs));
+                
+                return;
+            }
+            
+            const apiUrl = window.CONFIG?.API_BASE_URL || 'https://ultimate-sports-ai-backend-production.up.railway.app';
+            
+            try {
+                console.log(`🔄 Syncing VIP subscription to backend...`, subscriptionData);
+                
+                const response = await fetch(`${apiUrl}/api/subscriptions/activate`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        tier: subscriptionData.tier,
+                        tierId: subscriptionData.tierId,
+                        monthlyCoins: subscriptionData.monthlyCoins,
+                        subscriptionId: subscriptionData.subscriptionId,
+                        billingCycle: subscriptionData.billingCycle,
+                        price: subscriptionData.price,
+                        metadata: {
+                            method: 'paypal',
+                            paypalSubscriptionId: subscriptionData.subscriptionId,
+                            verified: true,
+                            timestamp: Date.now()
+                        }
+                    }),
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ VIP subscription synced to backend successfully:', data);
+                    
+                    // Remove from pending subscriptions if it was there
+                    const pendingSubs = JSON.parse(localStorage.getItem('pending_vip_subscriptions') || '[]');
+                    const filtered = pendingSubs.filter(s => s.subscriptionData.subscriptionId !== subscriptionData.subscriptionId);
+                    localStorage.setItem('pending_vip_subscriptions', JSON.stringify(filtered));
+                    
+                    return true;
+                } else {
+                    console.error(`❌ Backend sync failed (${response.status}):`, await response.text());
+                    
+                    // Store for retry later
+                    const failedSyncs = JSON.parse(localStorage.getItem('failed_subscription_syncs') || '[]');
+                    failedSyncs.push({
+                        subscriptionData,
+                        tier,
+                        timestamp: Date.now(),
+                        attempts: 1
+                    });
+                    localStorage.setItem('failed_subscription_syncs', JSON.stringify(failedSyncs));
+                    
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Network error syncing VIP subscription:', error);
+                
+                // Store for retry later
+                const failedSyncs = JSON.parse(localStorage.getItem('failed_subscription_syncs') || '[]');
+                failedSyncs.push({
+                    subscriptionData,
+                    tier,
+                    timestamp: Date.now(),
+                    attempts: 1
+                });
+                localStorage.setItem('failed_subscription_syncs', JSON.stringify(failedSyncs));
+                
+                return false;
+            }
+        }
+
+        function showSubscriptionSuccess(tier) {
+            const message = document.createElement('div');
+            message.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                padding: 48px 64px;
+                border-radius: 24px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                z-index: 10000;
+                text-align: center;
+                animation: slideIn 0.5s ease;
+                max-width: 500px;
+            `;
+            
+            message.innerHTML = `
+                <div style="font-size: 72px; margin-bottom: 16px;">${tier.icon}</div>
+                <h2 style="font-size: 2rem; margin-bottom: 8px;">Welcome to ${tier.name}!</h2>
+                <p style="font-size: 1.2rem; opacity: 0.9; margin-bottom: 16px;">
+                    Your VIP subscription is now active
+                </p>
+                <div style="background: rgba(255, 255, 255, 0.2); padding: 16px; border-radius: 12px; margin-top: 24px;">
+                    <div style="font-size: 1rem; opacity: 0.9; margin-bottom: 8px;">Monthly Bonus:</div>
+                    <div style="font-size: 2rem; font-weight: 900;">${tier.monthlyCoins.toLocaleString()} Coins</div>
+                </div>
+            `;
+            
+            document.body.appendChild(message);
+            
+            // Confetti
+            if (window.confetti) {
+                window.confetti({
+                    particleCount: 150,
+                    spread: 100,
+                    origin: { y: 0.5 },
+                    colors: ['#fbbf24', '#10b981', '#6366f1', '#ec4899']
+                });
+            }
+            
+            setTimeout(() => {
+                message.style.animation = 'slideOut 0.5s ease';
+                setTimeout(() => message.remove(), 500);
+            }, 5000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSubscriptions();
+            
+            // Verify PayPal SDK loaded
+            if (typeof paypal === 'undefined') {
+                console.error('PayPal SDK failed to load');
+                
+                const warning = document.createElement('div');
+                warning.style.cssText = `
+                    position: fixed;
+                    top: 80px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: rgba(239, 68, 68, 0.95);
+                    color: white;
+                    padding: 16px 32px;
+                    border-radius: 12px;
+                    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+                    z-index: 10000;
+                    text-align: center;
+                    max-width: 600px;
+                `;
+                warning.innerHTML = `
+                    <div style="font-size: 24px; margin-bottom: 8px;">⚠️</div>
+                    <strong>Payment System Error</strong>
+                    <p style="margin: 8px 0 0; font-size: 14px;">PayPal SDK failed to load. Please refresh the page.</p>
+                `;
+                document.body.appendChild(warning);
+            } else {
+                console.log('✅ PayPal SDK loaded successfully - Ready for payments');
+            }
+        });
+
+        // Add animation keyframes
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translate(-50%, -60%);
+                }
+                to {
+                    opacity: 1;
+                    transform: translate(-50%, -50%);
+                }
+            }
+            
+            @keyframes slideOut {
+                from {
+                    opacity: 1;
+                    transform: translate(-50%, -50%);
+                }
+                to {
+                    opacity: 0;
+                    transform: translate(-50%, -40%);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

@@ -36,9 +36,7 @@ class ProfileManager {
         });
 
         document.getElementById('transaction-history-btn')?.addEventListener('click', () => {
-            if (window.transactionHistoryModal) {
-                window.transactionHistoryModal.open();
-            }
+            window.open('purchase-history.html', '_blank');
         });
 
         document.getElementById('profile-logout-btn')?.addEventListener('click', () => {

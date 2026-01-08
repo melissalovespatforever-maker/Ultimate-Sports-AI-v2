@@ -17,12 +17,18 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="sports-lounge-styles.css">
     <link rel="stylesheet" href="shop-styles.css">
+    <link rel="stylesheet" href="daily-quest-styles.css">
     <link rel="stylesheet" href="trophy-notification.css">
 </head>
 <body>
 
     <!-- Sports Lounge Container -->
     <div class="sports-lounge-container">
+        
+        <!-- Mobile Sidebar Toggle -->
+        <button id="mobile-sidebar-toggle" class="mobile-sidebar-toggle" title="Toggle Sidebar">
+            <i class="fas fa-chart-bar"></i>
+        </button>
         
         <!-- Hero Header -->
         <div class="lounge-hero">
@@ -199,6 +205,17 @@
                                     <i class="fas fa-circle" style="color: #10b981; font-size: 8px;"></i> 
                                     <span id="chat-online-count">247</span> online
                                 </span>
+                                <div class="community-mood-gauge" id="mood-gauge" title="Community Sentiment (AI)">
+                                    <span class="mood-icon">😐</span>
+                                    <span class="mood-text">NEUTRAL</span>
+                                </div>
+                                <div class="hype-meter-container" id="hype-meter" title="Lounge Hype Level">
+                                    <div class="hype-label">HYPE</div>
+                                    <div class="hype-bar">
+                                        <div id="hype-fill" class="hype-fill" style="width: 0%"></div>
+                                    </div>
+                                    <div class="hype-percentage" id="hype-percent">0%</div>
+                                </div>
                             </div>
                         </div>
                         
@@ -254,6 +271,31 @@
                             <div class="activity-list" id="activity-feed"></div>
                         </div>
 
+                        <!-- Trending Topics (Word Cloud) -->
+                        <div class="lounge-card trending-topics-card">
+                            <div class="card-header">
+                                <h2><i class="fas fa-chart-line"></i> Trending Now</h2>
+                            </div>
+                            <div id="word-cloud-container" class="word-cloud-container">
+                                <div class="cloud-empty">Waiting for trending topics...</div>
+                            </div>
+                        </div>
+
+                        <!-- Live Betting Odds -->
+                        <div class="lounge-card live-odds-card">
+                            <div class="card-header">
+                                <h2><i class="fas fa-chart-bar"></i> Live Odds</h2>
+                                <button class="btn-icon" onclick="window.liveOddsSidebar.loadFeaturedOdds()" title="Refresh Odds">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
+                            <div id="live-odds-sidebar-container" class="live-odds-container">
+                                <div class="odds-loading">
+                                    <i class="fas fa-spinner fa-spin"></i> Loading odds...
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- User Profile Card -->
                         <div class="lounge-card user-profile-card">
                             <div class="profile-header">
@@ -304,7 +346,7 @@
                         <h2 class="section-title"><i class="fas fa-rocket"></i> Power-Up Boosters</h2>
                         <div class="shop-items-grid">
                             <!-- Coin Booster 2x -->
-                            <div class="shop-item">
+                            <div class="shop-item" data-item-id="coin-2x">
                                 <div class="item-badge">POPULAR</div>
                                 <div class="item-icon">💰</div>
                                 <h3>2x Coin Booster</h3>
@@ -507,12 +549,48 @@
 
     <!-- Scripts -->
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js" crossorigin="anonymous"></script>
+    
+    <!-- Core Systems -->
     <script src="config.js"></script>
+    <script src="logger.js"></script>
     <script src="global-state-manager.js"></script>
+    <script src="inventory-item-definitions.js"></script>
+    <script src="inventory-system.js"></script>
     <script src="sports-data-service.js"></script>
     <script src="shop-system.js"></script>
-    <script src="sports-lounge-inventory.js"></script>
+    <script src="daily-quest-system.js"></script>
+    
+    <!-- Chat & AI Systems (ES Modules) -->
+    <script type="module" src="sentiment-analyzer.js"></script>
+    <script type="module" src="chat-summary-service.js"></script>
+    <script type="module" src="sports-lounge-chat-client.js"></script>
+    <script type="module" src="live-odds-sidebar.js"></script>
+    
+    <!-- Lounge Core -->
     <script src="sports-lounge-new.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Community Mood Listener
+            window.addEventListener('communityMoodUpdated', (e) => {
+                const gauge = document.getElementById('mood-gauge');
+                if (gauge) {
+                    const icon = gauge.querySelector('.mood-icon');
+                    const text = gauge.querySelector('.mood-text');
+                    
+                    const moodParts = e.detail.mood.split(' ');
+                    icon.textContent = moodParts[0];
+                    text.textContent = moodParts.slice(1).join(' ');
+                    
+                    // Style based on sentiment
+                    const score = e.detail.averageSentiment;
+                    if (score > 0.1) gauge.style.color = '#4CAF50';
+                    else if (score < -0.1) gauge.style.color = '#e74c3c';
+                    else gauge.style.color = '#FFD700';
+                }
+            });
+        });
+    </script>
     
 </body>
 </html>

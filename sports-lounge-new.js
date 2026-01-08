@@ -48,8 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
         loadUserData();
         initializeTabs();
         initializeGameButtons();
-        initializeChat();
-        initializeShop();
+        initializeMobileSidebar();
+        // initializeChat(); // Disabled in favor of sports-lounge-chat-client.js
+        initializeLoungeShop();
         initializeLiveStats();
         initializeActivityFeed();
         loadTrophies();
@@ -75,7 +76,7 @@ function loadUserData() {
         // GUEST ACCESS: If not authenticated, we still allow access to the lounge as a guest
         userData.id = state.user?.id || 0;
         userData.name = state.user?.username || state.user?.name || 'Guest User';
-        userData.coins = globalState.getBalance();
+        userData.coins = globalState.getBalance ? globalState.getBalance() : 10000;
         userData.avatar = state.user?.avatar || '🎮';
         userData.wins = state.stats?.wins || 0;
         userData.streak = state.stats?.streak || 0;
@@ -83,6 +84,7 @@ function loadUserData() {
         console.log('✅ User data loaded from GlobalState:', userData.name, '| Coins:', userData.coins);
     } else {
         // Fallback to localStorage (Mirror GlobalStateManager defaults)
+        userData.id = parseInt(localStorage.getItem('unified_user_id') || '0');
         userData.name = localStorage.getItem('unified_username') || 'Guest User';
         userData.coins = parseInt(localStorage.getItem('unified_balance') || '10000');
         userData.avatar = localStorage.getItem('unified_avatar') || '🎮';
@@ -119,10 +121,10 @@ function updateBalance(newBalance) {
     // Single source of truth: Always update GlobalStateManager
     const globalState = window.globalState || (window.parent && window.parent.globalState);
     
-    if (globalState) {
+    if (globalState && globalState.setBalance) {
         // We use setBalance for direct updates
         globalState.setBalance(newBalance);
-        userData.coins = globalState.getBalance();
+        userData.coins = globalState.getBalance ? globalState.getBalance() : newBalance;
     } else {
         // Emergency Fallback
         userData.coins = newBalance;
@@ -131,6 +133,14 @@ function updateBalance(newBalance) {
     }
     
     updateUserDisplay();
+    
+    // Notify parent window of balance update
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({
+            action: 'balance_updated',
+            balance: newBalance
+        }, '*');
+    }
 }
 
 // ============================================
@@ -195,9 +205,15 @@ function handleTabActivation(tabName) {
     switch(tabName) {
         case 'shop':
             updateUserDisplay();
+            if (window.ShopSystem && typeof window.ShopSystem.updateBalanceDisplay === 'function') {
+                window.ShopSystem.updateBalanceDisplay();
+            }
             break;
         case 'inventory':
             loadInventory();
+            break;
+        case 'quests':
+            loadQuests();
             break;
         case 'trophy-room':
             loadTrophies();
@@ -227,6 +243,46 @@ function initializeGameButtons() {
     });
     
     console.log('✅ Game buttons initialized:', gameButtons.length);
+}
+
+// ============================================
+// MOBILE SIDEBAR
+// ============================================
+
+function initializeMobileSidebar() {
+    const toggleBtn = document.getElementById('mobile-sidebar-toggle');
+    const sidebar = document.querySelector('.lounge-column');
+    
+    if (!toggleBtn || !sidebar) return;
+
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'sidebar-overlay';
+    document.body.appendChild(overlay);
+
+    toggleBtn.addEventListener('click', () => {
+        const isOpen = sidebar.classList.toggle('open');
+        toggleBtn.classList.toggle('active');
+        overlay.classList.toggle('active');
+        
+        // Change icon based on state
+        const icon = toggleBtn.querySelector('i');
+        if (isOpen) {
+            icon.className = 'fas fa-times';
+        } else {
+            icon.className = 'fas fa-chart-bar';
+        }
+    });
+
+    overlay.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        toggleBtn.classList.remove('active');
+        overlay.classList.remove('active');
+        const icon = toggleBtn.querySelector('i');
+        icon.className = 'fas fa-chart-bar';
+    });
+
+    console.log('✅ Mobile sidebar initialized');
 }
 
 // ============================================
@@ -412,11 +468,11 @@ function addChatMessage(user, avatar, message, isMe = false) {
 }
 
 // ============================================
-// SHOP SYSTEM
+// SHOP SYSTEM (INTEGRATED)
 // ============================================
 
-function initializeShop() {
-    // Buy Buttons
+function initializeLoungeShop() {
+    // Buy Buttons - delegate to global ShopSystem if available
     const buyButtons = document.querySelectorAll('.btn-buy');
     buyButtons.forEach(button => {
         button.addEventListener('click', (e) => {
@@ -428,68 +484,84 @@ function initializeShop() {
         });
     });
 
-    // Category Buttons
-    const filterButtons = document.querySelectorAll('.shop-cat-btn');
-    filterButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            filterButtons.forEach(b => {
-                b.classList.remove('active');
-                b.style.background = 'rgba(255,255,255,0.05)';
-            });
-            btn.classList.add('active');
-            btn.style.background = 'var(--primary-color)';
-
-            const category = btn.getAttribute('data-category');
-            filterShopItems(category);
-        });
-    });
-    
-    console.log('✅ Shop initialized');
+    // Category Buttons are handled by shop-system.js
+    console.log('✅ Lounge Shop buttons initialized');
 }
 
 function filterShopItems(category) {
-    const sections = document.querySelectorAll('.shop-section');
-    sections.forEach(section => {
-        if (category === 'all' || section.getAttribute('data-category') === category) {
-            section.style.display = 'block';
-        } else {
-            section.style.display = 'none';
-        }
-    });
+    if (window.ShopSystem && typeof window.ShopSystem.filterItems === 'function') {
+        window.ShopSystem.filterItems(category);
+    } else {
+        const sections = document.querySelectorAll('.shop-section');
+        sections.forEach(section => {
+            if (category === 'all' || section.getAttribute('data-category') === category) {
+                section.style.display = 'block';
+            } else {
+                section.style.display = 'none';
+            }
+        });
+    }
 }
 
 function handlePurchase(itemId, price) {
-    // Single source of truth for balance
-    const globalState = window.globalState || (window.parent && window.parent.globalState);
-    const currentBalance = globalState ? globalState.getBalance() : userData.coins;
-
-    if (currentBalance < price) {
-        showNotification('❌ Not enough coins!', 'error');
-        return;
-    }
+    console.log(`🛒 Lounge purchase requested: ${itemId} (${price} coins)`);
     
-    // If ShopSystem exists globally (check parent too), use it
+    // Check if ShopSystem exists globally
     const shopSystem = window.ShopSystem || (window.parent && window.parent.ShopSystem);
     
     if (shopSystem && typeof shopSystem.purchase === 'function') {
-        shopSystem.purchase(itemId, price);
-        // Refresh local data after a short delay to sync balance
+        const success = shopSystem.purchase(itemId, price);
+        if (success) {
+            // Refresh user display after purchase
+            setTimeout(() => {
+                loadUserData();
+                if (currentTab === 'inventory') {
+                    loadInventory();
+                }
+            }, 500);
+            
+            // Track for quests
+            window.dispatchEvent(new CustomEvent('shopOpened'));
+        }
+    } else {
+        // Fallback for standalone mode or if script failed
+        const currentBalance = userData.coins;
+        if (currentBalance < price) {
+            showNotification('❌ Not enough coins!', 'error');
+            return;
+        }
+        
+        updateBalance(currentBalance - price);
+        
+        // Add to local inventory
+        const inventory = JSON.parse(localStorage.getItem('userInventory') || '[]');
+        inventory.push({
+            id: itemId,
+            purchasedAt: Date.now()
+        });
+        localStorage.setItem('userInventory', JSON.stringify(inventory));
+        
+        showNotification(`✅ Successfully purchased ${itemId}!`, 'success');
+        
+        // Refresh displays
         setTimeout(() => loadUserData(), 500);
-        return;
     }
+}
 
-    // Fallback purchase logic if ShopSystem is missing
-    updateBalance(currentBalance - price);
-    
-    // Add to local inventory
-    const inventory = JSON.parse(localStorage.getItem('userInventory') || '[]');
-    inventory.push({
-        id: itemId,
-        purchasedAt: Date.now()
-    });
-    localStorage.setItem('userInventory', JSON.stringify(inventory));
-    
-    showNotification(`✅ Successfully purchased ${itemId}!`, 'success');
+// ============================================
+// DAILY QUESTS
+// ============================================
+
+function loadQuests() {
+    if (window.dailyQuests && typeof window.dailyQuests.updateUI === 'function') {
+        window.dailyQuests.updateUI();
+        window.dailyQuests.startResetTimer();
+    } else {
+        const container = document.getElementById('daily-quests-container');
+        if (container) {
+            container.innerHTML = '<div class="loading-state">Quest system initializing...</div>';
+        }
+    }
 }
 
 // ============================================
@@ -497,18 +569,15 @@ function handlePurchase(itemId, price) {
 // ============================================
 
 function loadInventory() {
-    // Use the new dedicated Sports Lounge Inventory System
-    if (window.SportsLoungeInventory && typeof window.SportsLoungeInventory.render === 'function') {
-        window.SportsLoungeInventory.render();
+    if (window.inventorySystem && typeof window.inventorySystem.renderInventoryUI === 'function') {
+        window.inventorySystem.renderInventoryUI('inventory-content');
     } else {
-        // Fallback if script didn't load
         const inventoryContent = document.getElementById('inventory-content');
         if (inventoryContent) {
             inventoryContent.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                    <i class="fas fa-exclamation-circle" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
-                    <p>Inventory system loading...</p>
-                    <p style="font-size: 14px;">Please refresh the page if this persists.</p>
+                    <i class="fas fa-spinner fa-spin" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
+                    <p>Loading inventory...</p>
                 </div>
             `;
         }
