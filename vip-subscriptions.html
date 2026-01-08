@@ -11,91 +11,54 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     
-    <!-- PayPal SDK - Production Configuration with Error Handling -->
+    <!-- PayPal SDK - Direct Load (More Reliable) -->
+    <script src="https://www.paypal.com/sdk/js?client-id=AY8wzPPT8jprCoc4NhICcYnBXBUFCGP0Fy0NL6eCz94UtfcSugDU8e991IPOwZtYYC1VxqyZ4-fD5MGOv&currency=USD&intent=capture&vault=true&disable-funding=credit,card" data-sdk-integration-source="button-factory"></script>
+    
     <script>
-        // PayPal SDK Error Handler with improved reliability
-        window.paypalLoadAttempts = 0;
-        window.paypalMaxAttempts = 3;
+        // PayPal SDK Status Checker
         window.paypalSDKLoaded = false;
         
-        function loadPayPalSDK() {
-            return new Promise((resolve, reject) => {
-                // Check if already loaded
-                if (window.paypal && window.paypal.Buttons) {
-                    console.log('✅ PayPal SDK already loaded');
-                    window.paypalSDKLoaded = true;
-                    resolve();
-                    return;
-                }
-                
-                // Remove any existing PayPal script tags
-                const existingScripts = document.querySelectorAll('script[src*="paypal.com"]');
-                existingScripts.forEach(s => s.remove());
-                
-                const script = document.createElement('script');
-                script.src = 'https://www.paypal.com/sdk/js?client-id=AY8wzPPT8jprCoc4NhICcYnBXBUFCGP0Fy0NL6eCz94UtfcSugDU8e991IPOwZtYYC1VxqyZ4-fD5MGOv&currency=USD&intent=capture&vault=true';
-                script.async = true;
-                script.setAttribute('data-sdk-integration-source', 'button-factory');
-                
-                let loadTimeout = setTimeout(() => {
-                    console.error('❌ PayPal SDK load timeout');
-                    script.onerror();
-                }, 15000); // 15 second timeout
-                
-                script.onload = () => {
-                    clearTimeout(loadTimeout);
-                    // Wait a bit for PayPal to fully initialize
-                    setTimeout(() => {
-                        if (window.paypal && window.paypal.Buttons) {
-                            console.log('✅ PayPal SDK loaded and verified successfully');
-                            window.paypalSDKLoaded = true;
-                            resolve();
-                        } else {
-                            console.error('❌ PayPal SDK loaded but API not available');
-                            script.onerror();
-                        }
-                    }, 500);
-                };
-                
-                script.onerror = () => {
-                    clearTimeout(loadTimeout);
-                    window.paypalLoadAttempts++;
-                    console.error(`❌ PayPal SDK failed to load (attempt ${window.paypalLoadAttempts}/${window.paypalMaxAttempts})`);
-                    
-                    if (window.paypalLoadAttempts < window.paypalMaxAttempts) {
-                        console.log('🔄 Retrying PayPal SDK load in 3 seconds...');
-                        script.remove(); // Clean up failed script
-                        setTimeout(() => {
-                            loadPayPalSDK().then(resolve).catch(reject);
-                        }, 3000);
-                    } else {
-                        reject(new Error('PayPal SDK failed to load after multiple attempts'));
-                    }
-                };
-                
-                document.head.appendChild(script);
-            });
+        // Check if PayPal SDK loaded successfully
+        function checkPayPalSDK() {
+            if (window.paypal && window.paypal.Buttons) {
+                console.log('✅ PayPal SDK loaded successfully');
+                window.paypalSDKLoaded = true;
+                return true;
+            }
+            return false;
         }
         
-        // Load PayPal SDK with error handling
-        loadPayPalSDK().catch(error => {
-            console.error('💥 PayPal SDK Error:', error);
-            window.paypalSDKLoaded = false;
+        // Wait for PayPal SDK to load
+        let paypalCheckAttempts = 0;
+        const paypalCheckInterval = setInterval(() => {
+            paypalCheckAttempts++;
             
-            // Show user-friendly error
-            document.addEventListener('DOMContentLoaded', () => {
-                const errorDiv = document.createElement('div');
-                errorDiv.id = 'paypal-error-banner';
-                errorDiv.style.cssText = 'position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 16px 24px; border-radius: 12px; z-index: 10000; box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-width: 90%; text-align: center;';
-                errorDiv.innerHTML = `
-                    <strong>⚠️ Payment System Error</strong><br>
-                    <small>PayPal SDK failed to load. This might be due to network issues or ad blockers.</small><br>
-                    <button onclick="location.reload()" style="margin-top: 12px; background: white; color: #ef4444; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">🔄 Refresh Page</button>
-                    <button onclick="document.getElementById('paypal-error-banner').remove()" style="margin-top: 12px; margin-left: 8px; background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Dismiss</button>
-                `;
-                document.body.appendChild(errorDiv);
-            });
-        });
+            if (checkPayPalSDK()) {
+                clearInterval(paypalCheckInterval);
+                console.log('✅ PayPal Buttons API ready');
+                
+                // Trigger event for page to know PayPal is ready
+                window.dispatchEvent(new Event('paypal-sdk-ready'));
+            } else if (paypalCheckAttempts > 20) {
+                // After 10 seconds (20 * 500ms), give up
+                clearInterval(paypalCheckInterval);
+                console.error('❌ PayPal SDK failed to load after 10 seconds');
+                
+                // Show error banner
+                document.addEventListener('DOMContentLoaded', () => {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.id = 'paypal-error-banner';
+                    errorDiv.style.cssText = 'position: fixed; top: 80px; left: 50%; transform: translateX(-50%); background: #ef4444; color: white; padding: 16px 24px; border-radius: 12px; z-index: 10000; box-shadow: 0 10px 25px rgba(0,0,0,0.3); max-width: 90%; text-align: center;';
+                    errorDiv.innerHTML = `
+                        <strong>⚠️ Payment System Unavailable</strong><br>
+                        <small>PayPal SDK failed to load. Please check your internet connection and disable ad blockers.</small><br>
+                        <button onclick="location.reload()" style="margin-top: 12px; background: white; color: #ef4444; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">🔄 Refresh Page</button>
+                        <button onclick="this.parentElement.remove()" style="margin-top: 12px; margin-left: 8px; background: rgba(255,255,255,0.2); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Dismiss</button>
+                    `;
+                    document.body.appendChild(errorDiv);
+                });
+            }
+        }, 500); // Check every 500ms
     </script>
     
     <!-- Confetti for celebration effects -->
