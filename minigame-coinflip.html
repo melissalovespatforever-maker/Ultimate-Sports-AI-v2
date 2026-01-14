@@ -3,691 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coin Flip | Sports Lounge</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-    
-    <!-- Tier Restrictions -->
-    <script src="tier-restrictions.js"></script>
-    
+    <title>Horse Racing Simulator</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            color: #e2e8f0;
-        }
-
-        .game-container {
-            max-width: 500px;
-            width: 100%;
-        }
-
-        .back-button {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-        }
-
-        .back-button:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateX(-4px);
-        }
-
-        .game-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 32px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-        }
-
-        .game-header {
-            text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .game-title {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 8px;
-            background: linear-gradient(135deg, #f59e0b, #fbbf24);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .game-subtitle {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 14px;
-        }
-
-        .balance-display {
-            background: rgba(245, 158, 11, 0.1);
-            border: 2px solid rgba(245, 158, 11, 0.3);
-            border-radius: 16px;
-            padding: 16px;
-            text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .balance-label {
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.6);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 4px;
-        }
-
-        .balance-amount {
-            font-size: 32px;
-            font-weight: 800;
-            color: #f59e0b;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .coin-container {
-            perspective: 1000px;
-            height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 32px;
-        }
-
-        .coin {
-            width: 150px;
-            height: 150px;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.6s;
-        }
-
-        .coin.flipping {
-            animation: coinFlip 2s ease-in-out;
-        }
-
-        @keyframes coinFlip {
-            0% { transform: rotateY(0deg); }
-            100% { transform: rotateY(1800deg); }
-        }
-
-        .coin-face {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 80px;
-            backface-visibility: hidden;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            border: 5px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .coin-heads {
-            background: linear-gradient(135deg, #fbbf24, #f59e0b);
-            transform: rotateY(0deg);
-        }
-
-        .coin-tails {
-            background: linear-gradient(135deg, #94a3b8, #64748b);
-            transform: rotateY(180deg);
-        }
-
-        .bet-section {
-            margin-bottom: 24px;
-        }
-
-        .bet-label {
-            text-align: center;
-            margin-bottom: 12px;
-            font-size: 14px;
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .bet-controls {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .bet-button {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .bet-button.active {
-            background: rgba(245, 158, 11, 0.3);
-            border-color: #f59e0b;
-            color: #f59e0b;
-        }
-
-        .bet-button:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .choice-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .choice-button {
-            background: rgba(255, 255, 255, 0.1);
-            border: 3px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 20px;
-            border-radius: 16px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .choice-button .icon {
-            font-size: 48px;
-        }
-
-        .choice-button.selected {
-            background: rgba(245, 158, 11, 0.2);
-            border-color: #f59e0b;
-            transform: scale(1.05);
-        }
-
-        .choice-button:hover:not(.selected) {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-2px);
-        }
-
-        .flip-button {
-            width: 100%;
-            background: linear-gradient(135deg, #10b981, #059669);
-            border: none;
-            color: white;
-            padding: 20px;
-            border-radius: 16px;
-            font-size: 20px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .flip-button:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 32px rgba(16, 185, 129, 0.5);
-        }
-
-        .flip-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .result-message {
-            text-align: center;
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 24px;
-            font-weight: 600;
-            font-size: 18px;
-            opacity: 0;
-            transition: all 0.3s;
-        }
-
-        .result-message.show {
-            opacity: 1;
-        }
-
-        .result-message.win {
-            background: rgba(16, 185, 129, 0.2);
-            border: 2px solid #10b981;
-            color: #10b981;
-        }
-
-        .result-message.lose {
-            background: rgba(239, 68, 68, 0.2);
-            border: 2px solid #ef4444;
-            color: #ef4444;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-top: 24px;
-        }
-
-        .stat-item {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-        }
-
-        .stat-label {
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.6);
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-
-        .stat-value {
-            font-size: 20px;
-            font-weight: 700;
-            color: #f59e0b;
-        }
+        body { font-family: Arial, sans-serif; }
+        canvas { border: 1px solid black; margin-top: 20px; }
+        #startButton { padding: 10px 20px; background-color: #4CAF50; color: white; font-size: 16px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <button class="back-button" onclick="window.history.back()">
-            <i class="fas fa-arrow-left"></i>
-            Back to Lounge
-        </button>
-
-        <div class="game-card">
-            <div class="game-header">
-                <h1 class="game-title">🪙 Coin Flip</h1>
-                <p class="game-subtitle">Double or nothing!</p>
-            </div>
-
-            <!-- Games Remaining Counter -->
-            <div id="games-remaining" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px; margin: 16px 0; text-align: center; font-size: 14px; color: #10b981;">
-                <i class="fas fa-gamepad"></i> <span id="games-count">Loading...</span>
-            </div>
-
-            <div class="coin-container">
-                <div class="coin" id="coin">
-                    <div class="coin-face coin-heads">👑</div>
-                    <div class="coin-face coin-tails">⚡</div>
-                </div>
-            </div>
-
-            <div class="bet-section">
-                <div class="bet-label">Select Your Bet</div>
-                <div class="bet-controls">
-                    <button class="bet-button" data-bet="10">10 🪙</button>
-                    <button class="bet-button active" data-bet="25">25 🪙</button>
-                    <button class="bet-button" data-bet="50">50 🪙</button>
-                    <button class="bet-button" data-bet="100">100 🪙</button>
-                </div>
-            </div>
-
-            <div class="bet-section">
-                <div class="bet-label">Pick Your Side</div>
-                <div class="choice-buttons">
-                    <button class="choice-button selected" data-choice="heads">
-                        <div class="icon">👑</div>
-                        <div>Heads</div>
-                    </button>
-                    <button class="choice-button" data-choice="tails">
-                        <div class="icon">⚡</div>
-                        <div>Tails</div>
-                    </button>
-                </div>
-            </div>
-
-            <button class="flip-button" id="flip-button">
-                <i class="fas fa-circle-notch"></i>
-                <span>FLIP COIN (25 coins)</span>
-            </button>
-
-            <div class="result-message" id="result-message"></div>
-
-            <div class="stats">
-                <div class="stat-item">
-                    <div class="stat-label">Total Flips</div>
-                    <div class="stat-value" id="total-flips">0</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Wins</div>
-                    <div class="stat-value" id="total-wins">0</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">Win Rate</div>
-                    <div class="stat-value" id="win-rate">0%</div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <h1>Horse Racing Simulator</h1>
+    <button id="startButton">Start Race</button>
+    <canvas id="raceCanvas" width="800" height="300"></canvas>
 
     <script>
-        // ============================================
-        // COIN FLIP - TRANSACTION QUEUE REFERENCE
-        // This is the reference implementation showing
-        // how to use MinigameSync for all transactions
-        // ============================================
-        
-        // Initialize MinigameSync at game start
-        // This handles all balance updates and transaction queueing
-        const gameSync = MinigameSync.init('Coin Flip');
-        
-        // Game state
-        let balance = gameSync.getBalance();
-        let currentBet = 25;
-        let playerChoice = 'heads';
-        let isFlipping = false;
-        let totalFlips = 0;
-        let totalWins = 0;
-        let restrictions = null;
-        
-        console.log('🎮 Coin Flip initialized with transaction queue support');
+        const canvas = document.getElementById("raceCanvas");
+        const ctx = canvas.getContext("2d");
 
-        // Tier restriction functions
-        function initTierRestrictions() {
-            restrictions = new TierRestrictions();
-            updateGamesRemaining();
+        const horses = [
+            { name: "Thunder", color: "red", position: 0 },
+            { name: "Blaze", color: "blue", position: 0 },
+            { name: "Storm", color: "green", position: 0 },
+            { name: "Lightning", color: "yellow", position: 0 }
+        ];
+
+        let raceInProgress = false;
+
+        // Draw race track and horses
+        function drawRaceTrack() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#EEE";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 10, canvas.width, 10);  // Top Border
+            ctx.fillRect(0, 280, canvas.width, 10);  // Bottom Border
         }
 
-        function updateGamesRemaining() {
-            if (!restrictions) return;
-            const limits = restrictions.getGameLimits();
-            const countEl = document.getElementById('games-count');
-            const containerEl = document.getElementById('games-remaining');
-            
-            if (limits.maxDailyGames === -1) {
-                countEl.textContent = 'Unlimited Games (VIP)';
-                containerEl.style.background = 'rgba(251, 191, 36, 0.1)';
-                containerEl.style.borderColor = 'rgba(251, 191, 36, 0.3)';
-                containerEl.style.color = '#fbbf24';
-            } else {
-                const remaining = limits.gamesRemaining;
-                countEl.textContent = `${remaining}/${limits.maxDailyGames} Games Remaining Today`;
-                
-                if (remaining === 0) {
-                    containerEl.style.background = 'rgba(239, 68, 68, 0.1)';
-                    containerEl.style.borderColor = 'rgba(239, 68, 68, 0.3)';
-                    containerEl.style.color = '#ef4444';
-                } else if (remaining <= 2) {
-                    containerEl.style.background = 'rgba(251, 191, 36, 0.1)';
-                    containerEl.style.borderColor = 'rgba(251, 191, 36, 0.3)';
-                    containerEl.style.color = '#fbbf24';
-                } else {
-                    containerEl.style.background = 'rgba(16, 185, 129, 0.1)';
-                    containerEl.style.borderColor = 'rgba(16, 185, 129, 0.3)';
-                    containerEl.style.color = '#10b981';
-                }
-            }
-        }
-
-        function showUpgradePrompt(reason) {
-            const message = `${reason}\n\nUpgrade to PRO for 15 games/day or VIP for unlimited games!`;
-            if (confirm(message + '\n\nGo to subscription page?')) {
-                window.parent.postMessage({ action: 'navigate', page: 'subscription' }, '*');
-            }
-        }
-
-        // Elements
-        const flipButton = document.getElementById('flip-button');
-        const resultMessage = document.getElementById('result-message');
-        const coin = document.getElementById('coin');
-        const betButtons = document.querySelectorAll('.bet-button');
-        const choiceButtons = document.querySelectorAll('.choice-button');
-        const totalFlipsEl = document.getElementById('total-flips');
-        const totalWinsEl = document.getElementById('total-wins');
-        const winRateEl = document.getElementById('win-rate');
-
-        // Bet selection
-        betButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                if (isFlipping) return;
-                
-                betButtons.forEach(b => b.classList.remove('active'));
-                button.classList.add('active');
-                currentBet = parseInt(button.dataset.bet);
-                
-                updateFlipButton();
+        function drawHorses() {
+            horses.forEach((horse, index) => {
+                ctx.fillStyle = horse.color;
+                ctx.beginPath();
+                ctx.arc(50 + horse.position, 50 + index * 60, 20, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = "black";
+                ctx.fillText(horse.name, 50 + horse.position - 15, 50 + index * 60 + 25);
             });
-        });
+        }
 
-        // Choice selection
-        choiceButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                if (isFlipping) return;
-                
-                choiceButtons.forEach(b => b.classList.remove('selected'));
-                button.classList.add('selected');
-                playerChoice = button.dataset.choice;
-            });
-        });
+        // Simulate the race
+        function startRace() {
+            raceInProgress = true;
+            let raceInterval = setInterval(() => {
+                drawRaceTrack();
+                drawHorses();
 
-        // Flip coin - UPDATED WITH TRANSACTION QUEUE
-        async function flipCoin() {
-            // Check if already flipping or insufficient balance
-            if (isFlipping) return;
-            
-            // Use gameSync to validate balance (includes insufficient funds message)
-            if (!gameSync.canAfford(currentBet)) {
-                return;
-            }
-
-            // Check tier restrictions
-            if (restrictions) {
-                const canPlay = restrictions.canPlayGame('Coin Flip');
-                if (!canPlay.allowed) {
-                    showUpgradePrompt(canPlay.reason);
-                    return;
-                }
-            }
-
-            isFlipping = true;
-            flipButton.disabled = true;
-            resultMessage.classList.remove('show');
-
-            // ✅ RECORD BET - Uses transaction queue
-            // This:
-            // 1. Deducts coins immediately (localStorage)
-            // 2. Queues transaction for backend
-            // 3. Syncs to database when online
-            if (!gameSync.recordBet(currentBet)) {
-                console.error('❌ Failed to record bet');
-                isFlipping = false;
-                flipButton.disabled = false;
-                return;
-            }
-            
-            // Update local balance state
-            balance = gameSync.getBalance();
-            updateFlipButton();
-
-            // Random result
-            const result = Math.random() < 0.5 ? 'heads' : 'tails';
-            const isWin = result === playerChoice;
-
-            // Update stats
-            totalFlips++;
-            if (isWin) totalWins++;
-            updateStats();
-
-            // Animate coin flip
-            coin.classList.add('flipping');
-
-            // Determine final rotation for result
-            const rotations = 5 + Math.floor(Math.random() * 3); // 5-7 full flips
-            const finalRotation = result === 'heads' ? 0 : 180;
-            
-            coin.style.animation = 'none';
-            setTimeout(() => {
-                coin.style.animation = '';
-                coin.classList.add('flipping');
-            }, 10);
-
-            // Wait for animation
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Set final position
-            coin.classList.remove('flipping');
-            coin.style.transform = `rotateY(${finalRotation}deg)`;
-
-            // ✅ HANDLE RESULT - Record win or loss
-            if (isWin) {
-                const payout = currentBet * 2;
-                
-                // Record win with transaction queue
-                gameSync.recordWin(payout, {
-                    betAmount: currentBet,
-                    result: result,
-                    multiplier: 2,
-                    playerChoice: playerChoice
+                // Move each horse based on random speed
+                horses.forEach(horse => {
+                    if (horse.position < canvas.width - 50) {
+                        horse.position += Math.random() * 5 + 2; // Random speed
+                    }
                 });
-                
-                showResult(true, payout);
-            } else {
-                // Record loss for stats tracking (no balance change)
-                gameSync.recordLoss(currentBet, {
-                    betAmount: currentBet,
-                    result: result,
-                    playerChoice: playerChoice
-                });
-                
-                showResult(false, 0);
-            }
 
-            // Update balance display
-            balance = gameSync.getBalance();
-            updateFlipButton();
-            
-            isFlipping = false;
-            flipButton.disabled = false;
-
-            // Track game played (for tier restrictions)
-            if (restrictions) {
-                restrictions.trackGamePlayed();
-                updateGamesRemaining();
-            }
-        }
-
-        // Show result
-        function showResult(isWin, payout) {
-            resultMessage.classList.remove('show', 'win', 'lose');
-            
-            setTimeout(() => {
-                if (isWin) {
-                    resultMessage.textContent = `🎉 YOU WIN ${payout} COINS! 🎉`;
-                    resultMessage.classList.add('win');
-                } else {
-                    resultMessage.textContent = `❌ Better luck next time!`;
-                    resultMessage.classList.add('lose');
+                // Check if the race is finished
+                if (horses.some(horse => horse.position >= canvas.width - 50)) {
+                    raceInProgress = false;
+                    clearInterval(raceInterval);
+                    setTimeout(() => alert("Race Finished!"), 500);
                 }
-                resultMessage.classList.add('show');
-            }, 100);
+            }, 50);
         }
 
-        // Update flip button
-        function updateFlipButton() {
-            if (balance < currentBet) {
-                flipButton.disabled = true;
-                flipButton.querySelector('span').textContent = 'Insufficient funds';
-            } else {
-                flipButton.disabled = false;
-                flipButton.querySelector('span').textContent = `FLIP COIN (${currentBet} coins)`;
+        // Handle the button click
+        document.getElementById("startButton").addEventListener("click", function() {
+            if (!raceInProgress) {
+                horses.forEach(horse => horse.position = 0);  // Reset positions
+                startRace();
             }
-        }
-
-        // Update stats
-        function updateStats() {
-            totalFlipsEl.textContent = totalFlips;
-            totalWinsEl.textContent = totalWins;
-            const winRate = totalFlips > 0 ? Math.round((totalWins / totalFlips) * 100) : 0;
-            winRateEl.textContent = `${winRate}%`;
-            
-            // ✅ Stats saved to localStorage (gameSync handles backend sync)
-            localStorage.setItem('coinFlipStats', JSON.stringify({
-                totalFlips,
-                totalWins
-            }));
-        }
-
-        // Load session stats from localStorage
-        function loadStats() {
-            const saved = localStorage.getItem('coinFlipStats');
-            if (saved) {
-                const stats = JSON.parse(saved);
-                totalFlips = stats.totalFlips || 0;
-                totalWins = stats.totalWins || 0;
-                updateStats();
-            }
-        }
-
-        // Event listeners
-        flipButton.addEventListener('click', flipCoin);
-
-        // ============================================
-        // INITIALIZATION
-        // ============================================
-        function initGame() {
-            console.log('🎮 Initializing Coin Flip game...');
-            
-            // Initialize tier restrictions
-            initTierRestrictions();
-            
-            // Load local session stats
-            loadStats();
-            
-            // Load balance from global state (via gameSync)
-            balance = gameSync.getBalance();
-            updateBalance();
-            
-            console.log('✅ Game initialized');
-            console.log('💳 Transaction queue status:', gameSync.getQueueStatus());
-        }
-
-        // Initialize on page load
-        initGame();
-        
-        // Debug: Listen for transaction queue events
-        window.addEventListener('transactionQueueProcessed', (e) => {
-            console.log('📊 Queue processed:', e.detail);
-            // Update balance if it changed on backend
-            balance = gameSync.getBalance();
-            updateBalance();
         });
+
+        // Initial drawing
+        drawRaceTrack();
+        drawHorses();
     </script>
 </body>
 </html>
