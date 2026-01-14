@@ -75,7 +75,7 @@ class MysteryBoxSystem {
                 <h2 class="box-title">Mystery Reward Unlocked!</h2>
                 
                 <div class="box-container">
-                    <img src="https://rosebud.ai/assets/Opening gold and diamond pack image display.png?k2SX" class="box-image animated-box">
+                    <img src="https://rosebud.ai/assets/mystery-box-legendary (1).webp" class="box-image animated-box">
                     <div class="reveal-burst"></div>
                 </div>
 
