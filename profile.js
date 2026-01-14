@@ -40,7 +40,11 @@ class ProfileManager {
         });
 
         document.getElementById('profile-logout-btn')?.addEventListener('click', () => {
-            authManager.logout();
+            if (window.authManager) {
+                window.authManager.logout();
+            } else if (window.socialAuthService) {
+                window.socialAuthService.logout();
+            }
         });
 
         document.getElementById('cancel-edit-btn')?.addEventListener('click', () => {
@@ -49,6 +53,10 @@ class ProfileManager {
 
         document.getElementById('cancel-password-btn')?.addEventListener('click', () => {
             this.showProfileView();
+        });
+
+        document.querySelector('.avatar-edit-btn')?.addEventListener('click', () => {
+            window.globalState?.showNotification('Avatar uploads coming soon to Pro members!', 'info');
         });
     }
 
@@ -73,15 +81,12 @@ class ProfileManager {
     }
 
     updateProfileDisplay() {
-        const user = appState.user;
+        const user = window.globalState?.appState?.user || window.appState?.user;
         const profileView = document.getElementById('profile-view');
         const notLoggedIn = document.getElementById('profile-not-logged-in');
 
-        // Safety check - if elements don't exist, exit early
-        if (!profileView || !notLoggedIn) {
-            console.warn('⚠️ Profile display elements not found');
-            return;
-        }
+        // Safety check
+        if (!profileView || !notLoggedIn) return;
 
         if (!user) {
             profileView.style.display = 'none';
@@ -89,49 +94,119 @@ class ProfileManager {
             return;
         }
 
-        // Show profile
         profileView.style.display = 'block';
         notLoggedIn.style.display = 'none';
 
-        // Update profile display - with null checks
-        const profileName = document.getElementById('profile-name');
-        const profileEmail = document.getElementById('profile-email');
-        const profileTier = document.getElementById('profile-tier');
-        const profileCreated = document.getElementById('profile-created');
-        const editName = document.getElementById('edit-name');
-        const editEmail = document.getElementById('edit-email');
-
-        if (profileName) profileName.textContent = user.name || 'User';
-        if (profileEmail) profileEmail.textContent = user.email;
-        if (profileTier) profileTier.textContent = (user.subscription_tier || 'FREE') + ' TIER';
-
-        // Update achievements and stats
-        this.updateAchievementsDisplay();
+        // Update basic info
+        this.updateElementText('profile-name', user.username || user.name || 'User');
+        this.updateElementText('profile-email', user.email);
+        this.updateElementText('profile-tier', (user.subscription_tier || 'FREE') + ' TIER');
         
-        // Render achievements showcase
-        if (window.achievementsShowcase) {
-            setTimeout(() => window.achievementsShowcase.renderShowcase(), 100);
-        }
+        // Update subscription card
+        this.updateElementText('current-plan-name', user.subscription_tier ? `${user.subscription_tier} VIP` : 'Free Plan');
 
-        // Note: Inventory is now exclusively in Sports Lounge
-        // No inventory rendering on profile page
-
-        // Format date
-        if (user.created_at && profileCreated) {
+        // Update creation date
+        if (user.created_at) {
             const date = new Date(user.created_at);
-            profileCreated.textContent = date.toLocaleDateString('en-US', {
+            this.updateElementText('profile-created', date.toLocaleDateString('en-US', {
                 year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
+                month: 'long'
+            }));
         }
+
+        // Update detailed stats
+        this.updateStatsDisplay(user);
+        
+        // Update level & prestige
+        this.updatePrestigeDisplay();
+
+        // Update achievements showcase
+        if (window.achievementsShowcase) {
+            window.achievementsShowcase.renderShowcase('#achievements-showcase-container');
+        }
+
+        // Fetch and render recent activity
+        this.fetchRecentActivity();
 
         // Populate edit form
-        if (editName) editName.value = user.name || '';
+        const editName = document.getElementById('edit-name');
+        const editEmail = document.getElementById('edit-email');
+        if (editName) editName.value = user.username || user.name || '';
         if (editEmail) editEmail.value = user.email || '';
 
-        // Show profile view by default
         this.showProfileView();
+    }
+
+    updateElementText(id, text) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+    }
+
+    updateStatsDisplay(user) {
+        this.updateElementText('profile-login-streak', user.login_streak || 0);
+        this.updateElementText('profile-win-rate', (user.win_rate || 0) + '%');
+        this.updateElementText('profile-total-picks', user.total_picks || 0);
+        
+        const unlocked = window.achievementsSystem?.getUnlockedCount() || 0;
+        const total = window.achievementsSystem?.getTotalCount() || 30;
+        this.updateElementText('profile-achievements', `${unlocked}/${total}`);
+    }
+
+    updatePrestigeDisplay() {
+        if (!window.achievementsSystem) return;
+
+        const stats = window.achievementsSystem.userStats;
+        const progress = window.achievementsSystem.getProgress();
+
+        this.updateElementText('profile-level', stats.level);
+        this.updateElementText('profile-rank', stats.rank || 'Rookie');
+        this.updateElementText('xp-percent-text', progress.progress + '%');
+        this.updateElementText('profile-xp-current', progress.xpInCurrentLevel);
+        this.updateElementText('profile-xp-total', 500);
+
+        const xpBar = document.getElementById('profile-xp-bar');
+        if (xpBar) xpBar.style.width = progress.progress + '%';
+
+        const starContainer = document.getElementById('prestige-stars');
+        if (starContainer) {
+            const starCount = Math.max(1, Math.min(5, Math.floor(stats.level / 5) + 1));
+            starContainer.innerHTML = Array(starCount).fill('<i class="fas fa-star"></i>').join('');
+        }
+    }
+
+    async fetchRecentActivity() {
+        const container = document.getElementById('recent-activity-list');
+        if (!container) return;
+
+        try {
+            const history = await window.globalState?.getBettingHistory() || [];
+            
+            if (history.length === 0) {
+                container.innerHTML = '<div class="activity-placeholder">No recent activity detected. Start making picks to see history!</div>';
+                return;
+            }
+
+            container.innerHTML = history.slice(0, 5).map(bet => `
+                <div class="activity-item">
+                    <div class="activity-icon ${bet.status?.toLowerCase() || 'pending'}">
+                        <i class="fas ${bet.status === 'WON' ? 'fa-check' : (bet.status === 'LOST' ? 'fa-times' : 'fa-clock')}"></i>
+                    </div>
+                    <div class="activity-details">
+                        <div class="activity-title">${bet.event_name || 'Bet on Match'}</div>
+                        <div class="activity-meta">
+                            <span class="activity-time">${new Date(bet.created_at).toLocaleDateString()}</span>
+                            <span class="activity-outcome ${bet.status?.toLowerCase() || 'pending'}">${bet.status || 'PENDING'}</span>
+                        </div>
+                    </div>
+                    <div class="activity-payout ${bet.payout > 0 ? 'positive' : ''}">
+                        ${bet.payout > 0 ? '+' : ''}${(bet.payout || 0).toLocaleString()} 🪙
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.warn('Could not fetch recent activity:', error);
+            container.innerHTML = '<div class="activity-placeholder">Recent activity temporarily unavailable.</div>';
+        }
     }
 
     showProfileView() {
@@ -163,7 +238,6 @@ class ProfileManager {
         if (profileEdit) profileEdit.style.display = 'none';
         if (profilePassword) profilePassword.style.display = 'block';
         
-        // Clear password fields
         const currentPassword = document.getElementById('current-password');
         const newPassword = document.getElementById('new-password');
         const confirmPassword = document.getElementById('confirm-password');
@@ -177,42 +251,42 @@ class ProfileManager {
         const name = document.getElementById('edit-name').value.trim();
         const email = document.getElementById('edit-email').value.trim();
 
-        // Validate
         if (!name || name.length < 2) {
-            showToast('Name must be at least 2 characters', 'error');
+            window.globalState?.showNotification('Name must be at least 2 characters', 'error');
             return;
         }
 
-        if (!FormValidator.validateEmail(email)) {
-            showToast('Please enter a valid email', 'error');
-            return;
-        }
-
-        // Check if anything changed
-        const user = appState.user;
-        if (name === user.name && email === user.email) {
-            showToast('No changes made', 'info');
+        const user = window.globalState?.appState?.user;
+        if (name === user?.username && email === user?.email) {
             this.showProfileView();
             return;
         }
 
         try {
-            showToast('Updating profile...', 'info');
-
-            // Call API to update profile
-            const response = await api.request('/api/auth/profile', {
+            window.globalState?.showNotification('Updating profile...', 'info');
+            const token = localStorage.getItem('auth_token');
+            const apiUrl = window.CONFIG?.API_BASE_URL || 'https://ultimate-sports-ai-backend-production.up.railway.app';
+            
+            const response = await fetch(`${apiUrl}/api/users/profile`, {
                 method: 'PUT',
-                body: JSON.stringify({ name, email })
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username: name, email })
             });
 
-            // Update local state
-            appState.user = { ...appState.user, ...response };
-            appState.notify();
+            if (!response.ok) throw new Error('Failed to update profile');
+            const data = await response.json();
 
-            showToast('Profile updated successfully!', 'success');
+            if (window.globalState) {
+                window.globalState.setUser({ ...user, ...data.user });
+            }
+
+            window.globalState?.showNotification('Profile updated successfully!', 'success');
             this.showProfileView();
         } catch (error) {
-            showToast(error.message || 'Failed to update profile', 'error');
+            window.globalState?.showNotification(error.message || 'Failed to update profile', 'error');
         }
     }
 
@@ -221,76 +295,44 @@ class ProfileManager {
         const newPassword = document.getElementById('new-password').value;
         const confirmPassword = document.getElementById('confirm-password').value;
 
-        // Validate
         if (!currentPassword) {
-            showToast('Please enter your current password', 'error');
+            window.globalState?.showNotification('Please enter your current password', 'error');
             return;
         }
 
-        if (!FormValidator.validatePassword(newPassword)) {
-            showToast('New password must be at least 6 characters', 'error');
+        if (newPassword.length < 8) {
+            window.globalState?.showNotification('New password must be at least 8 characters', 'error');
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            showToast('Passwords do not match', 'error');
-            return;
-        }
-
-        if (currentPassword === newPassword) {
-            showToast('New password must be different from current password', 'error');
+            window.globalState?.showNotification('Passwords do not match', 'error');
             return;
         }
 
         try {
-            showToast('Updating password...', 'info');
-
-            // Call API to change password
-            await api.request('/api/auth/change-password', {
+            window.globalState?.showNotification('Updating password...', 'info');
+            const token = localStorage.getItem('auth_token');
+            const apiUrl = window.CONFIG?.API_BASE_URL || 'https://ultimate-sports-ai-backend-production.up.railway.app';
+            
+            const response = await fetch(`${apiUrl}/api/auth/change-password`, {
                 method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify({
                     current_password: currentPassword,
                     new_password: newPassword
                 })
             });
 
-            showToast('Password changed successfully!', 'success');
+            if (!response.ok) throw new Error('Failed to change password');
+
+            window.globalState?.showNotification('Password changed successfully!', 'success');
             this.showProfileView();
         } catch (error) {
-            showToast(error.message || 'Failed to change password', 'error');
-        }
-    }
-
-    updateAchievementsDisplay() {
-        if (!window.achievementsSystem) return;
-
-        const stats = window.achievementsSystem.userStats;
-        const progress = window.achievementsSystem.getProgress();
-
-        // Update level and rank
-        const profileLevel = document.getElementById('profile-level');
-        const profileRank = document.getElementById('profile-rank');
-        if (profileLevel) profileLevel.textContent = stats.level;
-        if (profileRank) profileRank.textContent = stats.rank;
-
-        // Update XP bar
-        const xpBar = document.getElementById('profile-xp-bar');
-        const xpCurrent = document.getElementById('profile-xp-current');
-        const xpNeeded = document.getElementById('profile-xp-needed');
-        if (xpBar) xpBar.style.width = progress.progress + '%';
-        if (xpCurrent) xpCurrent.textContent = progress.xpInCurrentLevel;
-        if (xpNeeded) xpNeeded.textContent = progress.xpNeededForNextLevel;
-
-        // Update login streak
-        const loginStreak = document.getElementById('profile-login-streak');
-        if (loginStreak) loginStreak.textContent = stats.loginStreak;
-
-        // Update achievements count
-        const achievementsEl = document.getElementById('profile-achievements');
-        if (achievementsEl) {
-            const unlocked = window.achievementsSystem.getUnlockedCount();
-            const total = window.achievementsSystem.getTotalCount();
-            achievementsEl.textContent = `${unlocked}/${total}`;
+            window.globalState?.showNotification(error.message || 'Failed to change password', 'error');
         }
     }
 }
@@ -299,12 +341,11 @@ class ProfileManager {
 let profileManager;
 
 function initProfileManager() {
-    if (typeof appState !== 'undefined') {
+    if (typeof appState !== 'undefined' || window.globalState) {
         if (!profileManager) {
             profileManager = new ProfileManager();
             console.log('✅ Profile Manager initialized');
         } else {
-            // Re-update display when navigating back to profile
             profileManager.updateProfileDisplay();
             console.log('🔄 Profile Manager re-initialized');
         }
@@ -317,7 +358,5 @@ if (document.readyState === 'loading') {
     initProfileManager();
 }
 
-// Export for re-initialization when navigating to profile page
 window.reinitProfile = initProfileManager;
-
 console.log('✅ Profile Management Module loaded');
