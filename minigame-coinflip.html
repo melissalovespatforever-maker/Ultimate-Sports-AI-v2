@@ -9,19 +9,24 @@
         canvas { border: 2px solid #333; margin-top: 20px; }
         #startButton { padding: 10px 20px; background-color: #4CAF50; color: white; font-size: 16px; cursor: pointer; }
         #raceInfo { margin-top: 20px; font-size: 18px; }
+        #horseStats { font-size: 14px; }
+        #statsTable { margin-top: 10px; border-collapse: collapse; width: 100%; }
+        #statsTable td, #statsTable th { padding: 8px; border: 1px solid #ddd; }
+        #statsTable th { background-color: #f2f2f2; }
     </style>
 </head>
 <body>
     <h1>Horse Racing Simulator</h1>
     <button id="startButton">Start Race</button>
     <div id="raceInfo"></div>
+    <div id="horseStats"></div>
     <canvas id="raceCanvas" width="900" height="400"></canvas>
 
     <script>
         const canvas = document.getElementById("raceCanvas");
         const ctx = canvas.getContext("2d");
 
-        // Load images (replace these URLs with actual horse and jockey images)
+        // Load images for horses and jockeys (replace these with actual images later)
         const horseImages = [
             "https://via.placeholder.com/50x50/FF0000/FFFFFF?text=H1",  // Horse 1 image
             "https://via.placeholder.com/50x50/0000FF/FFFFFF?text=H2",  // Horse 2 image
@@ -36,16 +41,19 @@
             "https://via.placeholder.com/30x50/000000/FFFFFF?text=J4"  // Jockey 4
         ];
 
-        // Track design and lane setup
+        const backgroundImage = new Image();
+        backgroundImage.src = 'https://via.placeholder.com/900x400/32CD32/FFFFFF?text=Race+Track+Background'; // Placeholder background image
+
         const trackWidth = 800;
         const trackHeight = 300;
         const laneHeight = 70;
 
+        // Define horse stats
         const horses = [
-            { name: "Thunder", color: "red", position: 0, image: new Image(), jockeyImage: new Image() },
-            { name: "Blaze", color: "blue", position: 0, image: new Image(), jockeyImage: new Image() },
-            { name: "Storm", color: "green", position: 0, image: new Image(), jockeyImage: new Image() },
-            { name: "Lightning", color: "yellow", position: 0, image: new Image(), jockeyImage: new Image() }
+            { name: "Thunder", color: "red", position: 0, speed: 15, stamina: 1.0, agility: 10, image: new Image(), jockeyImage: new Image() },
+            { name: "Blaze", color: "blue", position: 0, speed: 14, stamina: 1.1, agility: 12, image: new Image(), jockeyImage: new Image() },
+            { name: "Storm", color: "green", position: 0, speed: 16, stamina: 0.9, agility: 8, image: new Image(), jockeyImage: new Image() },
+            { name: "Lightning", color: "yellow", position: 0, speed: 13, stamina: 1.2, agility: 11, image: new Image(), jockeyImage: new Image() }
         ];
 
         horses.forEach((horse, index) => {
@@ -58,8 +66,9 @@
         // Draw the race track and lanes
         function drawRaceTrack() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#F0E68C";  // Light yellow for track
-            ctx.fillRect(50, 50, trackWidth, trackHeight);
+
+            // Draw the background
+            ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
 
             // Draw lanes
             ctx.fillStyle = "#A9A9A9";  // Gray color for lanes
@@ -93,6 +102,21 @@
             });
         }
 
+        // Display horse stats
+        function displayHorseStats() {
+            let statsHtml = `<table id="statsTable"><tr><th>Horse</th><th>Speed</th><th>Stamina</th><th>Agility</th></tr>`;
+            horses.forEach(horse => {
+                statsHtml += `<tr>
+                    <td>${horse.name}</td>
+                    <td>${horse.speed}</td>
+                    <td>${horse.stamina}</td>
+                    <td>${horse.agility}</td>
+                </tr>`;
+            });
+            statsHtml += `</table>`;
+            document.getElementById("horseStats").innerHTML = statsHtml;
+        }
+
         // Simulate the race
         function startRace() {
             raceInProgress = true;
@@ -100,10 +124,11 @@
                 drawRaceTrack();
                 drawHorses();
 
-                // Move each horse based on random speed
+                // Move each horse based on random speed and stamina
                 horses.forEach(horse => {
                     if (horse.position < trackWidth - 50) {
-                        horse.position += Math.random() * 5 + 2; // Random speed
+                        let speedModifier = horse.speed * horse.stamina * 0.01; // Speed + Stamina
+                        horse.position += Math.random() * speedModifier + 2; // Random speed factor based on stats
                     }
                 });
 
@@ -128,8 +153,11 @@
         });
 
         // Initial drawing
-        drawRaceTrack();
-        drawHorses();
+        backgroundImage.onload = function() {
+            drawRaceTrack();
+            drawHorses();
+            displayHorseStats();
+        };
     </script>
 </body>
 </html>
