@@ -1,163 +1,176 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horse Racing Simulator</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        canvas { border: 2px solid #333; margin-top: 20px; }
-        #startButton { padding: 10px 20px; background-color: #4CAF50; color: white; font-size: 16px; cursor: pointer; }
-        #raceInfo { margin-top: 20px; font-size: 18px; }
-        #horseStats { font-size: 14px; }
-        #statsTable { margin-top: 10px; border-collapse: collapse; width: 100%; }
-        #statsTable td, #statsTable th { padding: 8px; border: 1px solid #ddd; }
-        #statsTable th { background-color: #f2f2f2; }
-    </style>
+<meta charset="UTF-8">
+<title>Horse Racing Simulator</title>
+<style>
+  body {
+    background:#1b1b1b;
+    color:#fff;
+    font-family:Arial, sans-serif;
+    text-align:center;
+  }
+  canvas {
+    background:#2e7d32;
+    display:block;
+    margin:20px auto;
+    border:3px solid #444;
+  }
+  .panel {
+    margin:10px auto;
+    padding:10px;
+    background:#222;
+    width:320px;
+    border-radius:8px;
+  }
+  button {
+    padding:8px 14px;
+    margin:6px;
+    cursor:pointer;
+  }
+  select, input {
+    padding:5px;
+  }
+</style>
 </head>
 <body>
-    <h1>Horse Racing Simulator</h1>
-    <button id="startButton">Start Race</button>
-    <div id="raceInfo"></div>
-    <div id="horseStats"></div>
-    <canvas id="raceCanvas" width="900" height="400"></canvas>
 
-    <script>
-        const canvas = document.getElementById("raceCanvas");
-        const ctx = canvas.getContext("2d");
+<h2>🏇 Horse Racing Simulator</h2>
 
-        // Load images for horses and jockeys (replace these with actual images later)
-        const horseImages = [
-            "https://via.placeholder.com/50x50/FF0000/FFFFFF?text=H1",  // Horse 1 image
-            "https://via.placeholder.com/50x50/0000FF/FFFFFF?text=H2",  // Horse 2 image
-            "https://via.placeholder.com/50x50/00FF00/FFFFFF?text=H3",  // Horse 3 image
-            "https://via.placeholder.com/50x50/FFFF00/FFFFFF?text=H4"   // Horse 4 image
-        ];
+<canvas id="raceCanvas" width="800" height="300"></canvas>
 
-        const jockeyImages = [
-            "https://via.placeholder.com/30x50/000000/FFFFFF?text=J1", // Jockey 1
-            "https://via.placeholder.com/30x50/000000/FFFFFF?text=J2", // Jockey 2
-            "https://via.placeholder.com/30x50/000000/FFFFFF?text=J3", // Jockey 3
-            "https://via.placeholder.com/30x50/000000/FFFFFF?text=J4"  // Jockey 4
-        ];
+<div class="panel">
+  💰 Balance: $<span id="balance">1000</span><br><br>
 
-        const backgroundImage = new Image();
-        backgroundImage.src = 'https://via.placeholder.com/900x400/32CD32/FFFFFF?text=Race+Track+Background'; // Placeholder background image
+  Bet Horse:
+  <select id="horseSelect"></select><br><br>
 
-        const trackWidth = 800;
-        const trackHeight = 300;
-        const laneHeight = 90;
+  Wager:
+  <input type="number" id="betAmount" value="100" min="10"><br><br>
 
-        // Define horse stats
-        const horses = [
-            { name: "Thunder", color: "red", position: 0, speed: 15, stamina: 1.0, agility: 10, image: new Image(), jockeyImage: new Image() },
-            { name: "Blaze", color: "blue", position: 0, speed: 14, stamina: 1.1, agility: 12, image: new Image(), jockeyImage: new Image() },
-            { name: "pete", color: "green", position: 0, speed: 16, stamina: 0.9, agility: 8, image: new Image(), jockeyImage: new Image() },
-            { name: "Lightning", color: "yellow", position: 0, speed: 13, stamina: 1.2, agility: 11, image: new Image(), jockeyImage: new Image() }
-        ];
+  <button onclick="startRace()">Start Race</button>
+</div>
 
-        horses.forEach((horse, index) => {
-            horse.image.src = horseImages[index];         // Set horse image
-            horse.jockeyImage.src = jockeyImages[index];  // Set jockey image
-        });
+<div id="result"></div>
 
-        let raceInProgress = false;
+<script>
+const canvas = document.getElementById("raceCanvas");
+const ctx = canvas.getContext("2d");
 
-        // Draw the race track and lanes
-        function drawRaceTrack() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+let balance = 1000;
+let racing = false;
 
-            // Draw the background
-            ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+const horses = [];
 
-            // Draw lanes
-            ctx.fillStyle = "#A9A9A9";  // Gray color for lanes
-            for (let i = 0; i < horses.length; i++) {
-                ctx.fillRect(50, 50 + i * laneHeight, trackWidth, laneHeight - 10);
-            }
+function createHorses() {
+  horses.length = 0;
+  for (let i = 0; i < 5; i++) {
+    horses.push({
+      name: "Horse " + (i + 1),
+      x: 10,
+      y: 40 + i * 50,
+      speed: Math.random() * 1.5 + 1.5,
+      stamina: Math.random() * 200 + 200,
+      finished: false
+    });
+  }
+}
 
-            // Draw track border
-            ctx.strokeStyle = "black";
-            ctx.lineWidth = 3;
-            ctx.strokeRect(50, 50, trackWidth, trackHeight);
+function populateSelect() {
+  const select = document.getElementById("horseSelect");
+  select.innerHTML = "";
+  horses.forEach((h, i) => {
+    const opt = document.createElement("option");
+    opt.value = i;
+    opt.textContent = h.name;
+    select.appendChild(opt);
+  });
+}
 
-            // Draw finish line
-            ctx.strokeStyle = "red";
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(trackWidth + 50, 50);
-            ctx.lineTo(trackWidth + 50, 50 + trackHeight);
-            ctx.stroke();
-            ctx.fillStyle = "red";
-            ctx.fillText("Finish Line", trackWidth + 60, 100);
-        }
+function drawTrack() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(canvas.width - 80, 0, 5, canvas.height);
 
-        // Draw the horses and jockeys
-        function drawHorses() {
-            horses.forEach((horse, index) => {
-                ctx.drawImage(horse.image, 50 + horse.position, 50 + index * laneHeight, 50, 50); // Horse image
-                ctx.drawImage(horse.jockeyImage, 50 + horse.position + 10, 50 + index * laneHeight - 30, 30, 50); // Jockey image
-                ctx.fillStyle = "black";
-                ctx.fillText(horse.name, 50 + horse.position, 50 + index * laneHeight + 30);
-            });
-        }
+  horses.forEach(h => {
+    ctx.fillStyle = "brown";
+    ctx.fillRect(h.x, h.y, 40, 20);
+    ctx.fillStyle = "#fff";
+    ctx.fillText(h.name, h.x, h.y - 5);
+  });
+}
 
-        // Display horse stats
-        function displayHorseStats() {
-            let statsHtml = `<table id="statsTable"><tr><th>Horse</th><th>Speed</th><th>Stamina</th><th>Agility</th></tr>`;
-            horses.forEach(horse => {
-                statsHtml += `<tr>
-                    <td>${horse.name}</td>
-                    <td>${horse.speed}</td>
-                    <td>${horse.stamina}</td>
-                    <td>${horse.agility}</td>
-                </tr>`;
-            });
-            statsHtml += `</table>`;
-            document.getElementById("horseStats").innerHTML = statsHtml;
-        }
+function startRace() {
+  if (racing) return;
 
-        // Simulate the race
-        function startRace() {
-            raceInProgress = true;
-            let raceInterval = setInterval(() => {
-                drawRaceTrack();
-                drawHorses();
+  const bet = parseInt(document.getElementById("betAmount").value);
+  const pick = document.getElementById("horseSelect").value;
 
-                // Move each horse based on random speed and stamina
-                horses.forEach(horse => {
-                    if (horse.position < trackWidth - 50) {
-                        let speedModifier = horse.speed * horse.stamina * 0.01; // Speed + Stamina
-                        horse.position += Math.random() * speedModifier + 2; // Random speed factor based on stats
-                    }
-                });
+  if (bet > balance || bet <= 0) {
+    alert("Invalid bet");
+    return;
+  }
 
-                // Check if the race is finished
-                if (horses.some(horse => horse.position >= trackWidth - 50)) {
-                    raceInProgress = false;
-                    clearInterval(raceInterval);
-                    let winner = horses.reduce((a, b) => a.position > b.position ? a : b);
-                    document.getElementById("raceInfo").innerText = `Winner: ${winner.name}`;
-                    setTimeout(() => alert(`${winner.name} wins the race!`), 500);
-                }
-            }, 50);
-        }
+  balance -= bet;
+  updateBalance();
 
-        // Handle the button click
-        document.getElementById("startButton").addEventListener("click", function() {
-            if (!raceInProgress) {
-                horses.forEach(horse => horse.position = 0);  // Reset positions
-                document.getElementById("raceInfo").innerText = "Race in progress...";
-                startRace();
-            }
-        });
+  racing = true;
+  document.getElementById("result").innerHTML = "";
+  createHorses();
+  populateSelect();
+  raceLoop(bet, pick);
+}
 
-        // Initial drawing
-        backgroundImage.onload = function() {
-            drawRaceTrack();
-            drawHorses();
-            displayHorseStats();
-        };
-    </script>
+function raceLoop(bet, pick) {
+  drawTrack();
+
+  let winner = null;
+
+  horses.forEach(h => {
+    if (!h.finished) {
+      const staminaFactor = h.stamina > 0 ? 1 : 0.4;
+      h.x += h.speed * staminaFactor;
+      h.stamina -= 1;
+
+      if (h.x >= canvas.width - 100 && !h.finished) {
+        h.finished = true;
+        if (!winner) winner = h;
+      }
+    }
+  });
+
+  if (winner) {
+    finishRace(winner, bet, pick);
+  } else {
+    requestAnimationFrame(() => raceLoop(bet, pick));
+  }
+}
+
+function finishRace(winner, bet, pick) {
+  racing = false;
+  let msg = `🏆 Winner: ${winner.name}<br>`;
+
+  if (horses[pick] === winner) {
+    const payout = bet * 2;
+    balance += payout;
+    msg += `You won $${payout}!`;
+  } else {
+    msg += "You lost your bet.";
+  }
+
+  document.getElementById("result").innerHTML = msg;
+  updateBalance();
+}
+
+function updateBalance() {
+  document.getElementById("balance").textContent = balance;
+}
+
+createHorses();
+populateSelect();
+drawTrack();
+updateBalance();
+</script>
+
 </body>
 </html>
