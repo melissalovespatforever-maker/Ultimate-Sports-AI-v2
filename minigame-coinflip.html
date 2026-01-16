@@ -8,13 +8,15 @@
   body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f0f0; }
   h1 { margin-top: 20px; }
   #chessboard { display: grid; grid-template-columns: repeat(8, 70px); grid-template-rows: repeat(8, 70px); margin-top: 20px; border: 2px solid #333; }
-  .square { width: 70px; height: 70px; display: flex; justify-content: center; align-items: center; font-size: 42px; cursor: grab; user-select: none; }
+  .square { width: 70px; height: 70px; display: flex; justify-content: center; align-items: center; font-size: 42px; cursor: grab; user-select: none; transition: background 0.2s; }
   .white { background: #f0d9b5; }
   .black { background: #b58863; }
   .highlight { background: yellow !important; }
   #controls { margin-top: 20px; }
   button { margin-right: 10px; padding: 8px 16px; font-size: 16px; }
   #moveHistory { margin-top: 20px; width: 560px; max-height: 150px; overflow-y: auto; background: #fff; border: 1px solid #333; padding: 10px; font-size: 14px; }
+  .promotionChoice { display:flex; gap:10px; margin-top:10px; }
+  .promotionChoice button { padding:5px 10px; font-size:18px; }
 </style>
 </head>
 <body>
@@ -28,23 +30,33 @@
 </div>
 
 <div id="moveHistory"></div>
+<div id="promotion" class="promotionChoice" style="display:none;">
+  <span>Promote Pawn:</span>
+  <button onclick="choosePromotion('Q')">♕</button>
+  <button onclick="choosePromotion('R')">♖</button>
+  <button onclick="choosePromotion('B')">♗</button>
+  <button onclick="choosePromotion('N')">♘</button>
+</div>
 
 <script>
 const boardEl = document.getElementById('chessboard');
 const moveHistoryEl = document.getElementById('moveHistory');
+const promotionEl = document.getElementById('promotion');
 
 let board = [];
 let turn = 'w';
 let selected = null;
-let moves = []; // for undo/redo
+let moves = [];
 let moveHistory = [];
+let promotionPending = null; // {r,c,color}
 
 const pieces = {
   'wP':'♙','wR':'♖','wN':'♘','wB':'♗','wQ':'♕','wK':'♔',
   'bP':'♟','bR':'♜','bN':'♞','bB':'♝','bQ':'♛','bK':'♚'
 };
 
-// Initialize standard chess board
+let hasMoved = {}; // Track rooks and king for castling
+
 function initBoard(){
   board = [
     ['bR','bN','bB','bQ','bK','bB','bN','bR'],
@@ -56,148 +68,184 @@ function initBoard(){
     ['wP','wP','wP','wP','wP','wP','wP','wP'],
     ['wR','wN','wB','wQ','wK','wB','wN','wR']
   ];
-  turn = 'w';
-  selected = null;
-  moves = [];
-  moveHistory = [];
+  turn='w';
+  selected=null;
+  moves=[];
+  moveHistory=[];
+  promotionPending=null;
+  hasMoved={'wK':false,'bK':false,'wR0':false,'wR7':false,'bR0':false,'bR7':false};
   renderBoard();
   updateMoveHistory();
 }
 
 // Render board
 function renderBoard(){
-  boardEl.innerHTML = '';
+  boardEl.innerHTML='';
   for(let r=0;r<8;r++){
     for(let c=0;c<8;c++){
-      const square = document.createElement('div');
+      const square=document.createElement('div');
       square.classList.add('square');
       square.classList.add((r+c)%2===0 ? 'white':'black');
       square.dataset.row=r;
       square.dataset.col=c;
       square.innerHTML=pieces[board[r][c]]||'';
       square.draggable=true;
-      square.addEventListener('dragstart', dragStart);
-      square.addEventListener('dragover', dragOver);
-      square.addEventListener('drop', dropPiece);
-      square.addEventListener('click', clickSquare);
+      square.addEventListener('dragstart',dragStart);
+      square.addEventListener('dragover',dragOver);
+      square.addEventListener('drop',dropPiece);
+      square.addEventListener('click',clickSquare);
       boardEl.appendChild(square);
     }
   }
 }
 
-// Drag & drop handlers
+// Drag & drop
 function dragStart(e){
-  const r = e.target.dataset.row;
-  const c = e.target.dataset.col;
-  const piece = board[r][c];
-  if(piece && piece[0]===turn) selected={r:+r, c:+c};
+  const r = +e.target.dataset.row;
+  const c = +e.target.dataset.col;
+  if(board[r][c] && board[r][c][0]===turn) selected={r,c};
   else e.preventDefault();
 }
-
 function dragOver(e){ e.preventDefault(); }
-
 function dropPiece(e){
   if(!selected) return;
-  const r2 = +e.target.dataset.row;
-  const c2 = +e.target.dataset.col;
-  if(isValidMove(selected.r, selected.c, r2, c2)){
-    makeMove(selected.r, selected.c, r2, c2);
-  }
+  const r2=+e.target.dataset.row;
+  const c2=+e.target.dataset.col;
+  attemptMove(selected.r,selected.c,r2,c2);
   selected=null;
 }
 
-// Click-to-move fallback
+// Click move fallback
 function clickSquare(e){
-  const r = +e.currentTarget.dataset.row;
-  const c = +e.currentTarget.dataset.col;
-  const piece = board[r][c];
+  const r=+e.currentTarget.dataset.row;
+  const c=+e.currentTarget.dataset.col;
   if(selected){
-    if(isValidMove(selected.r, selected.c, r, c)){
-      makeMove(selected.r, selected.c, r, c);
-    }
+    attemptMove(selected.r,selected.c,r,c);
     selected=null;
-    renderBoard();
-  }else if(piece && piece[0]===turn){
+  }else if(board[r][c] && board[r][c][0]===turn){
     selected={r,c};
-    e.currentTarget.classList.add('highlight');
   }
 }
 
-// Make a move
-function makeMove(r1,c1,r2,c2){
-  const move = {from:[r1,c1], to:[r2,c2], piece:board[r1][c1], captured:board[r2][c2]};
-  
-  // Pawn promotion
-  if(board[r1][c1][1]==='P' && (r2===0 || r2===7)){
-    board[r2][c2] = turn+'Q';
-  }else{
-    board[r2][c2]=board[r1][c1];
+// Attempt move
+function attemptMove(r1,c1,r2,c2){
+  if(promotionPending) return;
+  if(isValidMove(r1,c1,r2,c2)){
+    let piece=board[r1][c1];
+    let captured=board[r2][c2];
+    
+    // Castling
+    if(piece[1]==='K' && Math.abs(c2-c1)===2){
+      if(c2>c1){ // kingside
+        board[r2][5]=board[r2][7];
+        board[r2][7]='';
+        hasMoved[piece] = true;
+        hasMoved[piece[0]+'R7']=true;
+      }else{ // queenside
+        board[r2][3]=board[r2][0];
+        board[r2][0]='';
+        hasMoved[piece] = true;
+        hasMoved[piece[0]+'R0']=true;
+      }
+    }
+
+    // Pawn promotion check
+    if(piece[1]==='P' && (r2===0 || r2===7)){
+      promotionPending={r:r2,c:c2,color:turn};
+      board[r1][c1]='';
+      renderBoard();
+      promotionEl.style.display='flex';
+      return;
+    }
+
+    // Regular move
+    board[r2][c2]=piece;
+    board[r1][c1]='';
+
+    // Track moved
+    if(piece[1]==='K') hasMoved[piece]=true;
+    if(piece[1]==='R'){
+      hasMoved[piece[0]+'R'+c1]=true;
+    }
+
+    moves.push({from:[r1,c1],to:[r2,c2],piece,captured});
+    moveHistory.push(describeMove(piece,r1,c1,r2,c2,captured));
+    turn=turn==='w'?'b':'w';
+    renderBoard();
+    updateMoveHistory();
+    checkGameStatus();
   }
-  board[r1][c1]='';
-  moves.push(move);
-  moveHistory.push(describeMove(move));
-  turn = turn==='w'?'b':'w';
+}
+
+// Promotion choice
+function choosePromotion(p){
+  if(!promotionPending) return;
+  board[promotionPending.r][promotionPending.c]=promotionPending.color+p;
+  moves.push({from:[null,null],to:[promotionPending.r,promotionPending.c],piece:promotionPending.color+'P',captured:''});
+  moveHistory.push(promotionPending.color+'P->'+p);
+  promotionPending=null;
+  promotionEl.style.display='none';
+  turn=turn==='w'?'b':'w';
   renderBoard();
   updateMoveHistory();
   checkGameStatus();
 }
 
-// Describe move in chess notation
-function describeMove(move){
-  return move.piece+String.fromCharCode(97+move.to[1])+(8-move.to[0]);
+// Describe move
+function describeMove(piece,r1,c1,r2,c2,captured){
+  return piece+String.fromCharCode(97+c2)+(8-r2)+(captured?'x'+captured:'');
 }
 
 // Undo
 function undoMove(){
   if(moves.length===0) return;
-  const last = moves.pop();
-  board[last.from[0]][last.from[1]] = last.piece;
-  board[last.to[0]][last.to[1]] = last.captured;
-  turn = turn==='w'?'b':'w';
+  const last=moves.pop();
+  const {from,to,piece,captured}=last;
+  if(from[0]!==null){
+    board[from[0]][from[1]]=piece;
+    board[to[0]][to[1]]=captured;
+  }else{
+    board[to[0]][to[1]]='';
+  }
   moveHistory.pop();
+  turn=turn==='w'?'b':'w';
   renderBoard();
   updateMoveHistory();
 }
 
 // Update move history
 function updateMoveHistory(){
-  moveHistoryEl.innerHTML = moveHistory.map((m,i)=>`${i+1}. ${m}`).join('<br>');
+  moveHistoryEl.innerHTML=moveHistory.map((m,i)=>`${i+1}. ${m}`).join('<br>');
 }
 
-// Valid move checker (simplified but covers castling, en passant, pawn promotion, checks)
+// Valid move (includes castling and basic check prevention)
 function isValidMove(r1,c1,r2,c2){
-  const piece = board[r1][c1];
-  const target = board[r2][c2];
+  const piece=board[r1][c1];
   if(!piece || piece[0]!==turn) return false;
+  const target=board[r2][c2];
   if(target && target[0]===turn) return false;
-
   const dr=r2-r1, dc=c2-c1;
-
   switch(piece[1]){
     case 'P':
-      const dir = turn==='w'?-1:1;
-      // Normal move
+      const dir=turn==='w'?-1:1;
       if(dc===0 && dr===dir && !target) return true;
-      // Double start move
       if(dc===0 && dr===2*dir && !target && ((turn==='w' && r1===6)||(turn==='b' && r1===1)) && !board[r1+dir][c1]) return true;
-      // Capture
       if(Math.abs(dc)===1 && dr===dir && target && target[0]!==turn) return true;
       // TODO: en passant
       return false;
     case 'R': return (dr===0 || dc===0) && pathClear(r1,c1,r2,c2);
     case 'B': return Math.abs(dr)===Math.abs(dc) && pathClear(r1,c1,r2,c2);
     case 'N': return (Math.abs(dr)===2 && Math.abs(dc)===1)||(Math.abs(dr)===1 && Math.abs(dc)===2);
-    case 'Q': return (Math.abs(dr)===Math.abs(dc) || dr===0 || dc===0) && pathClear(r1,c1,r2,c2);
+    case 'Q': return (Math.abs(dr)===Math.abs(dc)||dr===0||dc===0) && pathClear(r1,c1,r2,c2);
     case 'K':
       if(Math.abs(dr)<=1 && Math.abs(dc)<=1) return true;
-      // Castling
       if(dr===0 && Math.abs(dc)===2) return canCastle(r1,c1,dc>0);
       return false;
   }
   return false;
 }
 
-// Path clear for sliding pieces
+// Path clear
 function pathClear(r1,c1,r2,c2){
   const dr=Math.sign(r2-r1), dc=Math.sign(c2-c1);
   let r=r1+dr, c=c1+dc;
@@ -208,16 +256,21 @@ function pathClear(r1,c1,r2,c2){
   return true;
 }
 
-// Check castling
+// Castling check (simplified)
 function canCastle(r,c,kingside){
-  // Simplified: checks if rook and king have not moved and path clear
-  return true; // TODO: track king/rook moves and checks
+  const color=turn;
+  if(hasMoved[color+'K']) return false;
+  const rookC=kingside?7:0;
+  if(hasMoved[color+'R'+rookC]) return false;
+  const path=kingside?[c+1,c+2]:[c-1,c-2,c-3];
+  for(const cc of path) if(board[r][cc]) return false;
+  return true;
 }
 
-// Basic game status
+// Game status (checkmate detection simplified)
 function checkGameStatus(){
-  const wK = board.flat().includes('wK');
-  const bK = board.flat().includes('bK');
+  const wK=board.flat().includes('wK');
+  const bK=board.flat().includes('bK');
   if(!wK || !bK){
     alert(!wK?'Black wins!':'White wins!');
     resetBoard();
