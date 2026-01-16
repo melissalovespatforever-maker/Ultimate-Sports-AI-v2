@@ -1,251 +1,190 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8" />
-<title>Ultimate Plinko 😎</title>
+<meta charset="UTF-8">
+<title>Ultimate Football Sim</title>
 
 <style>
 body{
-  margin:0;
-  background:radial-gradient(circle at top,#0c1b3a,#040816);
-  font-family:Arial, sans-serif;
+  background:#06111f;
   color:#eaffff;
+  font-family:Arial, sans-serif;
   text-align:center;
 }
 
-h2{
-  margin-top:10px;
-  color:#7df9ff;
-  text-shadow:0 0 12px #00ffff88;
-}
-
-canvas{
-  display:block;
-  margin:14px auto;
-  border-radius:22px;
-  background:linear-gradient(180deg,#081633,#020611);
-  box-shadow:
-    0 0 40px #00e5ff44,
-    inset 0 0 25px #00e5ff22;
-}
-
 .panel{
-  width:360px;
-  margin:10px auto;
-  padding:14px;
-  border-radius:16px;
-  background:#0a1433;
-  box-shadow:0 0 20px #00e5ff22;
+  width:380px;
+  margin:12px auto;
+  background:#0b1d33;
+  border-radius:12px;
+  padding:12px;
+  box-shadow:0 0 20px #00ffff33;
 }
 
-button,input{
+button,select{
   width:95%;
   padding:10px;
   margin-top:6px;
-  border-radius:10px;
+  border-radius:8px;
   border:none;
-  font-size:15px;
+  font-weight:bold;
 }
 
 button{
-  background:linear-gradient(135deg,#00e5ff,#00bcd4);
-  font-weight:bold;
+  background:#00c8ff;
   cursor:pointer;
 }
 
-.upg{
-  background:#091a2f;
-  color:#7df9ff;
+.log{
+  height:200px;
+  overflow:auto;
+  background:#020811;
+  margin-top:10px;
+  padding:8px;
+  font-size:13px;
+  text-align:left;
+}
+.score{
+  font-size:22px;
+  margin:6px;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🟣 Ultimate Plinko 😎</h2>
-
-<canvas id="game" width="480" height="650"></canvas>
+<h2>🏈 Ultimate Football SIM</h2>
 
 <div class="panel">
-💰 Balance: <span id="bal">1000</span><br>
-Bet:
-<input id="bet" type="number" value="50">
-<button id="drop">DROP BALL</button>
+<select id="teamA">
+  <option>City Stars</option>
+  <option>Coastal Sharks</option>
+  <option>Iron Wolves</option>
+</select>
 
-<b>Upgrades</b><br>
-<button class="upg" onclick="buy('double')">Double Balls ($200)</button>
-<button class="upg" onclick="buy('smart')">Smart Ball ($150)</button>
-<button class="upg" onclick="buy('action')">Action Ball ($250)</button>
+<select id="teamB">
+  <option>Coastal Sharks</option>
+  <option>City Stars</option>
+  <option>Iron Wolves</option>
+</select>
+
+<select id="style">
+  <option value="balanced">Balanced</option>
+  <option value="aggressive">Aggressive</option>
+  <option value="safe">Conservative</option>
+</select>
+
+<button onclick="startGame()">START GAME</button>
 </div>
 
-<div id="msg"></div>
+<div class="panel score">
+<span id="scoreA">0</span> – <span id="scoreB">0</span><br>
+Q<span id="q">1</span> | <span id="clock">15:00</span>
+</div>
+
+<div class="panel log" id="log"></div>
 
 <script>
-const canvas=document.getElementById("game");
-const ctx=canvas.getContext("2d");
-ctx.font="14px Arial";
+let game, interval;
 
-let balance=1000;
-let balls=[];
-let pegs=[];
-let secret=false;
+function startGame(){
+  document.getElementById("log").innerHTML="";
+  game={
+    scoreA:0,
+    scoreB:0,
+    quarter:1,
+    clock:900,
+    possession:"A",
+    yard:25,
+    style:document.getElementById("style").value
+  };
+  updateUI();
+  interval=setInterval(playTick,800);
+}
 
-const upgrades={double:false,smart:false,action:false};
-
-const betInput=document.getElementById("bet");
-const balEl=document.getElementById("bal");
-const msg=document.getElementById("msg");
-
-// -------- PHYSICS --------
-const gravity=0.38;
-const friction=0.995;
-
-// -------- BIG TRIANGLE PEG BOARD --------
-const rows=10;
-const spacingX=44;
-const spacingY=48;
-
-for(let r=0;r<rows;r++){
-  for(let i=0;i<=r;i++){
-    pegs.push({
-      x: canvas.width/2 + (i-r/2)*spacingX,
-      y: 80 + r*spacingY,
-      r: 6,
-      move: Math.random()<0.12,
-      dir: Math.random()<0.5?-1:1,
-      gold:false
-    });
+function playTick(){
+  if(game.quarter>4){
+    endGame();
+    return;
   }
+
+  const play=randomPlay();
+  log(play.text);
+
+  game.yard+=play.yards;
+  game.clock-=30;
+
+  if(play.turnover){
+    log("🚨 Turnover!");
+    game.possession=game.possession==="A"?"B":"A";
+    game.yard=25;
+  }
+
+  if(game.yard>=100){
+    scoreTD();
+  }
+
+  if(game.clock<=0){
+    game.quarter++;
+    game.clock=900;
+    log("📢 Start Q"+game.quarter);
+  }
+
+  updateUI();
 }
 
-// -------- SLOTS (NEGATIVE + POSITIVE) --------
-let slots=[-2,-1,-0.5,1,2,5,2,1,-0.5,-1,-2];
+function randomPlay(){
+  let base=Math.random();
+  let yards=Math.floor(Math.random()*12)-2;
+  let turnover=false;
 
-// -------- DRAW --------
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(game.style==="aggressive"){
+    yards+=3;
+    if(Math.random()<0.08) turnover=true;
+  }
+  if(game.style==="safe"){
+    yards-=2;
+  }
 
-  // PEGS
-  pegs.forEach(p=>{
-    if(p.move){
-      p.x+=p.dir*0.4;
-      if(Math.random()<0.01)p.dir*=-1;
-    }
-    ctx.fillStyle=p.gold?"gold":"#00e5ff";
-    ctx.shadowColor=p.gold?"gold":"#00e5ff";
-    ctx.shadowBlur=10;
-    ctx.beginPath();
-    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-    ctx.fill();
-  });
+  if(Math.random()<0.05) turnover=true;
 
-  ctx.shadowBlur=0;
-
-  // SLOTS
-  const w=canvas.width/slots.length;
-  slots.forEach((s,i)=>{
-    ctx.fillStyle=s<0?"#ff3355":"#101a33";
-    ctx.fillRect(i*w,canvas.height-60,w-2,60);
-    ctx.fillStyle="#eaffff";
-    ctx.fillText(s+"x",i*w+12,canvas.height-24);
-  });
-
-  // BALLS
-  balls.forEach(b=>{
-    ctx.fillStyle=b.action?"#ff00ff":"#00ffcc";
-    ctx.shadowColor=ctx.fillStyle;
-    ctx.shadowBlur=14;
-    ctx.beginPath();
-    ctx.arc(b.x,b.y,7,0,Math.PI*2);
-    ctx.fill();
-  });
-  ctx.shadowBlur=0;
+  return{
+    yards,
+    turnover,
+    text:`${game.possession} runs play for ${yards} yards`
+  };
 }
 
-// -------- UPDATE --------
-function update(){
-  balls.forEach(b=>{
-    b.vy+=gravity;
-    b.x+=b.vx;
-    b.y+=b.vy;
-    b.vx*=friction;
-
-    pegs.forEach(p=>{
-      const dx=b.x-p.x, dy=b.y-p.y;
-      const dist=Math.hypot(dx,dy);
-      if(dist<13){
-        const angle=Math.atan2(dy,dx);
-        const force=(13-dist)*0.18;
-        b.vx+=Math.cos(angle)*force;
-        b.vy+=Math.sin(angle)*force;
-
-        if(!secret && Math.random()<0.015){
-          p.gold=true;
-          secret=true;
-          slots=[3,5,10,20,10,5,3];
-          msg.innerHTML="🟡 SECRET GOLDEN BOARD!";
-        }
-      }
-    });
-
-    if(b.y>canvas.height-60){
-      settle(b);
-    }
-  });
-
-  balls=balls.filter(b=>!b.done);
+function scoreTD(){
+  if(game.possession==="A"){
+    game.scoreA+=7;
+  }else{
+    game.scoreB+=7;
+  }
+  log("🏈 TOUCHDOWN!");
+  game.possession=game.possession==="A"?"B":"A";
+  game.yard=25;
 }
 
-// -------- SETTLE --------
-function settle(b){
-  const w=canvas.width/slots.length;
-  let i=Math.floor(b.x/w);
-  i=Math.max(0,Math.min(slots.length-1,i));
-  const win=Math.floor(b.bet*slots[i]);
-  balance+=win;
-  msg.innerHTML=`Result: ${slots[i]}x (${win>=0?'+':'-'}$${Math.abs(win)})`;
-  balEl.textContent=balance;
-  b.done=true;
+function updateUI(){
+  document.getElementById("scoreA").textContent=game.scoreA;
+  document.getElementById("scoreB").textContent=game.scoreB;
+  document.getElementById("q").textContent=game.quarter;
+  document.getElementById("clock").textContent=
+    Math.floor(game.clock/60)+":"+
+    (game.clock%60).toString().padStart(2,"0");
 }
 
-// -------- DROP --------
-document.getElementById("drop").onclick=()=>{
-  const bet=Number(betInput.value);
-  if(bet<=0||bet>balance)return;
-
-  balance-=bet;
-  balEl.textContent=balance;
-  spawn(bet);
-  if(upgrades.double)spawn(bet);
-};
-
-function spawn(bet){
-  balls.push({
-    x:canvas.width/2+(Math.random()*10-5),
-    y:20,
-    vx:Math.random()*2-1,
-    vy:1,
-    bet,
-    action:upgrades.action
-  });
+function log(t){
+  const l=document.getElementById("log");
+  l.innerHTML+=t+"<br>";
+  l.scrollTop=l.scrollHeight;
 }
 
-// -------- UPGRADES --------
-function buy(t){
-  const cost={double:200,smart:150,action:250}[t];
-  if(balance<cost)return;
-  balance-=cost;
-  upgrades[t]=true;
-  balEl.textContent=balance;
+function endGame(){
+  clearInterval(interval);
+  log("🏁 FINAL SCORE");
 }
-
-// -------- LOOP --------
-function loop(){
-  draw();
-  update();
-  requestAnimationFrame(loop);
-}
-loop();
 </script>
 
 </body>
