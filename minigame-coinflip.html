@@ -1,190 +1,149 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Ultimate Football Sim</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultimate Chess</title>
 <style>
-body{
-  background:#06111f;
-  color:#eaffff;
-  font-family:Arial, sans-serif;
-  text-align:center;
-}
-
-.panel{
-  width:380px;
-  margin:12px auto;
-  background:#0b1d33;
-  border-radius:12px;
-  padding:12px;
-  box-shadow:0 0 20px #00ffff33;
-}
-
-button,select{
-  width:95%;
-  padding:10px;
-  margin-top:6px;
-  border-radius:8px;
-  border:none;
-  font-weight:bold;
-}
-
-button{
-  background:#00c8ff;
-  cursor:pointer;
-}
-
-.log{
-  height:200px;
-  overflow:auto;
-  background:#020811;
-  margin-top:10px;
-  padding:8px;
-  font-size:13px;
-  text-align:left;
-}
-.score{
-  font-size:22px;
-  margin:6px;
-}
+  body { display: flex; flex-direction: column; align-items: center; font-family: sans-serif; background: #f0f0f0; }
+  #chessboard { display: grid; grid-template-columns: repeat(8, 60px); grid-template-rows: repeat(8, 60px); margin-top: 20px; }
+  .square { width: 60px; height: 60px; display: flex; justify-content: center; align-items: center; font-size: 36px; cursor: pointer; user-select: none; }
+  .white { background: #f0d9b5; }
+  .black { background: #b58863; }
+  .highlight { background: yellow !important; }
+  button { margin-top: 20px; padding: 10px 20px; font-size: 16px; }
 </style>
 </head>
-
 <body>
 
-<h2>🏈 Ultimate Football SIM</h2>
-
-<div class="panel">
-<select id="teamA">
-  <option>City Stars</option>
-  <option>Coastal Sharks</option>
-  <option>Iron Wolves</option>
-</select>
-
-<select id="teamB">
-  <option>Coastal Sharks</option>
-  <option>City Stars</option>
-  <option>Iron Wolves</option>
-</select>
-
-<select id="style">
-  <option value="balanced">Balanced</option>
-  <option value="aggressive">Aggressive</option>
-  <option value="safe">Conservative</option>
-</select>
-
-<button onclick="startGame()">START GAME</button>
-</div>
-
-<div class="panel score">
-<span id="scoreA">0</span> – <span id="scoreB">0</span><br>
-Q<span id="q">1</span> | <span id="clock">15:00</span>
-</div>
-
-<div class="panel log" id="log"></div>
+<h1>Ultimate Chess</h1>
+<div id="chessboard"></div>
+<button onclick="resetBoard()">Restart Game</button>
 
 <script>
-let game, interval;
+const boardEl = document.getElementById('chessboard');
 
-function startGame(){
-  document.getElementById("log").innerHTML="";
-  game={
-    scoreA:0,
-    scoreB:0,
-    quarter:1,
-    clock:900,
-    possession:"A",
-    yard:25,
-    style:document.getElementById("style").value
-  };
-  updateUI();
-  interval=setInterval(playTick,800);
+let board = [];
+let selected = null;
+let turn = 'w'; // w = white, b = black
+
+const pieces = {
+  'wP': '♙', 'wR': '♖', 'wN': '♘', 'wB': '♗', 'wQ': '♕', 'wK': '♔',
+  'bP': '♟', 'bR': '♜', 'bN': '♞', 'bB': '♝', 'bQ': '♛', 'bK': '♚'
+};
+
+// Initialize board with starting positions
+function initBoard() {
+  board = [
+    ['bR','bN','bB','bQ','bK','bB','bN','bR'],
+    ['bP','bP','bP','bP','bP','bP','bP','bP'],
+    ['','','','','','','',''],
+    ['','','','','','','',''],
+    ['','','','','','','',''],
+    ['','','','','','','',''],
+    ['wP','wP','wP','wP','wP','wP','wP','wP'],
+    ['wR','wN','wB','wQ','wK','wB','wN','wR']
+  ];
 }
 
-function playTick(){
-  if(game.quarter>4){
-    endGame();
-    return;
+// Render the board in HTML
+function renderBoard() {
+  boardEl.innerHTML = '';
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const square = document.createElement('div');
+      square.classList.add('square');
+      square.classList.add((r + c) % 2 === 0 ? 'white' : 'black');
+      square.dataset.row = r;
+      square.dataset.col = c;
+      square.innerHTML = pieces[board[r][c]] || '';
+      square.addEventListener('click', handleClick);
+      boardEl.appendChild(square);
+    }
   }
-
-  const play=randomPlay();
-  log(play.text);
-
-  game.yard+=play.yards;
-  game.clock-=30;
-
-  if(play.turnover){
-    log("🚨 Turnover!");
-    game.possession=game.possession==="A"?"B":"A";
-    game.yard=25;
-  }
-
-  if(game.yard>=100){
-    scoreTD();
-  }
-
-  if(game.clock<=0){
-    game.quarter++;
-    game.clock=900;
-    log("📢 Start Q"+game.quarter);
-  }
-
-  updateUI();
 }
 
-function randomPlay(){
-  let base=Math.random();
-  let yards=Math.floor(Math.random()*12)-2;
-  let turnover=false;
+// Handle click on square
+function handleClick(e) {
+  const row = parseInt(e.currentTarget.dataset.row);
+  const col = parseInt(e.currentTarget.dataset.col);
+  const piece = board[row][col];
 
-  if(game.style==="aggressive"){
-    yards+=3;
-    if(Math.random()<0.08) turnover=true;
+  if (selected) {
+    if (isValidMove(selected.row, selected.col, row, col)) {
+      board[row][col] = board[selected.row][selected.col];
+      board[selected.row][selected.col] = '';
+      selected = null;
+      turn = turn === 'w' ? 'b' : 'w';
+      renderBoard();
+      checkGameOver();
+      return;
+    }
+    selected = null;
+    renderBoard();
+  } else if (piece && piece[0] === turn) {
+    selected = {row, col};
+    e.currentTarget.classList.add('highlight');
   }
-  if(game.style==="safe"){
-    yards-=2;
+}
+
+// Simple move validation (basic, can be expanded for full chess rules)
+function isValidMove(r1, c1, r2, c2) {
+  const piece = board[r1][c1];
+  const target = board[r2][c2];
+  if (target && target[0] === piece[0]) return false;
+
+  const dr = r2 - r1;
+  const dc = c2 - c1;
+
+  switch(piece[1]) {
+    case 'P': // Pawn
+      if (piece[0] === 'w') return (dc === 0 && dr === -1 && !target) || (dc !== 0 && dr === -1 && target && target[0]==='b');
+      if (piece[0] === 'b') return (dc === 0 && dr === 1 && !target) || (dc !== 0 && dr === 1 && target && target[0]==='w');
+      break;
+    case 'R': return (dr===0 || dc===0) && clearPath(r1,c1,r2,c2);
+    case 'B': return Math.abs(dr)===Math.abs(dc) && clearPath(r1,c1,r2,c2);
+    case 'N': return (Math.abs(dr)===2 && Math.abs(dc)===1) || (Math.abs(dr)===1 && Math.abs(dc)===2);
+    case 'Q': return (Math.abs(dr)===Math.abs(dc) || dr===0 || dc===0) && clearPath(r1,c1,r2,c2);
+    case 'K': return Math.abs(dr)<=1 && Math.abs(dc)<=1;
   }
-
-  if(Math.random()<0.05) turnover=true;
-
-  return{
-    yards,
-    turnover,
-    text:`${game.possession} runs play for ${yards} yards`
-  };
+  return false;
 }
 
-function scoreTD(){
-  if(game.possession==="A"){
-    game.scoreA+=7;
-  }else{
-    game.scoreB+=7;
+// Check if path is clear for pieces (except knight)
+function clearPath(r1,c1,r2,c2){
+  const dr = Math.sign(r2-r1);
+  const dc = Math.sign(c2-c1);
+  let r=r1+dr, c=c1+dc;
+  while(r!==r2 || c!==c2){
+    if(board[r][c]) return false;
+    r+=dr; c+=dc;
   }
-  log("🏈 TOUCHDOWN!");
-  game.possession=game.possession==="A"?"B":"A";
-  game.yard=25;
+  return true;
 }
 
-function updateUI(){
-  document.getElementById("scoreA").textContent=game.scoreA;
-  document.getElementById("scoreB").textContent=game.scoreB;
-  document.getElementById("q").textContent=game.quarter;
-  document.getElementById("clock").textContent=
-    Math.floor(game.clock/60)+":"+
-    (game.clock%60).toString().padStart(2,"0");
+// Check basic game over
+function checkGameOver() {
+  let wK=false, bK=false;
+  for (let row of board) for (let cell of row) {
+    if (cell==='wK') wK=true;
+    if (cell==='bK') bK=true;
+  }
+  if (!wK || !bK) {
+    alert((!wK ? 'Black' : 'White') + ' wins!');
+    resetBoard();
+  }
 }
 
-function log(t){
-  const l=document.getElementById("log");
-  l.innerHTML+=t+"<br>";
-  l.scrollTop=l.scrollHeight;
+// Restart
+function resetBoard() {
+  initBoard();
+  turn='w';
+  selected=null;
+  renderBoard();
 }
 
-function endGame(){
-  clearInterval(interval);
-  log("🏁 FINAL SCORE");
-}
+resetBoard();
 </script>
 
 </body>
