@@ -2,10 +2,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Horse Racing – Sprite Animated</title>
+<title>Ultimate Plinko</title>
 <style>
   body {
-    background:#0f0f0f;
+    background:#0b0f1a;
     color:white;
     font-family:Arial;
     text-align:center;
@@ -13,185 +13,199 @@
   canvas {
     display:block;
     margin:20px auto;
-    border:3px solid #333;
-    background:black;
+    background:#05080f;
+    border-radius:12px;
+    box-shadow:0 0 20px #00ffff22;
   }
   .panel {
-    background:#1c1c1c;
-    width:320px;
+    background:#11162a;
+    width:340px;
     margin:auto;
-    padding:12px;
-    border-radius:10px;
+    padding:14px;
+    border-radius:12px;
+  }
+  button, input {
+    width:90%;
+    padding:8px;
+    margin-top:6px;
+  }
+  .mods {
+    font-size:13px;
+    color:#00ffff;
   }
 </style>
 </head>
 <body>
 
-<h2>🏇 Horse Racing (Sprite Animated)</h2>
+<h2>🟣 Ultimate Plinko</h2>
 
-<canvas id="game" width="900" height="340"></canvas>
+<canvas id="plinko" width="420" height="520"></canvas>
 
 <div class="panel">
   💰 Balance: <span id="balance">1000</span><br>
-  Horse:
-  <select id="pick"></select><br>
   Bet:
-  <input id="bet" type="number" value="100"><br>
-  <button onclick="startRace()">Start Race</button>
+  <input id="bet" type="number" value="50" min="10">
+  <button onclick="dropBall()">DROP BALL</button>
+  <div class="mods" id="mods"></div>
 </div>
 
 <div id="result"></div>
 
 <script>
-const canvas = document.getElementById("game");
+const canvas = document.getElementById("plinko");
 const ctx = canvas.getContext("2d");
 
-const FRAME_WIDTH = 128;   // width of one sprite frame
-const FRAME_HEIGHT = 64;
-const FRAMES = 4;          // frames per horse
+let balance = 1000; // 🔌 hook to app wallet later
+let ball = null;
+let pegs = [];
+let slots = [0.5, 1, 2, 3, 5, 3, 2, 1, 0.5];
+let activeMods = [];
 
-let balance = 1000;
-let racing = false;
+const gravity = 0.35;
 
-const track = new Image();
-track.src = "/horse-race/track.png";
-
-const horses = [];
-const lanes = [50, 105, 160, 215, 270];
-const FINISH_X = canvas.width - 140;
-
-// ---------- INIT ----------
-function init() {
-  horses.length = 0;
-
-  for (let i = 1; i <= 5; i++) {
-    const img = new Image();
-    img.src = `/horse-race/horse${i}.png`;
-
-    horses.push({
-      name: `Horse ${i}`,
-      img,
-      x: 40,
-      y: lanes[i - 1],
-      speed: Math.random() * 1.4 + 2,
-      stamina: Math.random() * 250 + 250,
-      frame: 0,
-      frameTick: 0,
-      finished: false
-    });
+// --------- CREATE PEGS ---------
+for (let y = 80; y < 360; y += 60) {
+  for (let x = 60; x < canvas.width; x += 80) {
+    pegs.push({ x, y, r:6 });
   }
-
-  const sel = document.getElementById("pick");
-  sel.innerHTML = "";
-  horses.forEach((h, i) => {
-    const o = document.createElement("option");
-    o.value = i;
-    o.textContent = h.name;
-    sel.appendChild(o);
-  });
 }
 
-// ---------- DRAW ----------
+// --------- MODIFIERS ---------
+const modifiers = [
+  "Turbo Ball",
+  "Magnet Pegs",
+  "Golden Slot",
+  "Chaos Bounce",
+  "Hot Streak"
+];
+
+function randomMods() {
+  activeMods = modifiers.sort(() => 0.5 - Math.random()).slice(0, 3);
+  document.getElementById("mods").innerHTML =
+    "😎 Active Mods: " + activeMods.join(", ");
+}
+
+// --------- DRAW ---------
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(track, 0, 0, canvas.width, canvas.height);
 
-  ctx.fillStyle = "white";
-  ctx.fillRect(FINISH_X, 0, 6, canvas.height);
-
-  horses.forEach(h => {
-    ctx.drawImage(
-      h.img,
-      h.frame * FRAME_WIDTH,
-      0,
-      FRAME_WIDTH,
-      FRAME_HEIGHT,
-      h.x,
-      h.y,
-      90,
-      45
-    );
+  // Pegs
+  ctx.fillStyle = "#00ffff";
+  pegs.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fill();
   });
+
+  // Slots
+  const w = canvas.width / slots.length;
+  slots.forEach((m, i) => {
+    ctx.fillStyle = m >= 3 ? "#ffcc00" : "#333";
+    ctx.fillRect(i * w, canvas.height - 50, w - 2, 50);
+    ctx.fillStyle = "white";
+    ctx.fillText(m + "x", i * w + 12, canvas.height - 20);
+  });
+
+  // Ball
+  if (ball) {
+    ctx.fillStyle = "#ff00ff";
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, 7, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
 
-// ---------- RACE ----------
-function startRace() {
-  if (racing) return;
+// --------- DROP BALL ---------
+function dropBall() {
+  if (ball) return;
 
   const bet = Number(document.getElementById("bet").value);
-  if (bet <= 0 || bet > balance) return alert("Invalid bet");
+  if (bet > balance || bet <= 0) return alert("Invalid bet");
 
   balance -= bet;
-  document.getElementById("balance").textContent = balance;
+  updateBalance();
 
-  racing = true;
-  document.getElementById("result").innerHTML = "";
-  requestAnimationFrame(() => raceLoop(bet));
+  randomMods();
+
+  ball = {
+    x: canvas.width / 2,
+    y: 20,
+    vx: Math.random() * 2 - 1,
+    vy: activeMods.includes("Turbo Ball") ? 3 : 1.5,
+    bet
+  };
+
+  loop();
 }
 
-function raceLoop(bet) {
+// --------- GAME LOOP ---------
+function loop() {
   draw();
+  if (!ball) return;
 
-  let winner = null;
+  ball.vy += gravity;
+  ball.x += ball.vx;
+  ball.y += ball.vy;
 
-  horses.forEach(h => {
-    if (h.finished) return;
+  // Peg collision
+  pegs.forEach(p => {
+    const dx = ball.x - p.x;
+    const dy = ball.y - p.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < p.r + 7) {
+      ball.vy *= -0.6;
+      ball.vx += activeMods.includes("Chaos Bounce")
+        ? Math.random() * 4 - 2
+        : dx * 0.05;
 
-    // movement
-    let move = h.speed;
-    h.stamina--;
-    if (h.stamina < 120) move *= 0.6;
-    if (Math.random() < 0.04) move += 1.4;
-
-    h.x += move;
-
-    // animation
-    h.frameTick++;
-    if (h.frameTick > 6) {
-      h.frame = (h.frame + 1) % FRAMES;
-      h.frameTick = 0;
-    }
-
-    if (h.x >= FINISH_X) {
-      h.finished = true;
-      if (!winner) winner = h;
+      if (activeMods.includes("Magnet Pegs")) {
+        ball.vx += dx * -0.02;
+      }
     }
   });
 
-  if (winner) {
-    finishRace(winner, bet);
+  // Walls
+  if (ball.x < 5 || ball.x > canvas.width - 5) ball.vx *= -1;
+
+  // Bottom
+  if (ball.y >= canvas.height - 50) {
+    settleBall();
     return;
   }
 
-  requestAnimationFrame(() => raceLoop(bet));
+  requestAnimationFrame(loop);
 }
 
-// ---------- FINISH ----------
-function finishRace(winner, bet) {
-  racing = false;
-  const pick = document.getElementById("pick").value;
+// --------- RESULT ---------
+function settleBall() {
+  const slotWidth = canvas.width / slots.length;
+  let index = Math.floor(ball.x / slotWidth);
+  index = Math.max(0, Math.min(slots.length - 1, index));
 
-  let msg = `🏆 Winner: ${winner.name}<br>`;
+  let multiplier = slots[index];
 
-  if (horses[pick] === winner) {
-    const payout = bet * 2;
-    balance += payout;
-    msg += `You won $${payout}`;
-  } else {
-    msg += "You lost the bet";
+  // Golden Slot mod
+  if (activeMods.includes("Golden Slot")) {
+    multiplier = Math.max(multiplier, 5);
   }
 
-  document.getElementById("balance").textContent = balance;
-  document.getElementById("result").innerHTML = msg;
+  const win = Math.floor(ball.bet * multiplier);
+  balance += win;
 
-  init();
+  document.getElementById("result").innerHTML =
+    `🎯 ${multiplier}x — You won $${win}`;
+
+  updateBalance();
+  ball = null;
 }
 
-// ---------- START ----------
-track.onload = () => {
-  init();
-  draw();
-};
+// --------- UI ---------
+function updateBalance() {
+  document.getElementById("balance").textContent = balance;
+}
+
+updateBalance();
+draw();
 </script>
 
 </body>
