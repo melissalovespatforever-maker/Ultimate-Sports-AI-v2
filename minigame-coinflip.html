@@ -3,154 +3,220 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MLB Story Enhanced</title>
+<title>Ultimate Chess AI</title>
 <style>
-  body { font-family:sans-serif; background:#f0f0f0; display:flex; flex-direction:column; align-items:center; padding:20px;}
-  h1 { margin-bottom:10px; }
-  #story { width:600px; background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); }
-  #choices { margin-top:20px; display:flex; flex-direction:column; gap:10px; }
-  button { padding:10px 20px; font-size:16px; cursor:pointer; border:none; border-radius:5px; background:#007bff; color:#fff; }
-  button:hover { background:#0056b3; }
-  #stats { width:600px; margin-top:20px; background:#fff; padding:15px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); }
-  #storyImage { width:100%; max-height:300px; object-fit:cover; margin-top:10px; border-radius:10px; }
-  #message { margin-top:10px; font-style:italic; color:#333; }
+  body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; background: #f0f0f0; }
+  h1 { margin-top: 20px; }
+  #chessboard { display: grid; grid-template-columns: repeat(8, 70px); grid-template-rows: repeat(8, 70px); margin-top: 20px; border: 2px solid #333; }
+  .square { width: 70px; height: 70px; display: flex; justify-content: center; align-items: center; font-size: 42px; cursor: grab; user-select: none; transition: background 0.2s; }
+  .white { background: #f0d9b5; }
+  .black { background: #b58863; }
+  .highlight { background: yellow !important; }
+  #controls { margin-top: 20px; }
+  button { margin-right: 10px; padding: 8px 16px; font-size: 16px; }
+  #moveHistory { margin-top: 20px; width: 560px; max-height: 150px; overflow-y: auto; background: #fff; border: 1px solid #333; padding: 10px; font-size: 14px; }
+  .promotionChoice { display:flex; gap:10px; margin-top:10px; }
+  .promotionChoice button { padding:5px 10px; font-size:18px; }
 </style>
 </head>
 <body>
 
-<h1>MLB Story Enhanced</h1>
-<div id="story">Loading story...</div>
-<img id="storyImage" src="" alt="">
-<div id="choices"></div>
-<div id="stats"></div>
-<div id="message"></div>
+<h1>Ultimate Chess AI</h1>
+<div id="chessboard"></div>
+
+<div id="controls">
+  <button onclick="resetBoard()">Restart</button>
+  <button onclick="undoMove()">Undo</button>
+</div>
+
+<div id="moveHistory"></div>
+<div id="promotion" class="promotionChoice" style="display:none;">
+  <span>Promote Pawn:</span>
+  <button onclick="choosePromotion('Q')">♕</button>
+  <button onclick="choosePromotion('R')">♖</button>
+  <button onclick="choosePromotion('B')">♗</button>
+  <button onclick="choosePromotion('N')">♘</button>
+</div>
 
 <script>
-// --- Player Stats ---
-let player = {
-  name: "Rookie",
-  batting: 50,
-  pitching: 50,
-  fielding: 50,
-  stamina: 100,
-  morale: 50,
-  reputation: 50,
-  health: 100,
-  level: 1, // Minor
-  season: 1,
-  storyStage: 0
-};
+const boardEl=document.getElementById('chessboard');
+const moveHistoryEl=document.getElementById('moveHistory');
+const promotionEl=document.getElementById('promotion');
 
-// --- Story Segments ---
-const story = [
-  {
-    text: "Welcome to the Minor League! Today is your first training session. What will you do?",
-    image: "https://i.imgur.com/3sJ9Hfr.jpg", // placeholder training image
-    choices: [
-      { text: "Train hard to improve skills", effects:{batting:5, pitching:5, stamina:-15, morale:5}, next:1 },
-      { text: "Take it easy and save energy", effects:{stamina:15}, next:1 }
-    ]
-  },
-  {
-    text: "First game of the season! Do you swing aggressively or play conservative?",
-    image: "https://i.imgur.com/8Jkm3fH.jpg", // placeholder game image
-    choices: [
-      { text: "Swing aggressively", effects:{batting: Math.floor(Math.random()*10), morale:5, stamina:-10}, next:2 },
-      { text: "Play conservative", effects:{batting: Math.floor(Math.random()*5), morale:0, stamina:-5}, next:2 }
-    ]
-  },
-  {
-    text: "A teammate challenges you. How do you react?",
-    image: "https://i.imgur.com/tQTFN2k.jpg", // placeholder conflict image
-    choices: [
-      { text: "Stay calm and focus", effects:{morale:5, reputation:5}, next:3 },
-      { text: "Argue back", effects:{morale:-5, reputation:-5}, next:3 }
-    ]
-  },
-  {
-    text: "A scout notices your performance. Extra workout or rest?",
-    image: "https://i.imgur.com/7z0wBzM.jpg", // placeholder scout image
-    choices: [
-      { text: "Extra workout", effects:{batting:5, stamina:-10, reputation:10}, next:4 },
-      { text: "Rest", effects:{stamina:15}, next:4 }
-    ]
-  },
-  {
-    text: "End of Minor League season! Let's see if you get promoted.",
-    image: "https://i.imgur.com/UdJZQXx.jpg", // placeholder season image
-    choices: [
-      { text: "Check results", effects:{}, next:null }
-    ]
-  }
-];
+let board=[],turn='w',selected=null,moves=[],moveHistory=[],promotionPending=null;
+let hasMoved={},aiThinking=false;
 
-// --- Render Story ---
-function renderStory(stage){
-  const seg = story[stage];
-  document.getElementById("story").innerText = seg.text;
-  document.getElementById("storyImage").src = seg.image;
-  const choicesDiv = document.getElementById("choices");
-  choicesDiv.innerHTML="";
-  seg.choices.forEach(choice=>{
-    const btn = document.createElement("button");
-    btn.innerText = choice.text;
-    btn.onclick = ()=>{ applyChoice(choice); };
-    choicesDiv.appendChild(btn);
-  });
-  renderStats();
+const pieces={'wP':'♙','wR':'♖','wN':'♘','wB':'♗','wQ':'♕','wK':'♔','bP':'♟','bR':'♜','bN':'♞','bB':'♝','bQ':'♛','bK':'♚'};
+
+// --- Initialize Board ---
+function initBoard(){
+  board=[['bR','bN','bB','bQ','bK','bB','bN','bR'],
+         ['bP','bP','bP','bP','bP','bP','bP','bP'],
+         ['','','','','','','',''],
+         ['','','','','','','',''],
+         ['','','','','','','',''],
+         ['','','','','','','',''],
+         ['wP','wP','wP','wP','wP','wP','wP','wP'],
+         ['wR','wN','wB','wQ','wK','wB','wN','wR']];
+  turn='w'; selected=null; moves=[]; moveHistory=[]; promotionPending=null;
+  hasMoved={'wK':false,'bK':false,'wR0':false,'wR7':false,'bR0':false,'bR7':false};
+  renderBoard(); updateMoveHistory();
 }
 
-// --- Apply Choice ---
-function applyChoice(choice){
-  for(const key in choice.effects){
-    if(player.hasOwnProperty(key)){
-      player[key] += choice.effects[key];
-      if(player[key]>100) player[key]=100;
-      if(player[key]<0) player[key]=0;
+// --- Render Board ---
+function renderBoard(){
+  boardEl.innerHTML='';
+  for(let r=0;r<8;r++){
+    for(let c=0;c<8;c++){
+      const sq=document.createElement('div');
+      sq.classList.add('square');
+      sq.classList.add((r+c)%2===0?'white':'black');
+      sq.dataset.row=r; sq.dataset.col=c;
+      sq.innerHTML=pieces[board[r][c]]||'';
+      sq.draggable=true;
+      sq.addEventListener('dragstart',dragStart);
+      sq.addEventListener('dragover',dragOver);
+      sq.addEventListener('drop',dropPiece);
+      sq.addEventListener('click',clickSquare);
+      boardEl.appendChild(sq);
     }
   }
-  player.storyStage = choice.next;
-  if(choice.next === null){
-    endSeason();
-  } else {
-    renderStory(choice.next);
+}
+
+// --- Drag & Drop ---
+function dragStart(e){
+  const r=+e.target.dataset.row, c=+e.target.dataset.col;
+  if(board[r][c] && board[r][c][0]===turn) selected={r,c}; else e.preventDefault();
+}
+function dragOver(e){ e.preventDefault(); }
+function dropPiece(e){
+  if(!selected) return;
+  const r2=+e.target.dataset.row, c2=+e.target.dataset.col;
+  attemptMove(selected.r,selected.c,r2,c2);
+  selected=null;
+}
+
+// --- Click move fallback ---
+function clickSquare(e){
+  const r=+e.currentTarget.dataset.row, c=+e.currentTarget.dataset.col;
+  if(selected){ attemptMove(selected.r,selected.c,r,c); selected=null; }
+  else if(board[r][c] && board[r][c][0]===turn) selected={r,c};
+}
+
+// --- Attempt move ---
+function attemptMove(r1,c1,r2,c2){
+  if(promotionPending || aiThinking) return;
+  if(isValidMove(r1,c1,r2,c2)){
+    movePiece(r1,c1,r2,c2);
+    if(turn==='b') setTimeout(aiMove,300); // AI delay
   }
 }
 
-// --- Render Stats ---
-function renderStats(){
-  document.getElementById("stats").innerHTML=
-    `Level: ${player.level} (Season ${player.season})<br>
-     Batting: ${player.batting.toFixed(0)}<br>
-     Pitching: ${player.pitching.toFixed(0)}<br>
-     Fielding: ${player.fielding.toFixed(0)}<br>
-     Stamina: ${player.stamina.toFixed(0)}<br>
-     Morale: ${player.morale.toFixed(0)}<br>
-     Reputation: ${player.reputation.toFixed(0)}<br>
-     Health: ${player.health.toFixed(0)}`;
-}
-
-// --- End of Season / Promotion ---
-function endSeason(){
-  let msg="";
-  if(player.batting + player.pitching + player.fielding > 180){
-    player.level++;
-    player.season++;
-    msg = `Congrats! You are promoted to ${player.level===2?"AAA":"MLB"}!`;
-    // Next story chapter for new league
-    player.storyStage = 0;
-    renderStory(player.storyStage);
-  } else {
-    msg = "You stay in the Minor League. Train harder next season!";
-    document.getElementById("story").innerText = msg;
-    document.getElementById("choices").innerHTML="";
-    document.getElementById("message").innerText="Future seasons coming soon!";
+// --- Move piece logic ---
+function movePiece(r1,c1,r2,c2){
+  let piece=board[r1][c1], captured=board[r2][c2];
+  // Castling
+  if(piece[1]==='K' && Math.abs(c2-c1)===2){
+    if(c2>c1){ board[r2][5]=board[r2][7]; board[r2][7]=''; hasMoved[piece]=true; hasMoved[piece[0]+'R7']=true; }
+    else{ board[r2][3]=board[r2][0]; board[r2][0]=''; hasMoved[piece]=true; hasMoved[piece[0]+'R0']=true; }
   }
-  renderStats();
+  // Pawn promotion
+  if(piece[1]==='P' && (r2===0 || r2===7)){
+    promotionPending={r:r2,c:c2,color:turn};
+    board[r1][c1]='';
+    renderBoard(); promotionEl.style.display='flex'; return;
+  }
+  board[r2][c2]=piece; board[r1][c1]='';
+  if(piece[1]==='K') hasMoved[piece]=true;
+  if(piece[1]==='R') hasMoved[piece[0]+'R'+c1]=true;
+  moves.push({from:[r1,c1],to:[r2,c2],piece,captured});
+  moveHistory.push(describeMove(piece,r1,c1,r2,c2,captured));
+  turn=turn==='w'?'b':'w';
+  renderBoard(); updateMoveHistory(); checkGameStatus();
 }
 
-// --- Start Game ---
-renderStory(0);
+// --- Promotion ---
+function choosePromotion(p){
+  if(!promotionPending) return;
+  board[promotionPending.r][promotionPending.c]=promotionPending.color+p;
+  moves.push({from:[null,null],to:[promotionPending.r,promotionPending.c],piece:promotionPending.color+'P',captured:''});
+  moveHistory.push(promotionPending.color+'P->'+p);
+  promotionPending=null; promotionEl.style.display='none';
+  turn=turn==='w'?'b':'w';
+  renderBoard(); updateMoveHistory(); checkGameStatus();
+  if(turn==='b') setTimeout(aiMove,300);
+}
+
+// --- Describe move ---
+function describeMove(piece,r1,c1,r2,c2,captured){ return piece+String.fromCharCode(97+c2)+(8-r2)+(captured?'x'+captured:''); }
+
+// --- Undo ---
+function undoMove(){ if(moves.length===0 || aiThinking) return;
+  const last=moves.pop(); const {from,to,piece,captured}=last;
+  if(from[0]!==null){ board[from[0]][from[1]]=piece; board[to[0]][to[1]]=captured; }
+  else board[to[0]][to[1]]='';
+  moveHistory.pop(); turn=turn==='w'?'b':'w'; renderBoard(); updateMoveHistory();
+}
+
+// --- Update move history ---
+function updateMoveHistory(){ moveHistoryEl.innerHTML=moveHistory.map((m,i)=>`${i+1}. ${m}`).join('<br>'); }
+
+// --- Valid move ---
+function isValidMove(r1,c1,r2,c2){
+  const piece=board[r1][c1]; if(!piece || piece[0]!==turn) return false;
+  const target=board[r2][c2]; if(target && target[0]===turn) return false;
+  const dr=r2-r1, dc=c2-c1;
+  switch(piece[1]){
+    case 'P': const dir=turn==='w'?-1:1;
+      if(dc===0 && dr===dir && !target) return true;
+      if(dc===0 && dr===2*dir && !target && ((turn==='w'&&r1===6)||(turn==='b'&&r1===1)) && !board[r1+dir][c1]) return true;
+      if(Math.abs(dc)===1 && dr===dir && target && target[0]!==turn) return true;
+      return false;
+    case 'R': return (dr===0||dc===0) && pathClear(r1,c1,r2,c2);
+    case 'B': return Math.abs(dr)===Math.abs(dc) && pathClear(r1,c1,r2,c2);
+    case 'N': return (Math.abs(dr)===2 && Math.abs(dc)===1)||(Math.abs(dr)===1 && Math.abs(dc)===2);
+    case 'Q': return (Math.abs(dr)===Math.abs(dc)||dr===0||dc===0) && pathClear(r1,c1,r2,c2);
+    case 'K': if(Math.abs(dr)<=1 && Math.abs(dc)<=1) return true; if(dr===0 && Math.abs(dc)===2) return canCastle(r1,c1,dc>0); return false;
+  }
+  return false;
+}
+
+// --- Path clear ---
+function pathClear(r1,c1,r2,c2){ const dr=Math.sign(r2-r1), dc=Math.sign(c2-c1); let r=r1+dr,c=c1+dc; while(r!==r2||c!==c2){ if(board[r][c]) return false; r+=dr; c+=dc;} return true; }
+
+// --- Castling check ---
+function canCastle(r,c,kingside){ const color=turn; if(hasMoved[color+'K']) return false; const rookC=kingside?7:0; if(hasMoved[color+'R'+rookC]) return false;
+  const path=kingside?[c+1,c+2]:[c-1,c-2,c-3]; for(const cc of path) if(board[r][cc]) return false; return true;
+}
+
+// --- AI move ---
+function aiMove(){
+  aiThinking=true;
+  const allMoves=[];
+  for(let r=0;r<8;r++){
+    for(let c=0;c<8;c++){
+      if(board[r][c] && board[r][c][0]==='b'){
+        for(let r2=0;r2<8;r2++){
+          for(let c2=0;c2<8;c2++){
+            if(isValidMove(r,c,r2,c2)) allMoves.push({from:[r,c],to:[r2,c2]});
+          }
+        }
+      }
+    }
+  }
+  if(allMoves.length===0){ alert('White wins!'); resetBoard(); return;}
+  const move=allMoves[Math.floor(Math.random()*allMoves.length)];
+  movePiece(move.from[0],move.from[1],move.to[0],move.to[1]);
+  aiThinking=false;
+}
+
+// --- Check game status ---
+function checkGameStatus(){ const wK=board.flat().includes('wK'); const bK=board.flat().includes('bK'); if(!wK || !bK){ alert(!wK?'Black wins!':'White wins!'); resetBoard(); }}
+
+// --- Reset ---
+function resetBoard(){ initBoard(); }
+
+initBoard();
 </script>
 
 </body>
