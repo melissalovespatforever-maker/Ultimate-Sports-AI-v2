@@ -2,211 +2,104 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Ultimate Plinko</title>
+<title>Ultimate Plinko 😎</title>
 <style>
-  body {
-    background:#0b0f1a;
-    color:white;
-    font-family:Arial;
-    text-align:center;
-  }
-  canvas {
-    display:block;
-    margin:20px auto;
-    background:#05080f;
-    border-radius:12px;
-    box-shadow:0 0 20px #00ffff22;
-  }
-  .panel {
-    background:#11162a;
-    width:340px;
-    margin:auto;
-    padding:14px;
-    border-radius:12px;
-  }
-  button, input {
-    width:90%;
-    padding:8px;
-    margin-top:6px;
-  }
-  .mods {
-    font-size:13px;
-    color:#00ffff;
-  }
+body {
+  background:radial-gradient(circle at top, #0a0f2a, #02030a);
+  color:white;
+  font-family:Arial;
+  text-align:center;
+}
+canvas {
+  display:block;
+  margin:20px auto;
+  border-radius:16px;
+  box-shadow:0 0 40px #00ffff44;
+}
+.panel {
+  background:#0e1433;
+  width:360px;
+  margin:auto;
+  padding:14px;
+  border-radius:14px;
+}
+button, input {
+  width:90%;
+  padding:8px;
+  margin-top:6px;
+}
+.upgrades {
+  font-size:13px;
+  color:#00ffff;
+}
 </style>
 </head>
 <body>
 
-<h2>🟣 Ultimate Plinko</h2>
+<h2>🟣 Ultimate Plinko 😎</h2>
 
-<canvas id="plinko" width="420" height="520"></canvas>
+<canvas id="game" width="420" height="560"></canvas>
 
 <div class="panel">
-  💰 Balance: <span id="balance">1000</span><br>
-  Bet:
-  <input id="bet" type="number" value="50" min="10">
-  <button onclick="dropBall()">DROP BALL</button>
-  <div class="mods" id="mods"></div>
+💰 Balance: <span id="bal">1000</span><br>
+Bet:
+<input id="bet" type="number" value="50"><br>
+<button onclick="drop()">DROP BALL</button>
+
+<div class="upgrades">
+  🛒 Upgrades:<br>
+  <button onclick="buy('double')">Double Balls ($200)</button>
+  <button onclick="buy('smart')">Smart Ball ($150)</button>
+  <button onclick="buy('action')">Action Ball ($250)</button>
+</div>
 </div>
 
-<div id="result"></div>
+<div id="msg"></div>
 
 <script>
-const canvas = document.getElementById("plinko");
-const ctx = canvas.getContext("2d");
+const c = document.getElementById("game");
+const ctx = c.getContext("2d");
 
-let balance = 1000; // 🔌 hook to app wallet later
-let ball = null;
+let balance = 1000;
+let balls = [];
 let pegs = [];
-let slots = [0.5, 1, 2, 3, 5, 3, 2, 1, 0.5];
-let activeMods = [];
+let secretUnlocked = false;
+
+const upgrades = {
+  double:false,
+  smart:false,
+  action:false
+};
 
 const gravity = 0.35;
 
-// --------- CREATE PEGS ---------
-for (let y = 80; y < 360; y += 60) {
-  for (let x = 60; x < canvas.width; x += 80) {
-    pegs.push({ x, y, r:6 });
+// -------- TRIANGLE PEG BOARD --------
+const rows = 7;
+for (let r = 0; r < rows; r++) {
+  const count = r + 1;
+  const spacing = 50;
+  const startX = c.width/2 - (count-1)*spacing/2;
+
+  for (let i = 0; i < count; i++) {
+    pegs.push({
+      x: startX + i * spacing,
+      y: 80 + r * 55,
+      r: 6,
+      glow: Math.random()*10,
+      moving: Math.random() < 0.15,
+      dir: Math.random()<0.5?-1:1
+    });
   }
 }
 
-// --------- MODIFIERS ---------
-const modifiers = [
-  "Turbo Ball",
-  "Magnet Pegs",
-  "Golden Slot",
-  "Chaos Bounce",
-  "Hot Streak"
-];
+// -------- BOTTOM SLOTS --------
+let slots = [-1, -0.5, 1, 2, 5, 2, 1, -0.5, -1];
 
-function randomMods() {
-  activeMods = modifiers.sort(() => 0.5 - Math.random()).slice(0, 3);
-  document.getElementById("mods").innerHTML =
-    "😎 Active Mods: " + activeMods.join(", ");
-}
-
-// --------- DRAW ---------
+// -------- DRAW --------
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0,0,c.width,c.height);
 
   // Pegs
-  ctx.fillStyle = "#00ffff";
-  pegs.forEach(p => {
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    ctx.fill();
-  });
-
-  // Slots
-  const w = canvas.width / slots.length;
-  slots.forEach((m, i) => {
-    ctx.fillStyle = m >= 3 ? "#ffcc00" : "#333";
-    ctx.fillRect(i * w, canvas.height - 50, w - 2, 50);
-    ctx.fillStyle = "white";
-    ctx.fillText(m + "x", i * w + 12, canvas.height - 20);
-  });
-
-  // Ball
-  if (ball) {
-    ctx.fillStyle = "#ff00ff";
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, 7, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
-
-// --------- DROP BALL ---------
-function dropBall() {
-  if (ball) return;
-
-  const bet = Number(document.getElementById("bet").value);
-  if (bet > balance || bet <= 0) return alert("Invalid bet");
-
-  balance -= bet;
-  updateBalance();
-
-  randomMods();
-
-  ball = {
-    x: canvas.width / 2,
-    y: 20,
-    vx: Math.random() * 2 - 1,
-    vy: activeMods.includes("Turbo Ball") ? 3 : 1.5,
-    bet
-  };
-
-  loop();
-}
-
-// --------- GAME LOOP ---------
-function loop() {
-  draw();
-  if (!ball) return;
-
-  ball.vy += gravity;
-  ball.x += ball.vx;
-  ball.y += ball.vy;
-
-  // Peg collision
-  pegs.forEach(p => {
-    const dx = ball.x - p.x;
-    const dy = ball.y - p.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    if (dist < p.r + 7) {
-      ball.vy *= -0.6;
-      ball.vx += activeMods.includes("Chaos Bounce")
-        ? Math.random() * 4 - 2
-        : dx * 0.05;
-
-      if (activeMods.includes("Magnet Pegs")) {
-        ball.vx += dx * -0.02;
-      }
-    }
-  });
-
-  // Walls
-  if (ball.x < 5 || ball.x > canvas.width - 5) ball.vx *= -1;
-
-  // Bottom
-  if (ball.y >= canvas.height - 50) {
-    settleBall();
-    return;
-  }
-
-  requestAnimationFrame(loop);
-}
-
-// --------- RESULT ---------
-function settleBall() {
-  const slotWidth = canvas.width / slots.length;
-  let index = Math.floor(ball.x / slotWidth);
-  index = Math.max(0, Math.min(slots.length - 1, index));
-
-  let multiplier = slots[index];
-
-  // Golden Slot mod
-  if (activeMods.includes("Golden Slot")) {
-    multiplier = Math.max(multiplier, 5);
-  }
-
-  const win = Math.floor(ball.bet * multiplier);
-  balance += win;
-
-  document.getElementById("result").innerHTML =
-    `🎯 ${multiplier}x — You won $${win}`;
-
-  updateBalance();
-  ball = null;
-}
-
-// --------- UI ---------
-function updateBalance() {
-  document.getElementById("balance").textContent = balance;
-}
-
-updateBalance();
-draw();
-</script>
-
-</body>
-</html>
+  pegs.forEach(p=>{
+    p.glow +=
+      
