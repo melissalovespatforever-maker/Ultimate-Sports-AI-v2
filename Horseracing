@@ -1,6 +1,0 @@
-fetch('/startRace')
-    .then(response => response.json())
-    .then(data => {
-        // Update the frontend with race data
-        console.log(data);  // Race data from the backend
-    });
