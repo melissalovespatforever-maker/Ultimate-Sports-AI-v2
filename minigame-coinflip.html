@@ -2,29 +2,41 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>2D Horse Racing Simulator</title>
+<title>Horse Racing – Sprite Animated</title>
 <style>
-  body { background:#111; color:#fff; font-family:Arial; text-align:center; }
-  canvas { background:#000; display:block; margin:15px auto; border:3px solid #444; }
-  .ui { background:#222; width:360px; margin:auto; padding:12px; border-radius:8px; }
-  button, select, input { margin-top:6px; padding:6px; }
+  body {
+    background:#0f0f0f;
+    color:white;
+    font-family:Arial;
+    text-align:center;
+  }
+  canvas {
+    display:block;
+    margin:20px auto;
+    border:3px solid #333;
+    background:black;
+  }
+  .panel {
+    background:#1c1c1c;
+    width:320px;
+    margin:auto;
+    padding:12px;
+    border-radius:10px;
+  }
 </style>
 </head>
 <body>
 
-<h2>🏇 Horse Racing</h2>
+<h2>🏇 Horse Racing (Sprite Animated)</h2>
 
-<canvas id="game" width="900" height="360"></canvas>
+<canvas id="game" width="900" height="340"></canvas>
 
-<div class="ui">
-  💰 Balance: <span id="money">1000</span><br>
-
+<div class="panel">
+  💰 Balance: <span id="balance">1000</span><br>
   Horse:
-  <select id="horsePick"></select><br>
-
+  <select id="pick"></select><br>
   Bet:
-  <input type="number" id="bet" value="100" min="10"><br>
-
+  <input id="bet" type="number" value="100"><br>
   <button onclick="startRace()">Start Race</button>
 </div>
 
@@ -34,139 +46,151 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-let balance = 1000; // 🔌 replace later with app currency
-let racing = false;
-let winnerDeclared = false;
+const FRAME_WIDTH = 128;   // width of one sprite frame
+const FRAME_HEIGHT = 64;
+const FRAMES = 4;          // frames per horse
 
-const trackImg = new Image();
-trackImg.src = "track.png";
+let balance = 1000;
+let racing = false;
+
+const track = new Image();
+track.src = "/horse-race/track.png";
 
 const horses = [];
+const lanes = [50, 105, 160, 215, 270];
+const FINISH_X = canvas.width - 140;
 
-function loadHorses() {
+// ---------- INIT ----------
+function init() {
   horses.length = 0;
-  for (let i = 0; i < 5; i++) {
+
+  for (let i = 1; i <= 5; i++) {
     const img = new Image();
-    img.src = `horses/horse${i+1}.png`;
+    img.src = `/horse-race/horse${i}.png`;
 
     horses.push({
-      name: `Horse ${i+1}`,
+      name: `Horse ${i}`,
       img,
-      x: 30,
-      y: 60 + i * 55,
-      speed: Math.random() * 1.2 + 1.8,
-      stamina: Math.random() * 300 + 300,
-      burst: Math.random() * 0.8,
-      consistency: Math.random(),
+      x: 40,
+      y: lanes[i - 1],
+      speed: Math.random() * 1.4 + 2,
+      stamina: Math.random() * 250 + 250,
+      frame: 0,
+      frameTick: 0,
       finished: false
     });
   }
-}
 
-function populateDropdown() {
-  const sel = document.getElementById("horsePick");
+  const sel = document.getElementById("pick");
   sel.innerHTML = "";
   horses.forEach((h, i) => {
-    const opt = document.createElement("option");
-    opt.value = i;
-    opt.text = `${h.name}`;
-    sel.appendChild(opt);
+    const o = document.createElement("option");
+    o.value = i;
+    o.textContent = h.name;
+    sel.appendChild(o);
   });
 }
 
-function drawScene() {
+// ---------- DRAW ----------
+function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(trackImg, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(track, 0, 0, canvas.width, canvas.height);
 
-  // Finish line
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(canvas.width - 100, 0, 6, canvas.height);
+  ctx.fillStyle = "white";
+  ctx.fillRect(FINISH_X, 0, 6, canvas.height);
 
   horses.forEach(h => {
-    ctx.drawImage(h.img, h.x, h.y, 80, 40);
+    ctx.drawImage(
+      h.img,
+      h.frame * FRAME_WIDTH,
+      0,
+      FRAME_WIDTH,
+      FRAME_HEIGHT,
+      h.x,
+      h.y,
+      90,
+      45
+    );
   });
 }
 
+// ---------- RACE ----------
 function startRace() {
   if (racing) return;
 
   const bet = Number(document.getElementById("bet").value);
-  if (bet > balance || bet <= 0) return alert("Invalid bet");
+  if (bet <= 0 || bet > balance) return alert("Invalid bet");
 
   balance -= bet;
-  updateMoney();
+  document.getElementById("balance").textContent = balance;
 
   racing = true;
-  winnerDeclared = false;
   document.getElementById("result").innerHTML = "";
-
-  loadHorses();
-  populateDropdown();
   requestAnimationFrame(() => raceLoop(bet));
 }
 
 function raceLoop(bet) {
-  drawScene();
+  draw();
 
   let winner = null;
 
   horses.forEach(h => {
     if (h.finished) return;
 
+    // movement
     let move = h.speed;
-
-    // stamina drain
-    h.stamina -= 1;
-
-    if (h.stamina < 150) move *= 0.6;
-
-    // random burst
-    if (Math.random() < h.consistency) {
-      move += h.burst;
-    }
+    h.stamina--;
+    if (h.stamina < 120) move *= 0.6;
+    if (Math.random() < 0.04) move += 1.4;
 
     h.x += move;
 
-    if (h.x >= canvas.width - 130) {
+    // animation
+    h.frameTick++;
+    if (h.frameTick > 6) {
+      h.frame = (h.frame + 1) % FRAMES;
+      h.frameTick = 0;
+    }
+
+    if (h.x >= FINISH_X) {
       h.finished = true;
       if (!winner) winner = h;
     }
   });
 
-  if (winner && !winnerDeclared) {
-    winnerDeclared = true;
+  if (winner) {
     finishRace(winner, bet);
+    return;
   }
 
-  if (!winnerDeclared) {
-    requestAnimationFrame(() => raceLoop(bet));
-  }
+  requestAnimationFrame(() => raceLoop(bet));
 }
 
+// ---------- FINISH ----------
 function finishRace(winner, bet) {
-  const pick = document.getElementById("horsePick").value;
-  let text = `🏆 Winner: ${winner.name}<br>`;
+  racing = false;
+  const pick = document.getElementById("pick").value;
+
+  let msg = `🏆 Winner: ${winner.name}<br>`;
 
   if (horses[pick] === winner) {
     const payout = bet * 2;
     balance += payout;
-    text += `You won $${payout}`;
+    msg += `You won $${payout}`;
   } else {
-    text += "You lost the race";
+    msg += "You lost the bet";
   }
 
-  updateMoney();
-  document.getElementById("result").innerHTML = text;
+  document.getElementById("balance").textContent = balance;
+  document.getElementById("result").innerHTML = msg;
+
+  init();
 }
 
-function updateMoney() {
-  document.getElementById("money").textContent = balance;
-}
-
-trackImg.onload = () => {
-  loadHorses();
-  populateDropdown();
-  drawScene();
+// ---------- START ----------
+track.onload = () => {
+  init();
+  draw();
 };
 </script>
 
