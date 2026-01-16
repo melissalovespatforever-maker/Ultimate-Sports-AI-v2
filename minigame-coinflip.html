@@ -3,22 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MLB Story</title>
+<title>MLB Story Enhanced</title>
 <style>
-  body { font-family: sans-serif; background: #f0f0f0; display:flex; flex-direction:column; align-items:center; padding:20px;}
+  body { font-family:sans-serif; background:#f0f0f0; display:flex; flex-direction:column; align-items:center; padding:20px;}
   h1 { margin-bottom:10px; }
-  #story { width: 600px; background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2);}
+  #story { width:600px; background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); }
   #choices { margin-top:20px; display:flex; flex-direction:column; gap:10px; }
   button { padding:10px 20px; font-size:16px; cursor:pointer; border:none; border-radius:5px; background:#007bff; color:#fff; }
   button:hover { background:#0056b3; }
-  #stats { width: 600px; margin-top:20px; background:#fff; padding:15px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2);}
-  #message { margin-top:10px; font-style:italic; color:#333;}
+  #stats { width:600px; margin-top:20px; background:#fff; padding:15px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); }
+  #storyImage { width:100%; max-height:300px; object-fit:cover; margin-top:10px; border-radius:10px; }
+  #message { margin-top:10px; font-style:italic; color:#333; }
 </style>
 </head>
 <body>
 
-<h1>MLB Story</h1>
+<h1>MLB Story Enhanced</h1>
 <div id="story">Loading story...</div>
+<img id="storyImage" src="" alt="">
 <div id="choices"></div>
 <div id="stats"></div>
 <div id="message"></div>
@@ -26,61 +28,70 @@
 <script>
 // --- Player Stats ---
 let player = {
+  name: "Rookie",
   batting: 50,
   pitching: 50,
   fielding: 50,
   stamina: 100,
   morale: 50,
   reputation: 50,
-  level: 1, // Minor League
+  health: 100,
+  level: 1, // Minor
+  season: 1,
   storyStage: 0
 };
 
 // --- Story Segments ---
 const story = [
   {
-    text: "Welcome to the Minor League! Today is your first training session. Do you train hard or play it safe?",
+    text: "Welcome to the Minor League! Today is your first training session. What will you do?",
+    image: "https://i.imgur.com/3sJ9Hfr.jpg", // placeholder training image
     choices: [
-      { text: "Train hard", effects:{batting:5, pitching:5, stamina:-15, morale:5}, next:1 },
-      { text: "Play it safe", effects:{stamina:10, morale:0}, next:1 }
+      { text: "Train hard to improve skills", effects:{batting:5, pitching:5, stamina:-15, morale:5}, next:1 },
+      { text: "Take it easy and save energy", effects:{stamina:15}, next:1 }
     ]
   },
   {
-    text: "Your first game is coming up. Do you swing aggressively or play conservative?",
+    text: "First game of the season! Do you swing aggressively or play conservative?",
+    image: "https://i.imgur.com/8Jkm3fH.jpg", // placeholder game image
     choices: [
-      { text: "Swing aggressively", effects:{batting: Math.random()*10, morale:5, stamina:-10}, next:2 },
-      { text: "Play conservative", effects:{batting: Math.random()*5, morale:0, stamina:-5}, next:2 }
+      { text: "Swing aggressively", effects:{batting: Math.floor(Math.random()*10), morale:5, stamina:-10}, next:2 },
+      { text: "Play conservative", effects:{batting: Math.floor(Math.random()*5), morale:0, stamina:-5}, next:2 }
     ]
   },
   {
-    text: "A teammate challenges you on the field. How do you respond?",
+    text: "A teammate challenges you. How do you react?",
+    image: "https://i.imgur.com/tQTFN2k.jpg", // placeholder conflict image
     choices: [
-      { text: "Stay calm", effects:{morale:5, reputation:5}, next:3 },
+      { text: "Stay calm and focus", effects:{morale:5, reputation:5}, next:3 },
       { text: "Argue back", effects:{morale:-5, reputation:-5}, next:3 }
     ]
   },
   {
-    text: "A scout notices your performance. Do you impress them with an extra workout or take a rest day?",
+    text: "A scout notices your performance. Extra workout or rest?",
+    image: "https://i.imgur.com/7z0wBzM.jpg", // placeholder scout image
     choices: [
       { text: "Extra workout", effects:{batting:5, stamina:-10, reputation:10}, next:4 },
       { text: "Rest", effects:{stamina:15}, next:4 }
     ]
   },
   {
-    text: "End of Minor League season! Your stats will determine if you are promoted to AAA.",
+    text: "End of Minor League season! Let's see if you get promoted.",
+    image: "https://i.imgur.com/UdJZQXx.jpg", // placeholder season image
     choices: [
-      { text: "See result", effects:{}, next:null }
+      { text: "Check results", effects:{}, next:null }
     ]
   }
 ];
 
-// --- Render Story Segment ---
+// --- Render Story ---
 function renderStory(stage){
   const seg = story[stage];
   document.getElementById("story").innerText = seg.text;
+  document.getElementById("storyImage").src = seg.image;
   const choicesDiv = document.getElementById("choices");
   choicesDiv.innerHTML="";
-  seg.choices.forEach((choice,i)=>{
+  seg.choices.forEach(choice=>{
     const btn = document.createElement("button");
     btn.innerText = choice.text;
     btn.onclick = ()=>{ applyChoice(choice); };
@@ -94,13 +105,12 @@ function applyChoice(choice){
   for(const key in choice.effects){
     if(player.hasOwnProperty(key)){
       player[key] += choice.effects[key];
-      if(player[key] > 100) player[key]=100;
+      if(player[key]>100) player[key]=100;
       if(player[key]<0) player[key]=0;
     }
   }
   player.storyStage = choice.next;
   if(choice.next === null){
-    // End of story
     endSeason();
   } else {
     renderStory(choice.next);
@@ -110,28 +120,33 @@ function applyChoice(choice){
 // --- Render Stats ---
 function renderStats(){
   document.getElementById("stats").innerHTML=
-    `Level: ${player.level}<br>
+    `Level: ${player.level} (Season ${player.season})<br>
      Batting: ${player.batting.toFixed(0)}<br>
      Pitching: ${player.pitching.toFixed(0)}<br>
      Fielding: ${player.fielding.toFixed(0)}<br>
      Stamina: ${player.stamina.toFixed(0)}<br>
      Morale: ${player.morale.toFixed(0)}<br>
-     Reputation: ${player.reputation.toFixed(0)}`;
+     Reputation: ${player.reputation.toFixed(0)}<br>
+     Health: ${player.health.toFixed(0)}`;
 }
 
-// --- End of Season ---
+// --- End of Season / Promotion ---
 function endSeason(){
-  let msg = "";
+  let msg="";
   if(player.batting + player.pitching + player.fielding > 180){
-    player.level = 2; // Promote to AAA
-    msg = "Congrats! You are promoted to AAA!";
+    player.level++;
+    player.season++;
+    msg = `Congrats! You are promoted to ${player.level===2?"AAA":"MLB"}!`;
+    // Next story chapter for new league
+    player.storyStage = 0;
+    renderStory(player.storyStage);
   } else {
     msg = "You stay in the Minor League. Train harder next season!";
+    document.getElementById("story").innerText = msg;
+    document.getElementById("choices").innerHTML="";
+    document.getElementById("message").innerText="Future seasons coming soon!";
   }
-  document.getElementById("story").innerText = msg;
-  document.getElementById("choices").innerHTML="";
   renderStats();
-  document.getElementById("message").innerText="Game Over for this prototype. Future seasons coming soon!";
 }
 
 // --- Start Game ---
