@@ -1,185 +1,227 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>Ultimate Plinko 😎</title>
+
 <style>
-body {
+body{
   margin:0;
-  background:#060a1a;
-  color:white;
+  background:radial-gradient(circle at top,#0c1b3a,#040816);
   font-family:Arial, sans-serif;
+  color:#eaffff;
   text-align:center;
 }
 
-canvas {
-  display:block;
-  margin:20px auto;
-  background:radial-gradient(circle at top, #0c1435, #02030a);
-  border-radius:18px;
-  box-shadow:0 0 30px #00ffff55;
+h2{
+  margin-top:10px;
+  color:#7df9ff;
+  text-shadow:0 0 12px #00ffff88;
 }
 
-.panel {
+canvas{
+  display:block;
+  margin:14px auto;
+  border-radius:22px;
+  background:linear-gradient(180deg,#081633,#020611);
+  box-shadow:
+    0 0 40px #00e5ff44,
+    inset 0 0 25px #00e5ff22;
+}
+
+.panel{
   width:360px;
-  margin:auto;
+  margin:10px auto;
   padding:14px;
-  background:#0e1433;
-  border-radius:14px;
+  border-radius:16px;
+  background:#0a1433;
+  box-shadow:0 0 20px #00e5ff22;
 }
-button, input {
+
+button,input{
   width:95%;
-  padding:8px;
+  padding:10px;
   margin-top:6px;
-  border-radius:8px;
+  border-radius:10px;
   border:none;
+  font-size:15px;
 }
-button { background:#00bcd4; color:black; font-weight:bold; }
+
+button{
+  background:linear-gradient(135deg,#00e5ff,#00bcd4);
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.upg{
+  background:#091a2f;
+  color:#7df9ff;
+}
 </style>
 </head>
+
 <body>
 
-<h3>🟣 Ultimate Plinko 😎</h3>
+<h2>🟣 Ultimate Plinko 😎</h2>
 
-<canvas id="game" width="420" height="560"></canvas>
+<canvas id="game" width="480" height="650"></canvas>
 
 <div class="panel">
 💰 Balance: <span id="bal">1000</span><br>
 Bet:
 <input id="bet" type="number" value="50">
-<button id="dropBtn">DROP BALL</button>
+<button id="drop">DROP BALL</button>
 
 <b>Upgrades</b><br>
-<button onclick="buy('double')">Double Balls ($200)</button>
-<button onclick="buy('smart')">Smart Ball ($150)</button>
-<button onclick="buy('action')">Action Ball ($250)</button>
+<button class="upg" onclick="buy('double')">Double Balls ($200)</button>
+<button class="upg" onclick="buy('smart')">Smart Ball ($150)</button>
+<button class="upg" onclick="buy('action')">Action Ball ($250)</button>
 </div>
 
 <div id="msg"></div>
 
 <script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+ctx.font="14px Arial";
 
-ctx.font = "14px Arial";
+let balance=1000;
+let balls=[];
+let pegs=[];
+let secret=false;
 
-let balance = 1000;
-let balls = [];
-let pegs = [];
-let secret = false;
+const upgrades={double:false,smart:false,action:false};
 
-const upgrades = { double:false, smart:false, action:false };
+const betInput=document.getElementById("bet");
+const balEl=document.getElementById("bal");
+const msg=document.getElementById("msg");
 
-const betInput = document.getElementById("bet");
-const balEl = document.getElementById("bal");
-const msg = document.getElementById("msg");
+// -------- PHYSICS --------
+const gravity=0.38;
+const friction=0.995;
 
-const gravity = 0.35;
+// -------- BIG TRIANGLE PEG BOARD --------
+const rows=10;
+const spacingX=44;
+const spacingY=48;
 
-// -------- PEG BOARD --------
-for (let r=0;r<7;r++){
-  for (let i=0;i<=r;i++){
+for(let r=0;r<rows;r++){
+  for(let i=0;i<=r;i++){
     pegs.push({
-      x: canvas.width/2 + (i-r/2)*50,
-      y: 90 + r*55,
+      x: canvas.width/2 + (i-r/2)*spacingX,
+      y: 80 + r*spacingY,
       r: 6,
-      move: Math.random()<0.15,
-      dir: Math.random()<0.5?-1:1
+      move: Math.random()<0.12,
+      dir: Math.random()<0.5?-1:1,
+      gold:false
     });
   }
 }
 
-// -------- SLOTS --------
-let slots = [-1,-0.5,1,2,5,2,1,-0.5,-1];
+// -------- SLOTS (NEGATIVE + POSITIVE) --------
+let slots=[-2,-1,-0.5,1,2,5,2,1,-0.5,-1,-2];
 
 // -------- DRAW --------
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
+  // PEGS
   pegs.forEach(p=>{
     if(p.move){
-      p.x += p.dir*0.4;
-      if(Math.random()<0.01) p.dir*=-1;
+      p.x+=p.dir*0.4;
+      if(Math.random()<0.01)p.dir*=-1;
     }
-    ctx.fillStyle = p.gold ? "gold" : "#00ffff";
+    ctx.fillStyle=p.gold?"gold":"#00e5ff";
+    ctx.shadowColor=p.gold?"gold":"#00e5ff";
+    ctx.shadowBlur=10;
     ctx.beginPath();
     ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
     ctx.fill();
   });
 
-  const w = canvas.width / slots.length;
+  ctx.shadowBlur=0;
+
+  // SLOTS
+  const w=canvas.width/slots.length;
   slots.forEach((s,i)=>{
-    ctx.fillStyle = s<0?"#ff0033":"#222";
-    ctx.fillRect(i*w,canvas.height-50,w-2,50);
-    ctx.fillStyle="white";
-    ctx.fillText(s+"x",i*w+10,canvas.height-20);
+    ctx.fillStyle=s<0?"#ff3355":"#101a33";
+    ctx.fillRect(i*w,canvas.height-60,w-2,60);
+    ctx.fillStyle="#eaffff";
+    ctx.fillText(s+"x",i*w+12,canvas.height-24);
   });
 
+  // BALLS
   balls.forEach(b=>{
-    ctx.fillStyle = b.action?"#ff00ff":"#00ffcc";
+    ctx.fillStyle=b.action?"#ff00ff":"#00ffcc";
+    ctx.shadowColor=ctx.fillStyle;
+    ctx.shadowBlur=14;
     ctx.beginPath();
     ctx.arc(b.x,b.y,7,0,Math.PI*2);
     ctx.fill();
   });
+  ctx.shadowBlur=0;
 }
 
-// -------- LOOP --------
+// -------- UPDATE --------
 function update(){
   balls.forEach(b=>{
-    b.vy += gravity;
-    b.x += b.vx;
-    b.y += b.vy;
+    b.vy+=gravity;
+    b.x+=b.vx;
+    b.y+=b.vy;
+    b.vx*=friction;
 
     pegs.forEach(p=>{
       const dx=b.x-p.x, dy=b.y-p.y;
-      if(Math.hypot(dx,dy)<13){
-        b.vy*=-0.6;
-        b.vx += upgrades.smart?dx*0.01:dx*0.05;
+      const dist=Math.hypot(dx,dy);
+      if(dist<13){
+        const angle=Math.atan2(dy,dx);
+        const force=(13-dist)*0.18;
+        b.vx+=Math.cos(angle)*force;
+        b.vy+=Math.sin(angle)*force;
 
-        if(!secret && Math.random()<0.02){
+        if(!secret && Math.random()<0.015){
           p.gold=true;
           secret=true;
-          slots=[2,3,5,10,5,3,2];
-          msg.innerHTML="🟡 SECRET STAGE!";
+          slots=[3,5,10,20,10,5,3];
+          msg.innerHTML="🟡 SECRET GOLDEN BOARD!";
         }
       }
     });
 
-    if(b.y>canvas.height-50){
+    if(b.y>canvas.height-60){
       settle(b);
     }
   });
 
-  balls = balls.filter(b=>!b.done);
+  balls=balls.filter(b=>!b.done);
 }
 
 // -------- SETTLE --------
 function settle(b){
-  const w = canvas.width / slots.length;
-  let i = Math.floor(b.x/w);
-  i = Math.max(0,Math.min(slots.length-1,i));
-  const win = Math.floor(b.bet*slots[i]);
-  balance += win;
-  msg.innerHTML = `Result: ${slots[i]}x (${win>=0?'+':'-'}$${Math.abs(win)})`;
+  const w=canvas.width/slots.length;
+  let i=Math.floor(b.x/w);
+  i=Math.max(0,Math.min(slots.length-1,i));
+  const win=Math.floor(b.bet*slots[i]);
+  balance+=win;
+  msg.innerHTML=`Result: ${slots[i]}x (${win>=0?'+':'-'}$${Math.abs(win)})`;
+  balEl.textContent=balance;
   b.done=true;
-  balEl.textContent = balance;
 }
 
 // -------- DROP --------
-document.getElementById("dropBtn").onclick = ()=>{
-  const bet = Number(betInput.value);
-  if(bet<=0||bet>balance) return;
+document.getElementById("drop").onclick=()=>{
+  const bet=Number(betInput.value);
+  if(bet<=0||bet>balance)return;
 
-  balance -= bet;
-  balEl.textContent = balance;
-
+  balance-=bet;
+  balEl.textContent=balance;
   spawn(bet);
-  if(upgrades.double) spawn(bet);
+  if(upgrades.double)spawn(bet);
 };
 
 function spawn(bet){
   balls.push({
-    x: canvas.width/2 + Math.random()*8-4,
+    x:canvas.width/2+(Math.random()*10-5),
     y:20,
     vx:Math.random()*2-1,
     vy:1,
@@ -191,13 +233,13 @@ function spawn(bet){
 // -------- UPGRADES --------
 function buy(t){
   const cost={double:200,smart:150,action:250}[t];
-  if(balance<cost) return;
+  if(balance<cost)return;
   balance-=cost;
   upgrades[t]=true;
   balEl.textContent=balance;
 }
 
-// -------- MAIN LOOP --------
+// -------- LOOP --------
 function loop(){
   draw();
   update();
