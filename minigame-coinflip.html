@@ -3,106 +3,154 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Soccer Mini-Game</title>
+<title>MLB Story Enhanced</title>
 <style>
-  body { font-family: sans-serif; display:flex; flex-direction:column; align-items:center; background:#7ec850; margin:0; }
-  h1 { margin:10px 0; }
-  canvas { background:#3a7d34; border:3px solid #fff; border-radius:10px; margin-top:10px; }
-  #scoreboard { margin-top:10px; font-size:18px; color:#fff; }
+  body { font-family:sans-serif; background:#f0f0f0; display:flex; flex-direction:column; align-items:center; padding:20px;}
+  h1 { margin-bottom:10px; }
+  #story { width:600px; background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); }
+  #choices { margin-top:20px; display:flex; flex-direction:column; gap:10px; }
+  button { padding:10px 20px; font-size:16px; cursor:pointer; border:none; border-radius:5px; background:#007bff; color:#fff; }
+  button:hover { background:#0056b3; }
+  #stats { width:600px; margin-top:20px; background:#fff; padding:15px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.2); }
+  #storyImage { width:100%; max-height:300px; object-fit:cover; margin-top:10px; border-radius:10px; }
+  #message { margin-top:10px; font-style:italic; color:#333; }
 </style>
 </head>
 <body>
 
-<h1>Soccer Mini-Game</h1>
-<canvas id="gameCanvas" width="500" height="400"></canvas>
-<div id="scoreboard">Score: 0 | Time: 30s</div>
+<h1>MLB Story Enhanced</h1>
+<div id="story">Loading story...</div>
+<img id="storyImage" src="" alt="">
+<div id="choices"></div>
+<div id="stats"></div>
+<div id="message"></div>
 
 <script>
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+// --- Player Stats ---
+let player = {
+  name: "Rookie",
+  batting: 50,
+  pitching: 50,
+  fielding: 50,
+  stamina: 100,
+  morale: 50,
+  reputation: 50,
+  health: 100,
+  level: 1, // Minor
+  season: 1,
+  storyStage: 0
+};
 
-const player = { x: 230, y: 350, width: 40, height: 40, speed: 5 };
-const ball = { x: 0, y: 0, width: 20, height: 20, visible:false };
-const goal = { x: 150, y: 0, width: 200, height: 20 };
-let score = 0;
-let timeLeft = 30;
-let keys = {};
+// --- Story Segments ---
+const story = [
+  {
+    text: "Welcome to the Minor League! Today is your first training session. What will you do?",
+    image: "https://i.imgur.com/3sJ9Hfr.jpg", // placeholder training image
+    choices: [
+      { text: "Train hard to improve skills", effects:{batting:5, pitching:5, stamina:-15, morale:5}, next:1 },
+      { text: "Take it easy and save energy", effects:{stamina:15}, next:1 }
+    ]
+  },
+  {
+    text: "First game of the season! Do you swing aggressively or play conservative?",
+    image: "https://i.imgur.com/8Jkm3fH.jpg", // placeholder game image
+    choices: [
+      { text: "Swing aggressively", effects:{batting: Math.floor(Math.random()*10), morale:5, stamina:-10}, next:2 },
+      { text: "Play conservative", effects:{batting: Math.floor(Math.random()*5), morale:0, stamina:-5}, next:2 }
+    ]
+  },
+  {
+    text: "A teammate challenges you. How do you react?",
+    image: "https://i.imgur.com/tQTFN2k.jpg", // placeholder conflict image
+    choices: [
+      { text: "Stay calm and focus", effects:{morale:5, reputation:5}, next:3 },
+      { text: "Argue back", effects:{morale:-5, reputation:-5}, next:3 }
+    ]
+  },
+  {
+    text: "A scout notices your performance. Extra workout or rest?",
+    image: "https://i.imgur.com/7z0wBzM.jpg", // placeholder scout image
+    choices: [
+      { text: "Extra workout", effects:{batting:5, stamina:-10, reputation:10}, next:4 },
+      { text: "Rest", effects:{stamina:15}, next:4 }
+    ]
+  },
+  {
+    text: "End of Minor League season! Let's see if you get promoted.",
+    image: "https://i.imgur.com/UdJZQXx.jpg", // placeholder season image
+    choices: [
+      { text: "Check results", effects:{}, next:null }
+    ]
+  }
+];
 
-// --- Controls ---
-document.addEventListener("keydown", e => keys[e.key] = true);
-document.addEventListener("keyup", e => keys[e.key] = false);
-
-// --- Game Loop ---
-function gameLoop(){
-  update();
-  draw();
-  requestAnimationFrame(gameLoop);
+// --- Render Story ---
+function renderStory(stage){
+  const seg = story[stage];
+  document.getElementById("story").innerText = seg.text;
+  document.getElementById("storyImage").src = seg.image;
+  const choicesDiv = document.getElementById("choices");
+  choicesDiv.innerHTML="";
+  seg.choices.forEach(choice=>{
+    const btn = document.createElement("button");
+    btn.innerText = choice.text;
+    btn.onclick = ()=>{ applyChoice(choice); };
+    choicesDiv.appendChild(btn);
+  });
+  renderStats();
 }
 
-// --- Update ---
-function update(){
-  // Player movement
-  if(keys["ArrowLeft"] && player.x>0) player.x -= player.speed;
-  if(keys["ArrowRight"] && player.x+player.width<canvas.width) player.x += player.speed;
-  if(keys["ArrowUp"] && player.y>0) player.y -= player.speed;
-  if(keys["ArrowDown"] && player.y+player.height<canvas.height) player.y += player.speed;
-
-  // Shoot ball
-  if(keys[" "] && !ball.visible){
-    ball.x = player.x + player.width/2 - ball.width/2;
-    ball.y = player.y;
-    ball.visible = true;
-  }
-
-  // Move ball
-  if(ball.visible){
-    ball.y -= 8;
-    // Check if goal
-    if(ball.y <= goal.y + goal.height && ball.x + ball.width >= goal.x && ball.x <= goal.x + goal.width){
-      score++;
-      ball.visible = false;
-      ball.y = 0;
+// --- Apply Choice ---
+function applyChoice(choice){
+  for(const key in choice.effects){
+    if(player.hasOwnProperty(key)){
+      player[key] += choice.effects[key];
+      if(player[key]>100) player[key]=100;
+      if(player[key]<0) player[key]=0;
     }
-    // Out of screen
-    if(ball.y < 0) ball.visible = false;
+  }
+  player.storyStage = choice.next;
+  if(choice.next === null){
+    endSeason();
+  } else {
+    renderStory(choice.next);
   }
 }
 
-// --- Draw ---
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  
-  // Draw goal
-  ctx.fillStyle = "#ffec42";
-  ctx.fillRect(goal.x, goal.y, goal.width, goal.height);
-
-  // Draw player
-  ctx.fillStyle = "#0055ff";
-  ctx.fillRect(player.x, player.y, player.width, player.height);
-
-  // Draw ball
-  if(ball.visible){
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(ball.x, ball.y, ball.width, ball.height);
-  }
+// --- Render Stats ---
+function renderStats(){
+  document.getElementById("stats").innerHTML=
+    `Level: ${player.level} (Season ${player.season})<br>
+     Batting: ${player.batting.toFixed(0)}<br>
+     Pitching: ${player.pitching.toFixed(0)}<br>
+     Fielding: ${player.fielding.toFixed(0)}<br>
+     Stamina: ${player.stamina.toFixed(0)}<br>
+     Morale: ${player.morale.toFixed(0)}<br>
+     Reputation: ${player.reputation.toFixed(0)}<br>
+     Health: ${player.health.toFixed(0)}`;
 }
 
-// --- Timer ---
-const timer = setInterval(()=>{
-  timeLeft--;
-  document.getElementById("scoreboard").innerText = `Score: ${score} | Time: ${timeLeft}s`;
-  if(timeLeft<=0){
-    clearInterval(timer);
-    alert(`Time's up! You scored ${score} goals!`);
-    // Reset game
-    score=0;
-    timeLeft=30;
-    player.x=230; player.y=350;
+// --- End of Season / Promotion ---
+function endSeason(){
+  let msg="";
+  if(player.batting + player.pitching + player.fielding > 180){
+    player.level++;
+    player.season++;
+    msg = `Congrats! You are promoted to ${player.level===2?"AAA":"MLB"}!`;
+    // Next story chapter for new league
+    player.storyStage = 0;
+    renderStory(player.storyStage);
+  } else {
+    msg = "You stay in the Minor League. Train harder next season!";
+    document.getElementById("story").innerText = msg;
+    document.getElementById("choices").innerHTML="";
+    document.getElementById("message").innerText="Future seasons coming soon!";
   }
-},1000);
+  renderStats();
+}
 
-// --- Start game ---
-gameLoop();
+// --- Start Game ---
+renderStory(0);
 </script>
 
 </body>
