@@ -1,154 +1,120 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Home Run Derby</title>
+<title>Clutch Moment</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
-body {
-  background:#0b6623;
-  font-family: Arial, sans-serif;
-  color:#fff;
-  text-align:center;
+body{
   margin:0;
-  padding:20px;
+  font-family:Arial;
+  background:#111;
+  color:white;
+  text-align:center;
 }
-
-#game {
-  max-width:600px;
+#game{
+  max-width:420px;
   margin:auto;
-  background:#145a32;
-  border-radius:12px;
   padding:20px;
-  box-shadow:0 0 15px rgba(0,0,0,.6);
 }
-
-#bar {
-  width:100%;
-  height:30px;
+#scenario{
+  font-size:20px;
+  margin:20px 0;
+}
+#bar{
+  height:25px;
   background:#333;
   border-radius:20px;
   overflow:hidden;
-  margin:20px 0;
 }
-
-#marker {
-  width:20px;
-  height:30px;
+#marker{
+  height:25px;
+  width:15px;
   background:red;
   position:relative;
-  left:0;
 }
-
-#sweetSpot {
+#sweet{
   position:absolute;
   left:45%;
   width:10%;
-  height:30px;
+  height:25px;
   background:gold;
-  opacity:.7;
 }
-
-button {
-  padding:12px 30px;
+button{
+  margin-top:20px;
+  padding:12px 25px;
   font-size:18px;
   border:none;
   border-radius:8px;
-  cursor:pointer;
-  background:#f4d03f;
-  font-weight:bold;
+  background:#00c853;
+  color:black;
 }
-
-#stats {
+#score{
   margin-top:15px;
   font-size:18px;
 }
-
-#message {
-  margin-top:10px;
-  font-size:20px;
-  min-height:24px;
-}
 </style>
 </head>
-
 <body>
 
-<h1>⚾ Home Run Derby</h1>
+<h1>🔥 CLUTCH MOMENT</h1>
 
 <div id="game">
-  <p>Click SWING when the marker hits the GOLD zone!</p>
+  <div id="scenario"></div>
 
   <div id="bar">
-    <div id="sweetSpot"></div>
+    <div id="sweet"></div>
     <div id="marker"></div>
   </div>
 
-  <button onclick="swing()">SWING</button>
-
-  <div id="stats">
-    Home Runs: <span id="hr">0</span> |
-    Pitch: <span id="pitch">1</span>/10
-  </div>
-
-  <div id="message"></div>
+  <button onclick="act()">TAKE THE SHOT</button>
+  <div id="score">Score: 0 | Streak: 0</div>
 </div>
 
 <script>
-let marker = document.getElementById("marker");
-let position = 0;
-let direction = 1;
+const scenarios = [
+  "⚾ Bottom 9th. Tie game. Bases loaded.",
+  "⚽ Penalty kick to win the match.",
+  "🏀 2 seconds left. Down by 2.",
+  "🏈 4th & Goal. Championship on the line."
+];
+
+let pos = 0;
+let dir = 1;
 let speed = 6;
+let score = 0;
+let streak = 0;
 
-let pitch = 1;
-let homeRuns = 0;
+const marker = document.getElementById("marker");
+const scenarioEl = document.getElementById("scenario");
 
-function moveMarker(){
-  position += speed * direction;
-  if(position > 580 || position < 0){
-    direction *= -1;
-  }
-  marker.style.left = position + "px";
-}
+scenarioEl.innerText = scenarios[Math.floor(Math.random()*scenarios.length)];
 
-let interval = setInterval(moveMarker, 20);
+const move = setInterval(()=>{
+  pos += speed * dir;
+  if(pos > 380 || pos < 0) dir *= -1;
+  marker.style.left = pos + "px";
+},20);
 
-function swing(){
-  if(pitch > 10) return;
-
-  let center = 300;
-  let diff = Math.abs(position - center);
-
-  let msg = "";
-  let distance = 0;
+function act(){
+  const center = 210;
+  const diff = Math.abs(pos - center);
 
   if(diff < 20){
-    homeRuns++;
-    distance = Math.floor(420 + Math.random()*80);
-    msg = `🔥 PERFECT! ${distance} ft HOME RUN!`;
-  } 
-  else if(diff < 50){
-    distance = Math.floor(350 + Math.random()*60);
-    msg = `💪 Deep Fly! ${distance} ft`;
-  } 
-  else {
-    distance = Math.floor(150 + Math.random()*100);
-    msg = `😬 Weak Contact… ${distance} ft`;
+    score += 100 + streak*20;
+    streak++;
+    alert("🔥 CLUTCH! Crowd goes wild!");
+  } else if(diff < 50){
+    score += 40;
+    streak = 0;
+    alert("😬 Just barely...");
+  } else {
+    streak = 0;
+    alert("💀 Choked under pressure!");
   }
 
-  document.getElementById("hr").innerText = homeRuns;
-  document.getElementById("pitch").innerText = pitch;
-  document.getElementById("message").innerText = msg;
-
-  pitch++;
-
-  if(pitch > 10){
-    clearInterval(interval);
-    setTimeout(()=>{
-      alert(`Derby Over! Home Runs: ${homeRuns}`);
-    },500);
-  }
+  scenarioEl.innerText = scenarios[Math.floor(Math.random()*scenarios.length)];
+  document.getElementById("score").innerText = `Score: ${score} | Streak: ${streak}`;
 }
 </script>
 
