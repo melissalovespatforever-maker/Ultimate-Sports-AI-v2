@@ -7,7 +7,7 @@
 <style>
 body{
   margin:0;
-  background:radial-gradient(circle at top,#0b1430,#040816);
+  background:#050b1e;
   font-family:Arial, sans-serif;
   color:#eaffff;
   text-align:center;
@@ -15,15 +15,15 @@ body{
 
 h2{
   color:#ffd700;
-  text-shadow:0 0 15px #ffcc0066;
+  text-shadow:0 0 12px #ffcc0066;
 }
 
 canvas{
   display:block;
   margin:10px auto;
-  background:linear-gradient(#1c421c,#0e260e);
-  border-radius:20px;
-  box-shadow:0 0 30px #00ffff55;
+  background:#000;
+  border-radius:18px;
+  box-shadow:0 0 35px #00ffff55;
 }
 
 .panel{
@@ -47,19 +47,21 @@ button{
   font-weight:bold;
 }
 
-.odds{
-  text-align:left;
-  margin-top:8px;
-  font-size:14px;
+#announcer{
+  margin-top:10px;
+  font-size:16px;
+  color:#00ffff;
+  min-height:22px;
+  text-shadow:0 0 10px #00ffff99;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🐎 Ultimate Horse Racing</h2>
+<h2>🏁 Ultimate Horse Racing</h2>
 
-<canvas id="race" width="520" height="380"></canvas>
+<canvas id="race" width="540" height="380"></canvas>
 
 <div class="panel">
 💰 Balance: $<span id="bal">1000</span><br>
@@ -70,44 +72,52 @@ Horse:
 Bet:
 <input id="bet" type="number" value="100">
 
-<div class="odds" id="oddsBoard"></div>
+<div id="odds"></div>
 
 <button onclick="startRace()">START RACE</button>
 </div>
 
-<div id="msg"></div>
+<div id="announcer"></div>
 
 <script>
 const canvas=document.getElementById("race");
 const ctx=canvas.getContext("2d");
 
+const bal=document.getElementById("bal");
+const oddsBox=document.getElementById("odds");
+const announcer=document.getElementById("announcer");
+const pick=document.getElementById("pick");
+
 let balance=1000;
 let racing=false;
-let finish=2600;
 let camX=0;
+const finish=2600;
+
+const trackImg=new Image();
+trackImg.src="img/track.png";
 
 const horses=[];
 const colors=["#ff4444","#44ff44","#4488ff","#ff44ff","#ffff44","#ff8844"];
-const pick=document.getElementById("pick");
-const oddsBoard=document.getElementById("oddsBoard");
-const bal=document.getElementById("bal");
-const msg=document.getElementById("msg");
 
-// -------- CREATE HORSES --------
+// ---- CREATE HORSES ----
 for(let i=0;i<6;i++){
-  const speed=1.6+Math.random()*1.4;
+  const img=new Image();
+  img.src=`img/horse${i+1}.png`;
+
+  const speed=1.5+Math.random()*1.6;
   const stamina=100+Math.random()*70;
   const rating=speed*stamina;
 
   horses.push({
     id:i,
-    name:"Horse "+(i+1),
+    name:`Horse ${i+1}`,
     x:0,
     y:70+i*50,
     speed,
     stamina,
     rating,
     odds:0,
+    img,
     frame:0,
     finished:false,
     color:colors[i]
@@ -116,88 +126,82 @@ for(let i=0;i<6;i++){
   pick.innerHTML+=`<option value="${i}">Horse ${i+1}</option>`;
 }
 
+// ---- ODDS ----
 function calcOdds(){
   let total=horses.reduce((s,h)=>s+h.rating,0);
-  oddsBoard.innerHTML="<b>📊 Odds Board</b><br>";
+  oddsBox.innerHTML="<b>📊 ODDS</b><br>";
   horses.forEach(h=>{
     h.odds=(total/h.rating).toFixed(2);
-    oddsBoard.innerHTML+=`${h.name}: ${h.odds}x<br>`;
+    oddsBox.innerHTML+=`${h.name}: ${h.odds}x<br>`;
   });
 }
 calcOdds();
 
-// -------- DRAW HORSE SPRITE --------
-function drawHorse(h){
-  const x=h.x-camX+60;
-  const y=h.y;
-  const legSwing=(h.frame%20<10?1:-1)*5;
-
-  // body
-  ctx.fillStyle=h.color;
-  ctx.beginPath();
-  ctx.ellipse(x,y,20,10,0,0,Math.PI*2);
-  ctx.fill();
-
-  // head
-  ctx.beginPath();
-  ctx.ellipse(x+22,y-5,8,6,0,0,Math.PI*2);
-  ctx.fill();
-
-  // legs
-  ctx.strokeStyle="#000";
-  ctx.lineWidth=2;
-  ctx.beginPath();
-  ctx.moveTo(x-10,y+8);
-  ctx.lineTo(x-15+legSwing,y+20);
-  ctx.moveTo(x+5,y+8);
-  ctx.lineTo(x+10-legSwing,y+20);
-  ctx.stroke();
-
-  // jockey
-  ctx.fillStyle="#000";
-  ctx.fillRect(x-5,y-18,10,8);
+// ---- ANNOUNCER ----
+let lastLeader=-1;
+function announce(text){
+  announcer.textContent=text;
 }
 
-// -------- DRAW --------
+// ---- DRAW ----
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // lanes
-  for(let i=0;i<6;i++){
-    ctx.fillStyle=i%2?"#1c4a1c":"#143b14";
-    ctx.fillRect(0,i*60+40,canvas.width,40);
+  if(trackImg.complete){
+    ctx.drawImage(trackImg,-camX,0,3000,canvas.height);
   }
 
-  // finish
+  // finish line
   ctx.fillStyle="#fff";
   ctx.fillRect(finish-camX,0,6,canvas.height);
 
-  horses.forEach(drawHorse);
+  horses.forEach(h=>{
+    const x=h.x-camX+60;
+    const y=h.y;
+
+    if(h.img.complete){
+      ctx.drawImage(h.img,x-28,y-18,56,36);
+    }else{
+      ctx.fillStyle=h.color;
+      ctx.fillRect(x-20,y-10,40,20);
+    }
+  });
 }
 
-// -------- UPDATE --------
+// ---- UPDATE ----
 function update(){
-  let lead=0;
+  let lead=0, leader=null;
+
   horses.forEach(h=>{
     if(h.finished)return;
 
     let pace=h.speed*(h.stamina>40?1:0.7);
-    if(Math.random()<0.025) pace+=1.3;
+    if(Math.random()<0.02) pace+=1.4;
 
     h.x+=pace;
-    h.stamina-=0.18;
+    h.stamina-=0.15;
     h.frame++;
+
+    if(h.x>lead){
+      lead=h.x;
+      leader=h;
+    }
 
     if(h.x>=finish){
       h.finished=true;
       if(racing) finishRace(h);
     }
-    lead=Math.max(lead,h.x);
   });
-  camX=lead-120;
+
+  if(leader && leader.id!==lastLeader){
+    announce(`${leader.name} takes the lead!`);
+    lastLeader=leader.id;
+  }
+
+  camX=lead-140;
 }
 
-// -------- LOOP --------
+// ---- LOOP ----
 function loop(){
   if(!racing)return;
   update();
@@ -205,27 +209,29 @@ function loop(){
   requestAnimationFrame(loop);
 }
 
-// -------- START --------
+// ---- START ----
 function startRace(){
   if(racing)return;
+
   const bet=Number(document.getElementById("bet").value);
   if(bet<=0||bet>balance)return;
 
   balance-=bet;
   bal.textContent=balance;
-  msg.innerHTML="🏁 Race Started!";
 
   horses.forEach(h=>{
     h.x=0;
-    h.finished=false;
     h.stamina=100+Math.random()*70;
+    h.finished=false;
   });
 
+  announce("🏁 They're off and racing!");
+  lastLeader=-1;
   racing=true;
   loop();
 }
 
-// -------- FINISH --------
+// ---- FINISH ----
 function finishRace(winner){
   racing=false;
   const choice=Number(pick.value);
@@ -234,10 +240,11 @@ function finishRace(winner){
   if(winner.id===choice){
     const payout=Math.floor(bet*winner.odds);
     balance+=payout;
-    msg.innerHTML=`🏆 ${winner.name} WINS! +$${payout}`;
+    announce(`🏆 ${winner.name} WINS! +$${payout}`);
   }else{
-    msg.innerHTML=`❌ ${winner.name} wins.`;
+    announce(`❌ ${winner.name} wins the race.`);
   }
+
   bal.textContent=balance;
   calcOdds();
 }
