@@ -2,26 +2,31 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Ultimate Horse Racing 🐎</title>
+<title>AI BOT RACING 🤖</title>
+
 <style>
 body{
-  background:#050b1e;
-  font-family:Arial;
+  margin:0;
+  background:radial-gradient(circle at top,#020917,#000);
+  font-family:Arial, sans-serif;
   color:#eaffff;
   text-align:center;
-  margin:0;
+}
+h2{
+  color:#00ffff;
+  text-shadow:0 0 16px #00ffffaa;
 }
 canvas{
-  background:#08162e;
-  border-radius:20px;
-  box-shadow:0 0 35px #00ffff55;
-  margin:12px auto;
   display:block;
+  margin:12px auto;
+  background:linear-gradient(#050d22,#020611);
+  border-radius:20px;
+  box-shadow:0 0 40px #00ffff55;
 }
 .panel{
   width:420px;
   margin:auto;
-  background:#0b1d33;
+  background:#07142e;
   padding:12px;
   border-radius:14px;
 }
@@ -33,27 +38,28 @@ select,input,button{
   border:none;
 }
 button{
-  background:linear-gradient(135deg,#ffd700,#ffb300);
+  background:linear-gradient(135deg,#00ffff,#00bcd4);
   font-weight:bold;
 }
 #announcer{
   margin-top:10px;
+  min-height:24px;
   color:#00ffff;
-  min-height:22px;
-  text-shadow:0 0 10px #00ffff99;
+  text-shadow:0 0 12px #00ffffaa;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🏁 Ultimate Horse Racing</h2>
+<h2>🤖 AI BOT RACING ARENA</h2>
+
 <canvas id="race" width="560" height="380"></canvas>
 
 <div class="panel">
 💰 Balance: $<span id="bal">1000</span><br>
 
-Horse:
+Select AI:
 <select id="pick"></select>
 
 Bet:
@@ -70,96 +76,89 @@ Bet:
 const canvas = document.getElementById("race");
 const ctx = canvas.getContext("2d");
 const announcer = document.getElementById("announcer");
-const bal = document.getElementById("bal");
+const balEl = document.getElementById("bal");
 const oddsBox = document.getElementById("odds");
 const pick = document.getElementById("pick");
 
-let balance=1000;
-let racing=false;
-let camX=0;
-const finish=2600;
-let lastLeader=-1;
+let balance = 1000;
+let racing = false;
+let camX = 0;
+const finish = 2600;
+let lastLeader = -1;
 
-const horseData=[
- {name:"Midnight Comet",color:"#00eaff",burst:0.3},
- {name:"Golden Hoof",color:"#ffd700",burst:0.6},
- {name:"Iron Thunder",color:"#ff4444",burst:0.4},
- {name:"Neon Mirage",color:"#ff55ff",burst:0.7},
- {name:"Shadow Fang",color:"#aaaaaa",burst:0.2},
- {name:"Solar Blaze",color:"#ff8800",burst:0.5}
+const botData = [
+ { name:"NEON-X", color:"#00ffff", overclock:0.6 },
+ { name:"GOLDCORE", color:"#ffd700", overclock:0.5 },
+ { name:"REDSHIFT", color:"#ff4444", overclock:0.4 },
+ { name:"PHANTOM AI", color:"#ff55ff", overclock:0.7 },
+ { name:"OBSIDIAN", color:"#888888", overclock:0.3 },
+ { name:"SOLARFLUX", color:"#ff8800", overclock:0.55 }
 ];
 
-const horses=[];
+const bots = [];
 
-horseData.forEach((h,i)=>{
-  horses.push({
-    ...h,
+botData.forEach((b,i)=>{
+  bots.push({
+    ...b,
     id:i,
     x:0,
     y:70+i*50,
-    speed:1.6+Math.random()*1.4,
-    stamina:100+Math.random()*70,
+    speed:1.8+Math.random()*1.4,
+    heat:100+Math.random()*60,
     rating:0,
     frame:0,
     finished:false
   });
-  pick.innerHTML+=`<option value="${i}">${h.name}</option>`;
+  pick.innerHTML += `<option value="${i}">${b.name}</option>`;
 });
 
 function calcOdds(){
   let total=0;
-  horses.forEach(h=>{
-    h.rating=h.speed*h.stamina;
-    total+=h.rating;
+  bots.forEach(b=>{
+    b.rating=b.speed*b.heat;
+    total+=b.rating;
   });
-  oddsBox.innerHTML="<b>📊 ODDS</b><br>";
-  horses.forEach(h=>{
-    h.odds=(total/h.rating).toFixed(2);
-    oddsBox.innerHTML+=`${h.name}: ${h.odds}x<br>`;
+  oddsBox.innerHTML="<b>📊 AI ODDS</b><br>";
+  bots.forEach(b=>{
+    b.odds=(total/b.rating).toFixed(2);
+    oddsBox.innerHTML+=`${b.name}: ${b.odds}x<br>`;
   });
 }
 calcOdds();
 
 function announce(t){ announcer.textContent=t; }
 
-function drawHorse(h){
-  const x=h.x-camX+70;
-  const y=h.y;
-  const leg=Math.sin(h.frame*0.4)*6;
+function drawBot(b){
+  const x=b.x-camX+80;
+  const y=b.y;
+  const pulse=Math.sin(b.frame*0.3)*6;
 
   ctx.save();
   ctx.translate(x,y);
 
-  // glow
-  ctx.shadowColor=h.color;
-  ctx.shadowBlur=18;
+  ctx.shadowColor=b.color;
+  ctx.shadowBlur=20;
 
-  // body
-  ctx.fillStyle=h.color;
-  ctx.beginPath();
-  ctx.ellipse(0,0,24,12,0,0,Math.PI*2);
-  ctx.fill();
-
-  // head
-  ctx.beginPath();
-  ctx.arc(26,-4,8,0,Math.PI*2);
-  ctx.fill();
-
-  // mane
-  ctx.fillStyle="#000";
-  ctx.fillRect(-18,-12,10,4);
-
-  // legs
-  ctx.strokeStyle="#000";
+  // energy ring
+  ctx.strokeStyle=b.color;
   ctx.lineWidth=3;
   ctx.beginPath();
-  ctx.moveTo(-10,10);
-  ctx.lineTo(-10,16+leg);
-  ctx.moveTo(0,10);
-  ctx.lineTo(0,16-leg);
-  ctx.moveTo(10,10);
-  ctx.lineTo(10,16+leg);
+  ctx.arc(0,0,22+pulse*0.3,0,Math.PI*2);
   ctx.stroke();
+
+  // core
+  ctx.fillStyle=b.color;
+  ctx.beginPath();
+  ctx.arc(0,0,14,0,Math.PI*2);
+  ctx.fill();
+
+  // thruster
+  ctx.fillStyle="#ffffff";
+  ctx.beginPath();
+  ctx.moveTo(-14,0);
+  ctx.lineTo(-26,pulse);
+  ctx.lineTo(-14,-pulse);
+  ctx.fill();
 
   ctx.restore();
 }
@@ -167,40 +166,45 @@ function drawHorse(h){
 function draw(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // track
-  ctx.fillStyle="#113322";
-  ctx.fillRect(0,240,canvas.width,140);
+  // cyber lanes
+  for(let i=0;i<6;i++){
+    ctx.fillStyle=i%2?"#050f2a":"#071635";
+    ctx.fillRect(0,i*60+40,canvas.width,40);
+  }
 
   // finish line
   ctx.fillStyle="#fff";
   ctx.fillRect(finish-camX,0,6,canvas.height);
 
-  horses.forEach(drawHorse);
+  bots.forEach(drawBot);
 }
 
 function update(){
   let lead=0, leader=null;
 
-  horses.forEach(h=>{
-    if(h.finished)return;
+  bots.forEach(b=>{
+    if(b.finished) return;
 
-    let pace=h.speed;
-    if(Math.random()<h.burst*0.02) pace+=1.6;
+    let pace=b.speed;
+    if(b.heat<40) pace*=0.7;
 
-    if(h.stamina<40) pace*=0.7;
-
-    h.x+=pace;
-    h.stamina-=0.15;
-    h.frame++;
-
-    if(h.x>lead){
-      lead=h.x;
-      leader=h;
+    if(Math.random()<b.overclock*0.02){
+      pace+=2;
+      announce(`⚡ ${b.name} OVERCLOCKS!`);
     }
 
-    if(h.x>=finish){
-      h.finished=true;
-      if(racing) finishRace(h);
+    b.x+=pace;
+    b.heat-=0.18;
+    b.frame++;
+
+    if(b.x>lead){
+      lead=b.x;
+      leader=b;
+    }
+
+    if(b.x>=finish){
+      b.finished=true;
+      if(racing) finishRace(b);
     }
   });
 
@@ -209,33 +213,33 @@ function update(){
     lastLeader=leader.id;
   }
 
-  camX=lead-140;
+  camX=lead-160;
 }
 
 function loop(){
-  if(!racing)return;
+  if(!racing) return;
   update();
   draw();
   requestAnimationFrame(loop);
 }
 
 function startRace(){
-  if(racing)return;
+  if(racing) return;
   const bet=+document.getElementById("bet").value;
-  if(bet<=0||bet>balance)return;
+  if(bet<=0||bet>balance) return;
 
   balance-=bet;
-  bal.textContent=balance;
+  balEl.textContent=balance;
 
-  horses.forEach(h=>{
-    h.x=0;
-    h.stamina=100+Math.random()*70;
-    h.finished=false;
+  bots.forEach(b=>{
+    b.x=0;
+    b.heat=100+Math.random()*60;
+    b.finished=false;
   });
 
   lastLeader=-1;
   racing=true;
-  announce("🏁 They're off and racing!");
+  announce("🤖 AI SYSTEMS ONLINE… RACE START!");
   loop();
 }
 
@@ -247,12 +251,12 @@ function finishRace(winner){
   if(winner.id===choice){
     const payout=Math.floor(bet*winner.odds);
     balance+=payout;
-    announce(`🏆 ${winner.name} wins! +$${payout}`);
+    announce(`🏆 ${winner.name} DOMINATES! +$${payout}`);
   }else{
     announce(`❌ ${winner.name} wins the race.`);
   }
 
-  bal.textContent=balance;
+  balEl.textContent=balance;
   calcOdds();
 }
 </script>
