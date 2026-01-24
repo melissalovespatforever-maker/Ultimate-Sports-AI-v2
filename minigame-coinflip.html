@@ -2,230 +2,190 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Frogger: Chaos Crossing</title>
+<title>Ultimate Football Sim</title>
+
 <style>
-  body {
-    margin:0;
-    background:#111;
-    color:white;
-    font-family:sans-serif;
-    text-align:center;
-    user-select:none;
-  }
-  canvas {
-    background:#000;
-    display:block;
-    margin:auto;
-  }
-  #controls {
-    display:flex;
-    justify-content:center;
-    gap:10px;
-    margin-top:10px;
-  }
-  .btn {
-    width:60px;
-    height:60px;
-    background:#333;
-    color:white;
-    font-size:24px;
-    border-radius:12px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    touch-action:none;
-  }
+body{
+  background:#06111f;
+  color:#eaffff;
+  font-family:Arial, sans-serif;
+  text-align:center;
+}
+
+.panel{
+  width:380px;
+  margin:12px auto;
+  background:#0b1d33;
+  border-radius:12px;
+  padding:12px;
+  box-shadow:0 0 20px #00ffff33;
+}
+
+button,select{
+  width:95%;
+  padding:10px;
+  margin-top:6px;
+  border-radius:8px;
+  border:none;
+  font-weight:bold;
+}
+
+button{
+  background:#00c8ff;
+  cursor:pointer;
+}
+
+.log{
+  height:200px;
+  overflow:auto;
+  background:#020811;
+  margin-top:10px;
+  padding:8px;
+  font-size:13px;
+  text-align:left;
+}
+.score{
+  font-size:22px;
+  margin:6px;
+}
 </style>
 </head>
+
 <body>
 
-<h2>🐸 FROGGER: CHAOS CROSSING</h2>
-<p>Desktop: WASD / Arrows | Mobile: Touch Controls</p>
+<h2>🏈 Ultimate Football SIM</h2>
 
-<canvas id="game" width="480" height="640"></canvas>
+<div class="panel">
+<select id="teamA">
+  <option>City Stars</option>
+  <option>Coastal Sharks</option>
+  <option>Iron Wolves</option>
+</select>
 
-<!-- MOBILE CONTROLS -->
-<div id="controls">
-  <div class="btn" id="left">⬅️</div>
-  <div class="btn" id="up">⬆️</div>
-  <div class="btn" id="down">⬇️</div>
-  <div class="btn" id="right">➡️</div>
+<select id="teamB">
+  <option>Coastal Sharks</option>
+  <option>City Stars</option>
+  <option>Iron Wolves</option>
+</select>
+
+<select id="style">
+  <option value="balanced">Balanced</option>
+  <option value="aggressive">Aggressive</option>
+  <option value="safe">Conservative</option>
+</select>
+
+<button onclick="startGame()">START GAME</button>
 </div>
 
+<div class="panel score">
+<span id="scoreA">0</span> – <span id="scoreB">0</span><br>
+Q<span id="q">1</span> | <span id="clock">15:00</span>
+</div>
+
+<div class="panel log" id="log"></div>
+
 <script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+let game, interval;
 
-const TILE = 40;
-const ROWS = 16;
-const COLS = 12;
-
-let cars=[], logs=[], powerUps=[], winner=null;
-
-const players=[
- {x:5,y:15,color:"lime",alive:true,shield:false},
- {x:6,y:15,color:"cyan",alive:true,shield:false},
- {x:4,y:15,color:"orange",alive:true,shield:false},
- {x:7,y:15,color:"pink",alive:true,shield:false}
-];
-
-// ---- SPAWN ----
-function spawnCars(){
- cars=[];
- for(let y=10;y>=7;y--){
-  for(let i=0;i<3;i++){
-   cars.push({x:Math.random()*COLS,y,speed:(Math.random()>0.5?1:-1)*(1+Math.random())});
-  }
- }
-}
-function spawnLogs(){
- logs=[];
- for(let y=5;y>=3;y--){
-  for(let i=0;i<2;i++){
-   logs.push({x:Math.random()*COLS,y,speed:(Math.random()>0.5?0.5:-0.5)});
-  }
- }
-}
-function spawnPowerUp(){
- powerUps.push({
-  x:Math.floor(Math.random()*COLS),
-  y:Math.floor(Math.random()*ROWS),
-  type:Math.random()>0.5?"shield":"freeze"
- });
+function startGame(){
+  document.getElementById("log").innerHTML="";
+  game={
+    scoreA:0,
+    scoreB:0,
+    quarter:1,
+    clock:900,
+    possession:"A",
+    yard:25,
+    style:document.getElementById("style").value
+  };
+  updateUI();
+  interval=setInterval(playTick,800);
 }
 
-spawnCars();
-spawnLogs();
-setInterval(spawnPowerUp,5000);
-
-// ---- INPUT ----
-function movePlayer(p,dx,dy){
- if(!p.alive||winner) return;
- p.x+=dx; p.y+=dy;
- p.x=Math.max(0,Math.min(COLS-1,p.x));
- p.y=Math.max(0,Math.min(ROWS-1,p.y));
-}
-
-// Keyboard
-document.addEventListener("keydown",e=>{
- if(e.key==="w") movePlayer(players[0],0,-1);
- if(e.key==="s") movePlayer(players[0],0,1);
- if(e.key==="a") movePlayer(players[0],-1,0);
- if(e.key==="d") movePlayer(players[0],1,0);
-
- if(e.key==="ArrowUp") movePlayer(players[1],0,-1);
- if(e.key==="ArrowDown") movePlayer(players[1],0,1);
- if(e.key==="ArrowLeft") movePlayer(players[1],-1,0);
- if(e.key==="ArrowRight") movePlayer(players[1],1,0);
-});
-
-// Touch buttons (Player 1)
-const bind=(id,dx,dy)=>{
- const btn=document.getElementById(id);
- btn.addEventListener("touchstart",e=>{
-  e.preventDefault();
-  movePlayer(players[0],dx,dy);
- });
-};
-bind("up",0,-1);
-bind("down",0,1);
-bind("left",-1,0);
-bind("right",1,0);
-
-// ---- UPDATE ----
-function update(){
- if(winner) return;
-
- cars.forEach(c=>{
-  c.x+=c.speed*0.05;
-  if(c.x>COLS) c.x=0;
-  if(c.x<0) c.x=COLS;
- });
-
- logs.forEach(l=>{
-  l.x+=l.speed*0.05;
-  if(l.x>COLS) l.x=0;
-  if(l.x<0) l.x=COLS;
- });
-
- players.forEach(p=>{
-  if(!p.alive) return;
-
-  if(p.y===0) winner=p.color;
-
-  cars.forEach(c=>{
-   if(Math.floor(c.x)===p.x&&c.y===p.y){
-    if(p.shield) p.shield=false;
-    else p.alive=false;
-   }
-  });
-
-  if(p.y>=3&&p.y<=5){
-   let onLog=false;
-   logs.forEach(l=>{
-    if(Math.floor(l.x)===p.x&&l.y===p.y){
-     p.x+=l.speed>0?1:-1;
-     onLog=true;
-    }
-   });
-   if(!onLog&&!p.shield) p.alive=false;
+function playTick(){
+  if(game.quarter>4){
+    endGame();
+    return;
   }
 
-  powerUps.forEach((pu,i)=>{
-   if(pu.x===p.x&&pu.y===p.y){
-    if(pu.type==="shield") p.shield=true;
-    if(pu.type==="freeze"){
-     cars.forEach(c=>c.speed=0);
-     setTimeout(spawnCars,3000);
-    }
-    powerUps.splice(i,1);
-   }
-  });
- });
+  const play=randomPlay();
+  log(play.text);
+
+  game.yard+=play.yards;
+  game.clock-=30;
+
+  if(play.turnover){
+    log("🚨 Turnover!");
+    game.possession=game.possession==="A"?"B":"A";
+    game.yard=25;
+  }
+
+  if(game.yard>=100){
+    scoreTD();
+  }
+
+  if(game.clock<=0){
+    game.quarter++;
+    game.clock=900;
+    log("📢 Start Q"+game.quarter);
+  }
+
+  updateUI();
 }
 
-// ---- DRAW ----
-function draw(){
- ctx.clearRect(0,0,canvas.width,canvas.height);
+function randomPlay(){
+  let base=Math.random();
+  let yards=Math.floor(Math.random()*12)-2;
+  let turnover=false;
 
- ctx.fillStyle="#003366";
- ctx.fillRect(0,3*TILE,canvas.width,3*TILE);
- ctx.fillStyle="#333";
- ctx.fillRect(0,7*TILE,canvas.width,4*TILE);
- ctx.fillStyle="#006600";
- ctx.fillRect(0,0,canvas.width,TILE);
+  if(game.style==="aggressive"){
+    yards+=3;
+    if(Math.random()<0.08) turnover=true;
+  }
+  if(game.style==="safe"){
+    yards-=2;
+  }
 
- ctx.fillStyle="red";
- cars.forEach(c=>ctx.fillRect(c.x*TILE,c.y*TILE,TILE,TILE));
+  if(Math.random()<0.05) turnover=true;
 
- ctx.fillStyle="brown";
- logs.forEach(l=>ctx.fillRect(l.x*TILE,l.y*TILE,TILE,TILE));
-
- powerUps.forEach(p=>{
-  ctx.fillStyle=p.type==="shield"?"gold":"aqua";
-  ctx.fillRect(p.x*TILE,p.y*TILE,TILE,TILE);
- });
-
- players.forEach(p=>{
-  if(!p.alive) return;
-  ctx.fillStyle=p.shield?"white":p.color;
-  ctx.fillRect(p.x*TILE,p.y*TILE,TILE,TILE);
- });
-
- if(winner){
-  ctx.fillStyle="white";
-  ctx.font="28px Arial";
-  ctx.fillText("WINNER: "+winner.toUpperCase(),90,320);
- }
+  return{
+    yards,
+    turnover,
+    text:`${game.possession} runs play for ${yards} yards`
+  };
 }
 
-// ---- LOOP ----
-function loop(){
- update();
- draw();
- requestAnimationFrame(loop);
+function scoreTD(){
+  if(game.possession==="A"){
+    game.scoreA+=7;
+  }else{
+    game.scoreB+=7;
+  }
+  log("🏈 TOUCHDOWN!");
+  game.possession=game.possession==="A"?"B":"A";
+  game.yard=25;
 }
-loop();
+
+function updateUI(){
+  document.getElementById("scoreA").textContent=game.scoreA;
+  document.getElementById("scoreB").textContent=game.scoreB;
+  document.getElementById("q").textContent=game.quarter;
+  document.getElementById("clock").textContent=
+    Math.floor(game.clock/60)+":"+
+    (game.clock%60).toString().padStart(2,"0");
+}
+
+function log(t){
+  const l=document.getElementById("log");
+  l.innerHTML+=t+"<br>";
+  l.scrollTop=l.scrollHeight;
+}
+
+function endGame(){
+  clearInterval(interval);
+  log("🏁 FINAL SCORE");
+}
 </script>
+
 </body>
 </html>
