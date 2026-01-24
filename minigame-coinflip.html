@@ -2,188 +2,244 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Ultimate Football Sim</title>
+<title>Ultimate Horse Racing 🐎</title>
 
 <style>
 body{
-  background:#06111f;
-  color:#eaffff;
+  margin:0;
+  background:radial-gradient(circle at top,#0b1430,#040816);
   font-family:Arial, sans-serif;
+  color:#eaffff;
   text-align:center;
 }
 
-.panel{
-  width:380px;
-  margin:12px auto;
-  background:#0b1d33;
-  border-radius:12px;
-  padding:12px;
-  box-shadow:0 0 20px #00ffff33;
+h2{
+  color:#ffd700;
+  text-shadow:0 0 15px #ffcc0066;
 }
 
-button,select{
+canvas{
+  display:block;
+  margin:10px auto;
+  background:linear-gradient(#1c421c,#0e260e);
+  border-radius:20px;
+  box-shadow:0 0 30px #00ffff55;
+}
+
+.panel{
+  width:420px;
+  margin:auto;
+  padding:12px;
+  background:#0b1d33;
+  border-radius:14px;
+}
+
+select,input,button{
   width:95%;
   padding:10px;
   margin-top:6px;
   border-radius:8px;
   border:none;
-  font-weight:bold;
 }
 
 button{
-  background:#00c8ff;
-  cursor:pointer;
+  background:linear-gradient(135deg,#ffd700,#ffb300);
+  font-weight:bold;
 }
 
-.log{
-  height:200px;
-  overflow:auto;
-  background:#020811;
-  margin-top:10px;
-  padding:8px;
-  font-size:13px;
+.odds{
   text-align:left;
-}
-.score{
-  font-size:22px;
-  margin:6px;
+  margin-top:8px;
+  font-size:14px;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🏈 Ultimate Football SIM</h2>
+<h2>🐎 Ultimate Horse Racing</h2>
+
+<canvas id="race" width="520" height="380"></canvas>
 
 <div class="panel">
-<select id="teamA">
-  <option>City Stars</option>
-  <option>Coastal Sharks</option>
-  <option>Iron Wolves</option>
-</select>
+💰 Balance: $<span id="bal">1000</span><br>
 
-<select id="teamB">
-  <option>Coastal Sharks</option>
-  <option>City Stars</option>
-  <option>Iron Wolves</option>
-</select>
+Horse:
+<select id="pick"></select>
 
-<select id="style">
-  <option value="balanced">Balanced</option>
-  <option value="aggressive">Aggressive</option>
-  <option value="safe">Conservative</option>
-</select>
+Bet:
+<input id="bet" type="number" value="100">
 
-<button onclick="startGame()">START GAME</button>
+<div class="odds" id="oddsBoard"></div>
+
+<button onclick="startRace()">START RACE</button>
 </div>
 
-<div class="panel score">
-<span id="scoreA">0</span> – <span id="scoreB">0</span><br>
-Q<span id="q">1</span> | <span id="clock">15:00</span>
-</div>
-
-<div class="panel log" id="log"></div>
+<div id="msg"></div>
 
 <script>
-let game, interval;
+const canvas=document.getElementById("race");
+const ctx=canvas.getContext("2d");
 
-function startGame(){
-  document.getElementById("log").innerHTML="";
-  game={
-    scoreA:0,
-    scoreB:0,
-    quarter:1,
-    clock:900,
-    possession:"A",
-    yard:25,
-    style:document.getElementById("style").value
-  };
-  updateUI();
-  interval=setInterval(playTick,800);
+let balance=1000;
+let racing=false;
+let finish=2600;
+let camX=0;
+
+const horses=[];
+const colors=["#ff4444","#44ff44","#4488ff","#ff44ff","#ffff44","#ff8844"];
+const pick=document.getElementById("pick");
+const oddsBoard=document.getElementById("oddsBoard");
+const bal=document.getElementById("bal");
+const msg=document.getElementById("msg");
+
+// -------- CREATE HORSES --------
+for(let i=0;i<6;i++){
+  const speed=1.6+Math.random()*1.4;
+  const stamina=100+Math.random()*70;
+  const rating=speed*stamina;
+
+  horses.push({
+    id:i,
+    name:"Horse "+(i+1),
+    x:0,
+    y:70+i*50,
+    speed,
+    stamina,
+    rating,
+    odds:0,
+    frame:0,
+    finished:false,
+    color:colors[i]
+  });
+
+  pick.innerHTML+=`<option value="${i}">Horse ${i+1}</option>`;
 }
 
-function playTick(){
-  if(game.quarter>4){
-    endGame();
-    return;
-  }
+function calcOdds(){
+  let total=horses.reduce((s,h)=>s+h.rating,0);
+  oddsBoard.innerHTML="<b>📊 Odds Board</b><br>";
+  horses.forEach(h=>{
+    h.odds=(total/h.rating).toFixed(2);
+    oddsBoard.innerHTML+=`${h.name}: ${h.odds}x<br>`;
+  });
+}
+calcOdds();
 
-  const play=randomPlay();
-  log(play.text);
+// -------- DRAW HORSE SPRITE --------
+function drawHorse(h){
+  const x=h.x-camX+60;
+  const y=h.y;
+  const legSwing=(h.frame%20<10?1:-1)*5;
 
-  game.yard+=play.yards;
-  game.clock-=30;
+  // body
+  ctx.fillStyle=h.color;
+  ctx.beginPath();
+  ctx.ellipse(x,y,20,10,0,0,Math.PI*2);
+  ctx.fill();
 
-  if(play.turnover){
-    log("🚨 Turnover!");
-    game.possession=game.possession==="A"?"B":"A";
-    game.yard=25;
-  }
+  // head
+  ctx.beginPath();
+  ctx.ellipse(x+22,y-5,8,6,0,0,Math.PI*2);
+  ctx.fill();
 
-  if(game.yard>=100){
-    scoreTD();
-  }
+  // legs
+  ctx.strokeStyle="#000";
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(x-10,y+8);
+  ctx.lineTo(x-15+legSwing,y+20);
+  ctx.moveTo(x+5,y+8);
+  ctx.lineTo(x+10-legSwing,y+20);
+  ctx.stroke();
 
-  if(game.clock<=0){
-    game.quarter++;
-    game.clock=900;
-    log("📢 Start Q"+game.quarter);
-  }
-
-  updateUI();
+  // jockey
+  ctx.fillStyle="#000";
+  ctx.fillRect(x-5,y-18,10,8);
 }
 
-function randomPlay(){
-  let base=Math.random();
-  let yards=Math.floor(Math.random()*12)-2;
-  let turnover=false;
+// -------- DRAW --------
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  if(game.style==="aggressive"){
-    yards+=3;
-    if(Math.random()<0.08) turnover=true;
-  }
-  if(game.style==="safe"){
-    yards-=2;
+  // lanes
+  for(let i=0;i<6;i++){
+    ctx.fillStyle=i%2?"#1c4a1c":"#143b14";
+    ctx.fillRect(0,i*60+40,canvas.width,40);
   }
 
-  if(Math.random()<0.05) turnover=true;
+  // finish
+  ctx.fillStyle="#fff";
+  ctx.fillRect(finish-camX,0,6,canvas.height);
 
-  return{
-    yards,
-    turnover,
-    text:`${game.possession} runs play for ${yards} yards`
-  };
+  horses.forEach(drawHorse);
 }
 
-function scoreTD(){
-  if(game.possession==="A"){
-    game.scoreA+=7;
+// -------- UPDATE --------
+function update(){
+  let lead=0;
+  horses.forEach(h=>{
+    if(h.finished)return;
+
+    let pace=h.speed*(h.stamina>40?1:0.7);
+    if(Math.random()<0.025) pace+=1.3;
+
+    h.x+=pace;
+    h.stamina-=0.18;
+    h.frame++;
+
+    if(h.x>=finish){
+      h.finished=true;
+      if(racing) finishRace(h);
+    }
+    lead=Math.max(lead,h.x);
+  });
+  camX=lead-120;
+}
+
+// -------- LOOP --------
+function loop(){
+  if(!racing)return;
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// -------- START --------
+function startRace(){
+  if(racing)return;
+  const bet=Number(document.getElementById("bet").value);
+  if(bet<=0||bet>balance)return;
+
+  balance-=bet;
+  bal.textContent=balance;
+  msg.innerHTML="🏁 Race Started!";
+
+  horses.forEach(h=>{
+    h.x=0;
+    h.finished=false;
+    h.stamina=100+Math.random()*70;
+  });
+
+  racing=true;
+  loop();
+}
+
+// -------- FINISH --------
+function finishRace(winner){
+  racing=false;
+  const choice=Number(pick.value);
+  const bet=Number(document.getElementById("bet").value);
+
+  if(winner.id===choice){
+    const payout=Math.floor(bet*winner.odds);
+    balance+=payout;
+    msg.innerHTML=`🏆 ${winner.name} WINS! +$${payout}`;
   }else{
-    game.scoreB+=7;
+    msg.innerHTML=`❌ ${winner.name} wins.`;
   }
-  log("🏈 TOUCHDOWN!");
-  game.possession=game.possession==="A"?"B":"A";
-  game.yard=25;
-}
-
-function updateUI(){
-  document.getElementById("scoreA").textContent=game.scoreA;
-  document.getElementById("scoreB").textContent=game.scoreB;
-  document.getElementById("q").textContent=game.quarter;
-  document.getElementById("clock").textContent=
-    Math.floor(game.clock/60)+":"+
-    (game.clock%60).toString().padStart(2,"0");
-}
-
-function log(t){
-  const l=document.getElementById("log");
-  l.innerHTML+=t+"<br>";
-  l.scrollTop=l.scrollHeight;
-}
-
-function endGame(){
-  clearInterval(interval);
-  log("🏁 FINAL SCORE");
+  bal.textContent=balance;
+  calcOdds();
 }
 </script>
 
