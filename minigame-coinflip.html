@@ -2,149 +2,130 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>AI BOT RACING 🤖</title>
+<title>AI BOT RACING – MAX GRAPHICS</title>
 
 <style>
-body{
+html,body{
   margin:0;
-  background:radial-gradient(circle at top,#020917,#000);
+  background:#000;
+  overflow:hidden;
   font-family:Arial, sans-serif;
-  color:#eaffff;
-  text-align:center;
 }
-h2{
-  color:#00ffff;
-  text-shadow:0 0 16px #00ffffaa;
-}
-canvas{
-  display:block;
-  margin:12px auto;
-  background:linear-gradient(#050d22,#020611);
-  border-radius:20px;
-  box-shadow:0 0 40px #00ffff55;
-}
-.panel{
-  width:420px;
-  margin:auto;
-  background:#07142e;
+#ui{
+  position:absolute;
+  bottom:10px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(10,20,40,0.85);
   padding:12px;
   border-radius:14px;
-}
-select,input,button{
-  width:95%;
-  padding:10px;
-  margin-top:6px;
-  border-radius:8px;
-  border:none;
+  color:#0ff;
+  box-shadow:0 0 30px #0ff;
 }
 button{
-  background:linear-gradient(135deg,#00ffff,#00bcd4);
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:none;
+  background:linear-gradient(135deg,#00ffff,#0088ff);
   font-weight:bold;
-}
-#announcer{
-  margin-top:10px;
-  min-height:24px;
-  color:#00ffff;
-  text-shadow:0 0 12px #00ffffaa;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🤖 AI BOT RACING ARENA</h2>
+<canvas id="c"></canvas>
 
-<canvas id="race" width="560" height="380"></canvas>
-
-<div class="panel">
-💰 Balance: $<span id="bal">1000</span><br>
-
-Select AI:
-<select id="pick"></select>
-
-Bet:
-<input id="bet" type="number" value="100">
-
-<div id="odds"></div>
-
-<button onclick="startRace()">START RACE</button>
+<div id="ui">
+Balance: $<span id="bal">1000</span><br>
+<select id="pick"></select><br>
+Bet: <input id="bet" type="number" value="100"><br>
+<button onclick="start()">START RACE</button>
+<div id="log"></div>
 </div>
 
-<div id="announcer"></div>
-
 <script>
-const canvas = document.getElementById("race");
+const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
-const announcer = document.getElementById("announcer");
-const balEl = document.getElementById("bal");
-const oddsBox = document.getElementById("odds");
-const pick = document.getElementById("pick");
+resize();
+window.onresize = resize;
+
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
+}
 
 let balance = 1000;
-let racing = false;
-let camX = 0;
-const finish = 2600;
-let lastLeader = -1;
+const balEl = document.getElementById("bal");
+const log = document.getElementById("log");
+const pick = document.getElementById("pick");
 
-const botData = [
- { name:"NEON-X", color:"#00ffff", overclock:0.6 },
- { name:"GOLDCORE", color:"#ffd700", overclock:0.5 },
- { name:"REDSHIFT", color:"#ff4444", overclock:0.4 },
- { name:"PHANTOM AI", color:"#ff55ff", overclock:0.7 },
- { name:"OBSIDIAN", color:"#888888", overclock:0.3 },
- { name:"SOLARFLUX", color:"#ff8800", overclock:0.55 }
+const finish = 6000;
+let camX = 0;
+let racing = false;
+
+const bots = [
+ {name:"NEON-X",color:"#00ffff",over:0.6},
+ {name:"PHANTOM",color:"#ff55ff",over:0.75},
+ {name:"GOLDCORE",color:"#ffd700",over:0.5},
+ {name:"REDSHIFT",color:"#ff3333",over:0.45},
+ {name:"OBSIDIAN",color:"#aaaaaa",over:0.35}
 ];
 
-const bots = [];
-
-botData.forEach((b,i)=>{
-  bots.push({
-    ...b,
-    id:i,
-    x:0,
-    y:70+i*50,
-    speed:1.8+Math.random()*1.4,
-    heat:100+Math.random()*60,
-    rating:0,
-    frame:0,
-    finished:false
-  });
-  pick.innerHTML += `<option value="${i}">${b.name}</option>`;
+bots.forEach((b,i)=>{
+  b.x=0;
+  b.y=canvas.height*0.35+i*70;
+  b.speed=2+Math.random()*1.5;
+  b.heat=120;
+  b.frame=0;
+  b.finished=false;
+  b.particles=[];
+  pick.innerHTML+=`<option value="${i}">${b.name}</option>`;
 });
 
-function calcOdds(){
-  let total=0;
-  bots.forEach(b=>{
-    b.rating=b.speed*b.heat;
-    total+=b.rating;
-  });
-  oddsBox.innerHTML="<b>📊 AI ODDS</b><br>";
-  bots.forEach(b=>{
-    b.odds=(total/b.rating).toFixed(2);
-    oddsBox.innerHTML+=`${b.name}: ${b.odds}x<br>`;
+function announce(t){ log.textContent=t; }
+
+function spawnParticle(b){
+  b.particles.push({
+    x:b.x,
+    y:b.y,
+    vx:-Math.random()*6-2,
+    vy:(Math.random()-0.5)*3,
+    life:30,
+    size:4+Math.random()*4
   });
 }
-calcOdds();
-
-function announce(t){ announcer.textContent=t; }
 
 function drawBot(b){
-  const x=b.x-camX+80;
-  const y=b.y;
-  const pulse=Math.sin(b.frame*0.3)*6;
+  const sx = b.x - camX + 200;
+  const sy = b.y;
+  const pulse = Math.sin(b.frame*0.3)*8;
+  const scale = 1 + Math.min(b.speed/7,0.35);
 
   ctx.save();
-  ctx.translate(x,y);
+  ctx.translate(sx,sy);
+  ctx.scale(scale,scale);
 
-  ctx.shadowColor=b.color;
-  ctx.shadowBlur=20;
+  ctx.globalCompositeOperation="lighter";
 
-  // energy ring
-  ctx.strokeStyle=b.color;
-  ctx.lineWidth=3;
+  // glow aura
+  const g = ctx.createRadialGradient(0,0,10,0,0,40+pulse);
+  g.addColorStop(0,b.color);
+  g.addColorStop(1,"transparent");
+  ctx.fillStyle=g;
   ctx.beginPath();
-  ctx.arc(0,0,22+pulse*0.3,0,Math.PI*2);
-  ctx.stroke();
+  ctx.arc(0,0,45+pulse,0,Math.PI*2);
+  ctx.fill();
+
+  // energy rings
+  for(let i=0;i<3;i++){
+    ctx.strokeStyle=b.color;
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.arc(0,0,18+i*6+pulse*0.4,0,Math.PI*2);
+    ctx.stroke();
+  }
 
   // core
   ctx.fillStyle=b.color;
@@ -153,34 +134,62 @@ function drawBot(b){
   ctx.fill();
 
   // thruster
-  ctx.fillStyle="#ffffff";
+  ctx.fillStyle="rgba(255,255,255,0.9)";
   ctx.beginPath();
   ctx.moveTo(-14,0);
-  ctx.lineTo(-26,pulse);
-  ctx.lineTo(-14,-pulse);
+  ctx.lineTo(-30+pulse,8);
+  ctx.lineTo(-30-pulse,-8);
   ctx.fill();
 
   ctx.restore();
+  ctx.globalCompositeOperation="source-over";
 }
 
-function draw(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+function drawParticles(b){
+  b.particles.forEach(p=>{
+    ctx.fillStyle=`rgba(0,255,255,${p.life/30})`;
+    ctx.beginPath();
+    ctx.arc(p.x-camX+200,p.y,p.size,0,Math.PI*2);
+    ctx.fill();
+  });
+}
 
-  // cyber lanes
-  for(let i=0;i<6;i++){
-    ctx.fillStyle=i%2?"#050f2a":"#071635";
-    ctx.fillRect(0,i*60+40,canvas.width,40);
+function updateParticles(b){
+  b.particles.forEach(p=>{
+    p.x+=p.vx;
+    p.y+=p.vy;
+    p.life--;
+    p.size*=0.95;
+  });
+  b.particles=b.particles.filter(p=>p.life>0);
+}
+
+function drawTrack(){
+  ctx.fillStyle="#030914";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // grid
+  ctx.strokeStyle="rgba(0,255,255,0.08)";
+  for(let i=0;i<canvas.width;i+=60){
+    ctx.beginPath();
+    ctx.moveTo(i-camX%60,0);
+    ctx.lineTo(i-camX%60,canvas.height);
+    ctx.stroke();
   }
 
-  // finish line
-  ctx.fillStyle="#fff";
-  ctx.fillRect(finish-camX,0,6,canvas.height);
+  // lanes
+  for(let i=0;i<bots.length;i++){
+    ctx.fillStyle=i%2?"#040d20":"#061634";
+    ctx.fillRect(0,bots[i].y-30,canvas.width,60);
+  }
 
-  bots.forEach(drawBot);
+  // finish
+  ctx.fillStyle="#fff";
+  ctx.fillRect(finish-camX+200,0,8,canvas.height);
 }
 
 function update(){
-  let lead=0, leader=null;
+  let lead=0,leader=null;
 
   bots.forEach(b=>{
     if(b.finished) return;
@@ -188,32 +197,33 @@ function update(){
     let pace=b.speed;
     if(b.heat<40) pace*=0.7;
 
-    if(Math.random()<b.overclock*0.02){
-      pace+=2;
-      announce(`⚡ ${b.name} OVERCLOCKS!`);
+    if(Math.random()<b.over*0.02){
+      pace+=3;
+      announce(`⚡ ${b.name} OVERCLOCK!`);
     }
 
     b.x+=pace;
-    b.heat-=0.18;
+    b.heat-=0.2;
     b.frame++;
 
-    if(b.x>lead){
-      lead=b.x;
-      leader=b;
-    }
+    spawnParticle(b);
+    updateParticles(b);
+
+    if(b.x>lead){lead=b.x;leader=b;}
 
     if(b.x>=finish){
       b.finished=true;
-      if(racing) finishRace(b);
+      finishRace(b);
     }
   });
 
-  if(leader && leader.id!==lastLeader){
-    announce(`${leader.name} takes the lead!`);
-    lastLeader=leader.id;
-  }
+  camX += (lead-camX-300)*0.08;
+}
 
-  camX=lead-160;
+function draw(){
+  drawTrack();
+  bots.forEach(b=>drawParticles(b));
+  bots.forEach(b=>drawBot(b));
 }
 
 function loop(){
@@ -223,41 +233,37 @@ function loop(){
   requestAnimationFrame(loop);
 }
 
-function startRace(){
+function start(){
   if(racing) return;
-  const bet=+document.getElementById("bet").value;
-  if(bet<=0||bet>balance) return;
+  const bet=+betInput.value;
+  if(bet>balance||bet<=0) return;
 
   balance-=bet;
   balEl.textContent=balance;
 
   bots.forEach(b=>{
     b.x=0;
-    b.heat=100+Math.random()*60;
+    b.heat=120;
     b.finished=false;
+    b.particles=[];
   });
 
-  lastLeader=-1;
   racing=true;
-  announce("🤖 AI SYSTEMS ONLINE… RACE START!");
+  announce("🤖 AI SYSTEMS ONLINE");
   loop();
 }
 
-function finishRace(winner){
+function finishRace(w){
   racing=false;
-  const bet=+document.getElementById("bet").value;
-  const choice=+pick.value;
-
-  if(winner.id===choice){
-    const payout=Math.floor(bet*winner.odds);
-    balance+=payout;
-    announce(`🏆 ${winner.name} DOMINATES! +$${payout}`);
+  const bet=+betInput.value;
+  if(+pick.value===bots.indexOf(w)){
+    const win=bet*3;
+    balance+=win;
+    announce(`🏆 ${w.name} WINS +$${win}`);
   }else{
-    announce(`❌ ${winner.name} wins the race.`);
+    announce(`${w.name} wins the race`);
   }
-
   balEl.textContent=balance;
-  calcOdds();
 }
 </script>
 
