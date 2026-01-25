@@ -1,146 +1,291 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AI Bot Racing Ultimate</title>
+<title>AI Bot Racing</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-body{margin:0;background:#000;font-family:Arial;overflow:hidden}
-#ui{
- position:absolute;bottom:16px;left:50%;transform:translateX(-50%);
- background:rgba(10,20,40,.95);padding:14px;border-radius:18px;
- color:#00ffff;min-width:280px;box-shadow:0 0 30px #00ffff66;
+html,body{
+  margin:0;
+  background:#050a18;
+  font-family:Arial,Helvetica,sans-serif;
+  overflow:hidden;
+  color:#00ffff;
 }
-select,input,button{width:100%;margin-top:6px;padding:8px;border-radius:10px;border:none}
-button{background:linear-gradient(135deg,#00ffff,#0088ff);font-weight:bold}
-#log{text-align:center;margin-top:8px;min-height:22px}
+
+canvas{
+  display:block;
+}
+
+#panel{
+  position:absolute;
+  bottom:14px;
+  left:50%;
+  transform:translateX(-50%);
+  width:300px;
+  background:rgba(10,20,40,.95);
+  border-radius:16px;
+  padding:12px;
+  box-shadow:0 0 25px #00ffff66;
+}
+
+select,input,button{
+  width:100%;
+  margin-top:6px;
+  padding:8px;
+  border-radius:10px;
+  border:none;
+  font-size:14px;
+}
+
+button{
+  background:linear-gradient(135deg,#00ffff,#0088ff);
+  color:#001;
+  font-weight:bold;
+}
+
+#log{
+  text-align:center;
+  margin-top:8px;
+  min-height:22px;
+  font-size:14px;
+}
+
 #finish{
- position:absolute;top:40%;left:50%;transform:translateX(-50%);
- font-size:64px;font-weight:bold;color:#fff;
- text-shadow:0 0 30px #00ffff;
- opacity:0;pointer-events:none;
+  position:absolute;
+  top:40%;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:64px;
+  font-weight:bold;
+  color:white;
+  text-shadow:0 0 40px #00ffff;
+  opacity:0;
+  pointer-events:none;
 }
-canvas{display:block}
 </style>
 </head>
 
 <body>
-<canvas id="c"></canvas>
+
+<canvas id="game"></canvas>
 <div id="finish">FINISH!</div>
 
-<div id="ui">
-Balance: $<span id="bal">900</span>
+<div id="panel">
+  Balance: $<span id="bal">1000</span>
 
-<select id="track"></select>
-<select id="bot"></select>
-<input id="bet" type="number" value="100">
-<button onclick="startRace()">START RACE</button>
-<button onclick="openShop()">BOT SHOP</button>
-<div id="log"></div>
+  <select id="track"></select>
+  <select id="bot"></select>
+  <input id="bet" type="number" value="100">
+
+  <button onclick="startRace()">START RACE</button>
+  <button onclick="openShop()">BOT SHOP</button>
+
+  <div id="log"></div>
 </div>
 
 <script>
-const c=document.getElementById("c"),x=c.getContext("2d");
-function resize(){c.width=innerWidth;c.height=innerHeight}
-addEventListener("resize",resize);resize();
+/* ===========================
+   BASIC SETUP
+=========================== */
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+const finishText = document.getElementById("finish");
 
-let balance=900;
-const balEl=document.getElementById("bal");
-const logEl=document.getElementById("log");
-const finishEl=document.getElementById("finish");
-
-const tracks=[
- {name:"NEON CIRCUIT",length:3500},
- {name:"LAVA RUN",length:4200},
- {name:"VOID DRIFT",length:3800}
-];
-
-const ownedBots=[
- {id:"NEON-X",color:"#00ffff",speed:2.6,cooling:1,overclock:.6,wins:0,races:0}
-];
-
-const shopBots=[
- {id:"PHANTOM",price:400,color:"#ff55ff",speed:2.4,cooling:.9,overclock:.7},
- {id:"GOLDCORE",price:650,color:"#ffd700",speed:2.2,cooling:1.3,overclock:.5}
-];
-
-let racers=[],track,currentCam=0,racing=false;
-
-function populateUI(){
- document.getElementById("track").innerHTML=
- tracks.map((t,i)=>`<option value=${i}>${t.name}</option>`).join("");
- document.getElementById("bot").innerHTML=
- ownedBots.map((b,i)=>`<option value=${i}>${b.id} (Lv${b.wins+1})</option>`).join("");
+function resize(){
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
 }
-populateUI();
+addEventListener("resize",resize);
+resize();
 
+/* ===========================
+   GAME DATA
+=========================== */
+let balance = 1000;
+
+const tracks = [
+  { name:"NEON CIRCUIT", length:2200, color:"#0ff" },
+  { name:"LAVA RUN", length:2600, color:"#ff5533" },
+  { name:"VOID DRIFT", length:2400, color:"#bb55ff" }
+];
+
+const ownedBots = [
+  { name:"NEON-X", color:"#00ffff", speed:2.6, wins:0 }
+];
+
+const shopBots = [
+  { name:"PHANTOM", color:"#ff55ff", speed:2.4, price:400 },
+  { name:"GOLDCORE", color:"#ffd700", speed:2.2, price:650 },
+  { name:"REDSHIFT", color:"#ff3333", speed:2.9, price:900 }
+];
+
+let racers = [];
+let currentTrack = null;
+let cameraX = 0;
+let racing = false;
+
+/* ===========================
+   UI POPULATION
+=========================== */
+const trackSel = document.getElementById("track");
+const botSel   = document.getElementById("bot");
+const balEl    = document.getElementById("bal");
+const logEl    = document.getElementById("log");
+
+function updateUI(){
+  balEl.textContent = balance;
+
+  trackSel.innerHTML = tracks.map((t,i)=>
+    `<option value="${i}">${t.name}</option>`
+  ).join("");
+
+  botSel.innerHTML = ownedBots.map((b,i)=>
+    `<option value="${i}">${b.name} (W:${b.wins})</option>`
+  ).join("");
+}
+updateUI();
+
+/* ===========================
+   RACE START
+=========================== */
 function startRace(){
- if(racing) return;
- const bet=+bet.value;
- if(bet>balance||bet<=0) return;
+  if(racing) return;
 
- balance-=bet;balEl.textContent=balance;
- finishEl.style.opacity=0;
+  const bet = +bet.value;
+  if(bet <= 0 || bet > balance){
+    logEl.textContent = "Invalid bet";
+    return;
+  }
 
- track=tracks[track.value];
- racers=ownedBots.map((b,i)=>({
-  ...b,x:0,y:c.height*.4+i*70,heat:100,finished:false,parts:[]
- }));
- currentCam=0;racing=true;
- logEl.textContent="🏁 Race Started!";
- requestAnimationFrame(loop);
+  balance -= bet;
+  updateUI();
+  finishText.style.opacity = 0;
+
+  currentTrack = tracks[trackSel.value];
+  cameraX = 0;
+
+  racers = ownedBots.map((b,i)=>({
+    ...b,
+    x:0,
+    y:canvas.height*0.35 + i*80,
+    finished:false,
+    trail:[]
+  }));
+
+  racing = true;
+  logEl.textContent = "🏁 Race started!";
 }
 
-function loop(){
- if(!racing) return;
- update();draw();
- requestAnimationFrame(loop);
-}
-
-function update(){
- let leader=null;
- racers.forEach(r=>{
-  if(r.finished) return;
-  let v=r.speed+(Math.random()*.6);
-  if(Math.random()<r.overclock*.02){v+=3;logEl.textContent=`⚡ ${r.id} BOOST!`}
-  r.x+=v;
-  r.heat-=.3/r.cooling;
-  if(r.x>track.length){finish(r)}
-  if(!leader||r.x>leader.x) leader=r;
- });
- if(leader) currentCam+=(leader.x-currentCam-300)*.1;
-}
-
-function finish(w){
- racing=false;
- finishEl.style.opacity=1;
- w.wins++;w.races++;
- logEl.textContent=`🏆 ${w.id} WINS!`;
- balance+=200;balEl.textContent=balance;
- populateUI();
-}
-
-function draw(){
- x.fillStyle="#030814";x.fillRect(0,0,c.width,c.height);
- racers.forEach(r=>{
-  const px=r.x-currentCam+300;
-  x.fillStyle=r.color;
-  x.beginPath();x.arc(px,r.y,14,0,Math.PI*2);x.fill();
-  x.strokeStyle=r.color;
-  x.strokeRect(track.length-currentCam+300,0,6,c.height);
- });
-}
-
+/* ===========================
+   BOT SHOP
+=========================== */
 function openShop(){
- let msg="BOT SHOP\n";
- shopBots.forEach((b,i)=>msg+=`${i+1}. ${b.id} - $${b.price}\n`);
- const choice=prompt(msg+"Enter # to buy");
- const b=shopBots[choice-1];
- if(b&&balance>=b.price){
-  balance-=b.price;
-  ownedBots.push({...b,wins:0,races:0});
-  populateUI();balEl.textContent=balance;
- }
+  let text = "BOT SHOP\n\n";
+  shopBots.forEach((b,i)=>{
+    text += `${i+1}. ${b.name} - $${b.price}\n`;
+  });
+
+  const pick = prompt(text + "\nEnter number to buy");
+  const bot = shopBots[pick-1];
+
+  if(bot && balance >= bot.price){
+    balance -= bot.price;
+    ownedBots.push({name:bot.name,color:bot.color,speed:bot.speed,wins:0});
+    updateUI();
+  }
 }
+
+/* ===========================
+   UPDATE LOOP
+=========================== */
+function update(){
+  let leader = null;
+
+  racers.forEach(r=>{
+    if(r.finished) return;
+
+    const boost = Math.random()<0.02 ? 2 : 0;
+    r.x += r.speed + Math.random()*0.6 + boost;
+
+    r.trail.push({x:r.x,y:r.y});
+    if(r.trail.length>15) r.trail.shift();
+
+    if(!leader || r.x > leader.x) leader = r;
+
+    if(r.x >= currentTrack.length){
+      finishRace(r);
+    }
+  });
+
+  if(leader){
+    cameraX += (leader.x - cameraX - 200)*0.08;
+  }
+}
+
+function finishRace(winner){
+  racing = false;
+  winner.wins++;
+  balance += 200;
+  updateUI();
+
+  finishText.style.opacity = 1;
+  logEl.textContent = `🏆 ${winner.name} wins! +$200`;
+}
+
+/* ===========================
+   DRAW
+=========================== */
+function draw(){
+  ctx.fillStyle = "#050a18";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // track lanes
+  for(let i=0;i<5;i++){
+    ctx.fillStyle = i%2 ? "#081020" : "#0b162c";
+    ctx.fillRect(0,i*100+canvas.height*0.25,canvas.width,100);
+  }
+
+  racers.forEach(r=>{
+    const px = r.x - cameraX + 200;
+
+    // trail
+    r.trail.forEach((t,i)=>{
+      ctx.fillStyle = r.color+"55";
+      ctx.beginPath();
+      ctx.arc(t.x-cameraX+200,t.y,6-i*0.3,0,Math.PI*2);
+      ctx.fill();
+    });
+
+    // glow
+    ctx.shadowBlur = 25;
+    ctx.shadowColor = r.color;
+
+    // bot core
+    ctx.fillStyle = r.color;
+    ctx.beginPath();
+    ctx.arc(px,r.y,14,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+  });
+
+  // finish line
+  ctx.fillStyle = currentTrack?.color || "#fff";
+  ctx.fillRect(currentTrack.length-cameraX+200,0,6,canvas.height);
+}
+
+/* ===========================
+   MAIN LOOP
+=========================== */
+function loop(){
+  if(racing) update();
+  draw();
+  requestAnimationFrame(loop);
+}
+loop();
 </script>
+
 </body>
 </html>
