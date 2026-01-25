@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AI Bot Racing</title>
+<title>AI Bot Racing – Multi Track</title>
 
 <style>
 html,body{
@@ -11,21 +11,19 @@ html,body{
   overflow:hidden;
   font-family:Arial, sans-serif;
 }
-
 #ui{
   position:absolute;
   bottom:12px;
   left:50%;
   transform:translateX(-50%);
-  background:rgba(10,20,40,0.9);
+  background:rgba(10,20,40,0.92);
   padding:12px;
   border-radius:14px;
   color:#00ffff;
   box-shadow:0 0 25px #00ffff88;
-  min-width:240px;
   text-align:center;
+  min-width:260px;
 }
-
 button,input,select{
   width:100%;
   margin-top:6px;
@@ -33,12 +31,10 @@ button,input,select{
   border-radius:8px;
   border:none;
 }
-
 button{
   background:linear-gradient(135deg,#00ffff,#0088ff);
   font-weight:bold;
 }
-
 #log{
   margin-top:6px;
   min-height:18px;
@@ -53,63 +49,75 @@ button{
 
 <div id="ui">
 Balance: $<span id="balance">1000</span><br>
+
+<select id="trackSelect"></select>
 <select id="pick"></select>
+
 <input id="bet" type="number" value="100">
 <button id="startBtn">START RACE</button>
+
 <div id="log"></div>
 </div>
 
 <script>
-/* =======================
-   CANVAS SETUP
-======================= */
+/* ======================
+   CANVAS
+====================== */
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
-
 function resize(){
   canvas.width = innerWidth;
   canvas.height = innerHeight;
 }
-window.addEventListener("resize", resize);
+addEventListener("resize",resize);
 resize();
 
-/* =======================
-   UI ELEMENTS
-======================= */
+/* ======================
+   UI
+====================== */
 const balanceEl = document.getElementById("balance");
 const logEl = document.getElementById("log");
 const pickEl = document.getElementById("pick");
 const betEl = document.getElementById("bet");
+const trackEl = document.getElementById("trackSelect");
 document.getElementById("startBtn").onclick = startRace;
 
-/* =======================
-   GAME CONSTANTS
-======================= */
-const FINISH_LINE = 6000;
-const CAMERA_OFFSET = 300;
+/* ======================
+   TRACKS
+====================== */
+const tracks = [
+  { name:"NEON CIRCUIT", length:6000, bg1:"#030914", bg2:"#061a36", speedMod:1, heatMod:1 },
+  { name:"LAVA RUN", length:7200, bg1:"#1a0505", bg2:"#3a0a0a", speedMod:1.15, heatMod:1.4 },
+  { name:"VOID DRIFT", length:6500, bg1:"#020014", bg2:"#120026", speedMod:0.95, heatMod:0.8 }
+];
 
-/* =======================
+tracks.forEach((t,i)=>{
+  trackEl.innerHTML += `<option value="${i}">${t.name}</option>`;
+});
+
+let currentTrack = tracks[0];
+
+/* ======================
    GAME STATE
-======================= */
+====================== */
 let balance = 1000;
 let racing = false;
 let cameraX = 0;
 
-/* =======================
-   BOT DEFINITIONS
-======================= */
+/* ======================
+   BOTS
+====================== */
 const botTemplates = [
-  { name:"NEON-X",   color:"#00ffff", overclock:0.6 },
-  { name:"PHANTOM",  color:"#ff55ff", overclock:0.75 },
+  { name:"NEON-X", color:"#00ffff", overclock:0.6 },
+  { name:"PHANTOM", color:"#ff55ff", overclock:0.75 },
   { name:"GOLDCORE", color:"#ffd700", overclock:0.5 },
   { name:"REDSHIFT", color:"#ff3333", overclock:0.45 },
   { name:"OBSIDIAN", color:"#aaaaaa", overclock:0.35 }
 ];
 
-const bots = botTemplates.map((b,i)=>({
+const bots = botTemplates.map(b=>({
   ...b,
-  x:0,
-  y:0,
+  x:0, y:0,
   speed:2 + Math.random()*1.5,
   heat:120,
   frame:0,
@@ -121,17 +129,14 @@ botTemplates.forEach((b,i)=>{
   pickEl.innerHTML += `<option value="${i}">${b.name}</option>`;
 });
 
-/* =======================
+/* ======================
    HELPERS
-======================= */
-function announce(text){
-  logEl.textContent = text;
-}
+====================== */
+function announce(t){ logEl.textContent=t; }
 
-function spawnParticle(bot){
-  bot.particles.push({
-    x:bot.x,
-    y:bot.y,
+function spawnParticle(b){
+  b.particles.push({
+    x:b.x, y:b.y,
     vx:-Math.random()*6-2,
     vy:(Math.random()-0.5)*3,
     life:30,
@@ -139,25 +144,25 @@ function spawnParticle(bot){
   });
 }
 
-function updateParticles(bot){
-  bot.particles.forEach(p=>{
-    p.x += p.vx;
-    p.y += p.vy;
+function updateParticles(b){
+  b.particles.forEach(p=>{
+    p.x+=p.vx;
+    p.y+=p.vy;
     p.life--;
-    p.size *= 0.95;
+    p.size*=0.95;
   });
-  bot.particles = bot.particles.filter(p=>p.life>0);
+  b.particles=b.particles.filter(p=>p.life>0);
 }
 
-/* =======================
-   DRAWING
-======================= */
+/* ======================
+   DRAW
+====================== */
 function drawTrack(){
-  ctx.fillStyle="#030914";
+  ctx.fillStyle=currentTrack.bg1;
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
   // grid
-  ctx.strokeStyle="rgba(0,255,255,0.08)";
+  ctx.strokeStyle="rgba(0,255,255,0.06)";
   for(let i=0;i<canvas.width;i+=60){
     ctx.beginPath();
     ctx.moveTo(i-(cameraX%60),0);
@@ -167,60 +172,56 @@ function drawTrack(){
 
   // lanes
   bots.forEach((b,i)=>{
-    ctx.fillStyle = i%2 ? "#041022" : "#061a36";
+    ctx.fillStyle=i%2?currentTrack.bg2:"#020814";
     ctx.fillRect(0,b.y-30,canvas.width,60);
   });
 
   // finish line
   ctx.fillStyle="#fff";
-  ctx.fillRect(FINISH_LINE-cameraX+CAMERA_OFFSET,0,8,canvas.height);
+  ctx.fillRect(currentTrack.length-cameraX+300,0,8,canvas.height);
 }
 
-function drawParticles(bot){
-  bot.particles.forEach(p=>{
-    ctx.fillStyle = `rgba(0,255,255,${p.life/30})`;
+function drawParticles(b){
+  b.particles.forEach(p=>{
+    ctx.fillStyle=`rgba(0,255,255,${p.life/30})`;
     ctx.beginPath();
-    ctx.arc(p.x-cameraX+CAMERA_OFFSET,p.y,p.size,0,Math.PI*2);
+    ctx.arc(p.x-cameraX+300,p.y,p.size,0,Math.PI*2);
     ctx.fill();
   });
 }
 
-function drawBot(bot){
-  const x = bot.x - cameraX + CAMERA_OFFSET;
-  const y = bot.y;
-  const pulse = Math.sin(bot.frame*0.25)*6;
-  const scale = 1 + Math.min(bot.speed/7,0.3);
+function drawBot(b){
+  const x=b.x-cameraX+300;
+  const y=b.y;
+  const pulse=Math.sin(b.frame*0.25)*6;
+  const scale=1+Math.min(b.speed/7,0.3);
 
   ctx.save();
   ctx.translate(x,y);
   ctx.scale(scale,scale);
   ctx.globalCompositeOperation="lighter";
 
-  // glow
-  const glow = ctx.createRadialGradient(0,0,10,0,0,40+pulse);
-  glow.addColorStop(0,bot.color);
+  const glow=ctx.createRadialGradient(0,0,10,0,0,40+pulse);
+  glow.addColorStop(0,b.color);
   glow.addColorStop(1,"transparent");
-  ctx.fillStyle = glow;
+  ctx.fillStyle=glow;
   ctx.beginPath();
   ctx.arc(0,0,40+pulse,0,Math.PI*2);
   ctx.fill();
 
-  // rings
   for(let i=0;i<3;i++){
-    ctx.strokeStyle = bot.color;
-    ctx.lineWidth = 2;
+    ctx.strokeStyle=b.color;
+    ctx.lineWidth=2;
     ctx.beginPath();
     ctx.arc(0,0,18+i*6+pulse*0.4,0,Math.PI*2);
     ctx.stroke();
   }
 
-  // core
-  ctx.fillStyle = bot.color;
+  ctx.fillStyle=b.color;
   ctx.beginPath();
   ctx.arc(0,0,14,0,Math.PI*2);
   ctx.fill();
 
-  // thruster
   ctx.fillStyle="rgba(255,255,255,0.9)";
   ctx.beginPath();
   ctx.moveTo(-14,0);
@@ -232,44 +233,41 @@ function drawBot(bot){
   ctx.globalCompositeOperation="source-over";
 }
 
-/* =======================
-   GAME LOOP
-======================= */
+/* ======================
+   LOOP
+====================== */
 function update(){
-  let lead = 0;
-  let leader = null;
+  let leader=null;
+  let lead=0;
 
-  bots.forEach(bot=>{
-    if(bot.finished) return;
+  bots.forEach(b=>{
+    if(b.finished) return;
 
-    let pace = bot.speed;
-    if(bot.heat < 40) pace *= 0.7;
+    let pace=b.speed*currentTrack.speedMod;
+    if(b.heat<40) pace*=0.7;
 
-    if(Math.random() < bot.overclock*0.02){
-      pace += 3;
-      announce(`⚡ ${bot.name} OVERCLOCK`);
+    if(Math.random()<b.overclock*0.02){
+      pace+=3;
+      announce(`⚡ ${b.name} OVERCLOCK`);
     }
 
-    bot.x += pace;
-    bot.heat -= 0.2;
-    bot.frame++;
+    b.x+=pace;
+    b.heat-=0.2*currentTrack.heatMod;
+    b.frame++;
 
-    spawnParticle(bot);
-    updateParticles(bot);
+    spawnParticle(b);
+    updateParticles(b);
 
-    if(bot.x > lead){
-      lead = bot.x;
-      leader = bot;
-    }
+    if(b.x>lead){lead=b.x;leader=b;}
 
-    if(bot.x >= FINISH_LINE){
-      bot.finished = true;
-      finishRace(bot);
+    if(b.x>=currentTrack.length){
+      b.finished=true;
+      finishRace(b);
     }
   });
 
   if(leader){
-    cameraX += (leader.x - cameraX - CAMERA_OFFSET)*0.08;
+    cameraX+=(leader.x-cameraX-300)*0.08;
   }
 }
 
@@ -286,44 +284,47 @@ function loop(){
   requestAnimationFrame(loop);
 }
 
-/* =======================
+/* ======================
    GAME CONTROL
-======================= */
+====================== */
 function startRace(){
   if(racing) return;
 
-  const bet = +betEl.value;
-  if(bet<=0 || bet>balance) return;
+  const bet=+betEl.value;
+  if(bet<=0||bet>balance) return;
 
-  balance -= bet;
-  balanceEl.textContent = balance;
+  balance-=bet;
+  balanceEl.textContent=balance;
+
+  currentTrack=tracks[+trackEl.value];
+  cameraX=0;
 
   bots.forEach((b,i)=>{
-    b.x = 0;
-    b.y = canvas.height*0.35 + i*70;
-    b.heat = 120;
-    b.finished = false;
-    b.particles = [];
+    b.x=0;
+    b.y=canvas.height*0.35+i*70;
+    b.heat=120;
+    b.finished=false;
+    b.particles=[];
   });
 
-  racing = true;
-  announce("🤖 AI SYSTEMS ONLINE");
+  racing=true;
+  announce(`🏁 ${currentTrack.name} STARTED`);
   loop();
 }
 
-function finishRace(winner){
-  racing = false;
+function finishRace(w){
+  racing=false;
+  const bet=+betEl.value;
 
-  const bet = +betEl.value;
-  if(+pickEl.value === bots.indexOf(winner)){
-    const payout = bet*3;
-    balance += payout;
-    announce(`🏆 ${winner.name} WINS +$${payout}`);
+  if(+pickEl.value===bots.indexOf(w)){
+    const win=Math.floor(bet*3);
+    balance+=win;
+    announce(`🏆 ${w.name} WINS +$${win}`);
   }else{
-    announce(`${winner.name} wins the race`);
+    announce(`${w.name} wins the race`);
   }
 
-  balanceEl.textContent = balance;
+  balanceEl.textContent=balance;
 }
 </script>
 
