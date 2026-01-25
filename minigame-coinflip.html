@@ -2,48 +2,53 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>AI Bot Racing (Clean)</title>
+<title>AI Bot Racing Ultimate</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
 html,body{
   margin:0;
-  background:#050a18;
+  background:#040812;
   overflow:hidden;
-  font-family:Arial,Helvetica,sans-serif;
+  font-family:system-ui,Arial;
 }
 canvas{display:block;}
+
 #ui{
   position:absolute;
-  bottom:12px;
+  bottom:14px;
   left:50%;
   transform:translateX(-50%);
-  width:280px;
-  background:rgba(10,20,40,.95);
-  padding:12px;
-  border-radius:14px;
-  box-shadow:0 0 20px #00ffff66;
+  width:300px;
+  background:rgba(10,20,45,.96);
+  padding:14px;
+  border-radius:16px;
+  box-shadow:0 0 30px #00ffff55;
   color:#00ffff;
 }
-button,input,select{
+select,input,button{
   width:100%;
   margin-top:6px;
   padding:8px;
   border:none;
-  border-radius:10px;
+  border-radius:12px;
 }
 button{
-  background:linear-gradient(135deg,#00ffff,#0088ff);
-  font-weight:bold;
+  background:linear-gradient(135deg,#00ffff,#0066ff);
+  font-weight:700;
 }
-#log{text-align:center;margin-top:8px;min-height:20px;}
+#announcer{
+  margin-top:8px;
+  text-align:center;
+  min-height:36px;
+}
 #finish{
   position:absolute;
   top:40%;
   left:50%;
   transform:translateX(-50%);
-  font-size:56px;
+  font-size:52px;
   color:white;
-  text-shadow:0 0 30px #00ffff;
+  text-shadow:0 0 40px #00ffff;
   opacity:0;
 }
 </style>
@@ -51,182 +56,209 @@ button{
 
 <body>
 
-<canvas id="canvas"></canvas>
-<div id="finish">FINISH!</div>
+<canvas id="c"></canvas>
+<div id="finish"></div>
 
 <div id="ui">
-Balance: $<span id="balance">1000</span>
+Balance: $<span id="bal">1000</span>
 
 <select id="track">
   <option value="0">NEON CIRCUIT</option>
   <option value="1">LAVA RUN</option>
+  <option value="2">VOID SPEEDWAY</option>
 </select>
 
-<select id="bot">
-  <option value="0">NEON-X</option>
-</select>
+<select id="pick"></select>
 
 <input id="bet" type="number" value="100">
 
 <button id="start">START RACE</button>
-<div id="log"></div>
+<div id="announcer"></div>
 </div>
 
 <script>
-/* =========================
-   CANVAS SETUP
-========================= */
-const canvas = document.getElementById("canvas");
+/* ================= SETUP ================= */
+const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
-
 function resize(){
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
 }
-window.addEventListener("resize",resize);
-resize();
+addEventListener("resize",resize); resize();
 
-/* =========================
-   GAME STATE
-========================= */
+/* ================= DATA ================= */
 let balance = 1000;
 let racing = false;
 let cameraX = 0;
+let betAmount = 0;
+let pickedBot = null;
 
 const tracks = [
-  { name:"NEON CIRCUIT", length:1800, color:"#00ffff" },
-  { name:"LAVA RUN", length:2000, color:"#ff5533" }
+  {name:"NEON CIRCUIT", length:1800, friction:0.99, color:"#00ffff"},
+  {name:"LAVA RUN", length:2000, friction:0.985, color:"#ff5533"},
+  {name:"VOID SPEEDWAY", length:2300, friction:0.975, color:"#bb66ff"}
 ];
 
 const bots = [
-  { name:"NEON-X", color:"#00ffff", speed:2.6, wins:0 }
+  {name:"NEON-X", color:"#00ffff", base:2.4, skill:1.1},
+  {name:"BLAZE-7", color:"#ff5533", base:2.5, skill:1.0},
+  {name:"VORTEX", color:"#bb66ff", base:2.35, skill:1.2},
+  {name:"ION-GHOST", color:"#66ff99", base:2.3, skill:1.3}
+];
+
+const announcerLines = [
+  "🚀 Engines online!",
+  "⚡ Acceleration surge!",
+  "🔥 This race is heating up!",
+  "💥 A sudden speed burst!",
+  "👀 Anyone can win this!"
 ];
 
 let racers = [];
-let activeTrack = tracks[0];
+let activeTrack;
 
-/* =========================
-   UI ELEMENTS
-========================= */
-const balEl = document.getElementById("balance");
-const logEl = document.getElementById("log");
+/* ================= UI ================= */
+const balEl = document.getElementById("bal");
+const ann = document.getElementById("announcer");
 const finishEl = document.getElementById("finish");
-const startBtn = document.getElementById("start");
+const pickSel = document.getElementById("pick");
 
-/* =========================
-   START RACE
-========================= */
-startBtn.onclick = () => {
+/* populate picks */
+bots.forEach((b,i)=>{
+  const o = document.createElement("option");
+  o.value = i;
+  o.textContent = b.name;
+  pickSel.appendChild(o);
+});
+
+/* ================= START ================= */
+document.getElementById("start").onclick = ()=>{
   if(racing) return;
 
-  const bet = Number(document.getElementById("bet").value);
-  if(bet <= 0 || bet > balance){
-    logEl.textContent = "Invalid bet";
+  betAmount = +document.getElementById("bet").value;
+  if(betAmount<=0 || betAmount>balance){
+    ann.textContent = "❌ Invalid bet";
     return;
   }
 
-  balance -= bet;
+  balance -= betAmount;
   balEl.textContent = balance;
-  finishEl.style.opacity = 0;
 
-  activeTrack = tracks[
-    Number(document.getElementById("track").value)
-  ];
+  pickedBot = +pickSel.value;
+  activeTrack = tracks[+document.getElementById("track").value];
 
   racers = bots.map((b,i)=>({
-    name:b.name,
-    color:b.color,
-    speed:b.speed,
+    ...b,
     x:0,
-    y:canvas.height*0.45 + i*80,
+    speed:b.base,
+    y:canvas.height*0.4 + i*70,
     trail:[],
     finished:false
   }));
 
-  cameraX = 0;
   racing = true;
-  logEl.textContent = "🏁 Race started";
+  cameraX = 0;
+  finishEl.style.opacity = 0;
+  ann.textContent = "🏁 Race started!";
 };
 
-/* =========================
-   UPDATE
-========================= */
+/* ================= UPDATE ================= */
 function update(){
   if(!racing) return;
 
   let leader = racers[0];
 
-  racers.forEach(r=>{
+  racers.forEach((r,i)=>{
     if(r.finished) return;
 
-    r.x += r.speed + Math.random()*0.5;
+    // AI behavior
+    let chaos = Math.random()*0.4;
+    let comeback = r.x < leader.x-120 ? 0.3 : 0;
+
+    r.speed += (Math.random()-0.5)*0.08;
+    r.speed = Math.max(1.6, Math.min(3.4, r.speed));
+
+    r.x += (r.speed + chaos + comeback) * r.skill;
+    r.x *= activeTrack.friction;
+
     r.trail.push({x:r.x,y:r.y});
-    if(r.trail.length > 12) r.trail.shift();
+    if(r.trail.length>14) r.trail.shift();
 
     if(r.x > leader.x) leader = r;
 
     if(r.x >= activeTrack.length){
       r.finished = true;
       racing = false;
-      balance += 200;
-      balEl.textContent = balance;
-      finishEl.style.opacity = 1;
-      logEl.textContent = `🏆 ${r.name} wins!`;
+      finishRace(i);
     }
   });
 
-  cameraX += (leader.x - cameraX - 200)*0.08;
+  cameraX += (leader.x - cameraX - 220)*0.08;
+
+  if(Math.random()<0.01){
+    ann.textContent = announcerLines[
+      Math.floor(Math.random()*announcerLines.length)
+    ];
+  }
 }
 
-/* =========================
-   DRAW
-========================= */
+/* ================= FINISH ================= */
+function finishRace(winner){
+  finishEl.textContent = racers[winner].name + " WINS!";
+  finishEl.style.opacity = 1;
+
+  if(winner === pickedBot){
+    let payout = betAmount * 2;
+    balance += payout;
+    ann.textContent = "💰 YOU WON $" + payout;
+  }else{
+    ann.textContent = "😬 You lost the bet";
+  }
+  balEl.textContent = balance;
+}
+
+/* ================= DRAW ================= */
 function draw(){
-  ctx.fillStyle = "#050a18";
+  ctx.fillStyle="#040812";
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
   // lanes
   for(let i=0;i<4;i++){
-    ctx.fillStyle = i%2 ? "#081020" : "#0b162c";
-    ctx.fillRect(0,canvas.height*0.4+i*80,canvas.width,80);
+    ctx.fillStyle = i%2?"#071025":"#0b1635";
+    ctx.fillRect(0,canvas.height*0.37+i*70,canvas.width,70);
   }
 
   racers.forEach(r=>{
-    const px = r.x - cameraX + 200;
+    let px = r.x-cameraX+220;
 
     // trail
     r.trail.forEach((t,i)=>{
-      ctx.fillStyle = r.color + "55";
+      ctx.fillStyle = r.color+"55";
       ctx.beginPath();
-      ctx.arc(t.x-cameraX+200,t.y,6-i*0.4,0,Math.PI*2);
+      ctx.arc(t.x-cameraX+220,t.y,7-i*0.4,0,Math.PI*2);
       ctx.fill();
     });
 
-    // glow
-    ctx.shadowBlur = 20;
+    ctx.shadowBlur = 22;
     ctx.shadowColor = r.color;
-
     ctx.fillStyle = r.color;
     ctx.beginPath();
-    ctx.arc(px,r.y,14,0,Math.PI*2);
+    ctx.arc(px,r.y,15,0,Math.PI*2);
     ctx.fill();
     ctx.shadowBlur = 0;
   });
 
   // finish line
   ctx.fillStyle = activeTrack.color;
-  ctx.fillRect(activeTrack.length-cameraX+200,0,5,canvas.height);
+  ctx.fillRect(activeTrack.length-cameraX+220,0,6,canvas.height);
 }
 
-/* =========================
-   LOOP (ALWAYS RUNS)
-========================= */
-function loop(){
+/* ================= LOOP ================= */
+(function loop(){
   update();
   draw();
   requestAnimationFrame(loop);
-}
-loop();
+})();
 </script>
 
 </body>
